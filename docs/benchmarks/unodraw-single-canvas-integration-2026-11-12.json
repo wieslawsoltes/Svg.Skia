@@ -1,0 +1,415 @@
+{
+  "schema": 1,
+  "created_utc": "2026-11-12T22:00:29.634453+00:00",
+  "status": "reviewed_source_and_focused_checks_passed_fresh_browser_pending",
+  "source_commit": "17a8d4257682e5705668e076c69c61a85b31d197",
+  "candidate_default": "persistent (unchanged)",
+  "single_canvas_patch": {
+    "kind": "single-canvas-original-topology-experiment",
+    "base_commit": "6acf6dc45115e8300321cf2eae9fd27fe4c0d43d",
+    "indexed_retirement_and_storage_tree": "1cea5de52dede7b5508c6b3dda1a49dbd23e8de6",
+    "worktree": "/workspace/scratch/e6bdc61e475d/Svg.Skia-single-canvas",
+    "patch": {
+      "path": "/workspace/scratch/e6bdc61e475d/unodraw-ci/single-canvas-implementation/single-canvas.patch",
+      "sha256": "ea6d8669b3bae50eb25efae5ecfdbc7e3629c00a0a648424e98a3baba5e8b4c6",
+      "bytes": 16744
+    },
+    "files": [
+      {
+        "path": "samples/UnoDraw/App.xaml.cs",
+        "before_sha256": "ae58ccdeb17a5e632dbc2b3668ebf5bbee44e005c894122f123ea9540b875be4",
+        "after_sha256": "345a11537f1e9f812585f1373e2d2db30120f6382c0158826e2475966f71d143",
+        "after_bytes": 2833
+      },
+      {
+        "path": "samples/UnoDraw/Platforms/WebAssembly/App.WebAssembly.cs",
+        "before_sha256": "775fe1cecddfe32161facfdd5ea95fa8df9912bde9d376b5c888f911ac4da3ac",
+        "after_sha256": "8e049dd872a6de12ad1c72aee4efa0a1b4b26f0355754ea6775d4600930cd708",
+        "after_bytes": 3367
+      },
+      {
+        "path": "samples/UnoDraw/Platforms/WebAssembly/Rendering/WebGpuSkiaCanvasBridge.cs",
+        "before_sha256": "b3e13f65ccc57fb624f2c5e34992f878eafd708f924e79a0d82e64f0b4af28a2",
+        "after_sha256": "2b8e95006608f42c34f8f2cd070344fbbc6aca7d6c1004e81048b01f84d864a6",
+        "after_bytes": 13762
+      },
+      {
+        "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvas.Layers.cs",
+        "before_sha256": "e16b43e37ec77d80f2dc73a04d8a0745d7df70992cd60ac93ab355f1adbc11fb",
+        "after_sha256": "dbc4ebae72d9600d4ee4df23a73ae373644ba43cd970a1307d03837e3ace3e29",
+        "after_bytes": 3176
+      },
+      {
+        "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvas.Rendering.cs",
+        "before_sha256": "380628de7827f9e20da6dd594c1d86c780080103bb9ccdeb395c33495043ad09",
+        "after_sha256": "972413d8510db84e652ea9943a533be5091f8d08d65cbe5fe46292a412751469",
+        "after_bytes": 18839
+      },
+      {
+        "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvas.cs",
+        "before_sha256": "eb926bc1ea4911dfea55f2ee7eecee24b7150e9828ab9c60c228a0be75cc5c0b",
+        "after_sha256": "cd4154b2098cf13116004877cd20fb1da3c67ad1ffcafa370fb4a056f605c288",
+        "after_bytes": 19198
+      },
+      {
+        "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvasRenderTopology.cs",
+        "before_sha256": null,
+        "after_sha256": "f62c74b8e90e732b3590e62d30102dd7ea9eefa6b826b9a903334b9d30600ac2",
+        "after_bytes": 1610
+      },
+      {
+        "path": "tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj",
+        "before_sha256": "845acf9890112d6fe641d59ff8251643b1c3cfcfa61fb72f3cfd224ec14a8814",
+        "after_sha256": "e6f4faa2c0a95dbea2280caf035e279bde1a5cf652ff7d579638d7a604aa31cc",
+        "after_bytes": 1821
+      },
+      {
+        "path": "tests/Svg.Editor.Skia.UnitTests/SvgEditorCanvasRenderTopologyTests.cs",
+        "before_sha256": null,
+        "after_sha256": "49aa797e4428537ef96a64e91abac7f1a1d081240dcf823d2e4dc6c764acf546",
+        "after_bytes": 3187
+      }
+    ],
+    "default": "persistent (unchanged)",
+    "production_semantics": {
+      "startup_option": "workspace.Surface.UseSingleCanvasRendering(callback), before window.Content assignment",
+      "custom_island_registration": false,
+      "interaction_child": "removed and disposed before first load",
+      "feedback_invalidation": "original SKCanvasElement.Invalidate",
+      "painter_sequence": [
+        "RenderDocument",
+        "RenderInteraction"
+      ],
+      "pixel_cache": false,
+      "completion_evidence": "first successful completion of both original painters; no upload/presentation claim",
+      "fallback": "same configured Uno WebGPU -> Skia WebGL -> software chain; no readback APIs added"
+    },
+    "validation": {
+      "focused_tests": {
+        "counts": {
+          "total": "13",
+          "executed": "13",
+          "passed": "13",
+          "failed": "0",
+          "error": "0",
+          "timeout": "0",
+          "aborted": "0",
+          "inconclusive": "0",
+          "passedButRunAborted": "0",
+          "notRunnable": "0",
+          "notExecuted": "0",
+          "disconnected": "0",
+          "warning": "0",
+          "completed": "0",
+          "inProgress": "0",
+          "pending": "0"
+        },
+        "trx_sha256": "0ae2d96d7dc407490b814ff8b5a8068a85ce0e098d72e51e17a894a1b34636b0",
+        "source_linked": "6 new production topology lifecycle tests and 7 unchanged render-schedule tests",
+        "scratch_build_warning": "MSB3539 on temporary test project intermediate-output layout; test execution passes; no production project change caused the warning."
+      },
+      "actual_api_compile": {
+        "source_file_count": 33,
+        "runtime": "Uno 7.0.32; SkiaSharp 4.156.0",
+        "warnings": 0,
+        "errors": 0,
+        "log": "/workspace/scratch/e6bdc61e475d/unodraw-ci/single-canvas-api-compile-isolated.log",
+        "scope": "all actual canvas partials, topology/schedule, dependencies, and browser rendering source; App XAML integration deferred to root solution build"
+      },
+      "initial_compile_failure": "scratch parallel test/API restore shared obj path; NETSDK1005 preserved in single-canvas-api-compile.log; corrected via isolated API project directory",
+      "browser_runs": 0,
+      "performance_qualification": false,
+      "review": "accepted independently by /root/review_checkpoint; source-only patch and before/after hashes bound by review-receipt.json",
+      "unchanged_painter_methods": [
+        {
+          "name": "RenderDocument",
+          "sha256": "081f5ae3fe4d55c05e1fafadb3bfc754bf6f32e483bbc591efd999facdd8d8d6",
+          "bytes": 1747
+        },
+        {
+          "name": "RenderInteraction",
+          "sha256": "150262ffd61b4330fae1c7558a57fcc17660e2714ff477b58d062df85c612faa",
+          "bytes": 1799
+        }
+      ],
+      "unchanged_source_files": [
+        {
+          "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvas.Input.cs",
+          "sha256": "8e0dfbcf14e4c073fb87361c4c8c02e7b6e5eeabdb1a26291047f431b642b7bc"
+        },
+        {
+          "path": "samples/UnoDraw/Platforms/WebAssembly/Program.cs",
+          "sha256": "e8a9c536eeff649c2042db6db6f7595ba7d432b0e3e1939bb4e43dfdcb5a7cf4"
+        },
+        {
+          "path": "samples/UnoDraw/Platforms/WebAssembly/Rendering/WebGpuRasterCanvas.cs",
+          "sha256": "556a109e1bfd49d3529036cebf7af43bbc8ac3458789366313b78eedd13f7c15"
+        },
+        {
+          "path": "samples/UnoDraw/Platforms/WebAssembly/Rendering/LegacyCompositeCanvas.cs",
+          "sha256": "07cc1c2c4e5170dda3dcb4408fca500bc914ea7fd7796c7e312e60dbaab44fd5"
+        },
+        {
+          "path": "samples/UnoDraw/Platforms/WebAssembly/Rendering/SkiaCanvasCompositePainter.cs",
+          "sha256": "4cfa62b87352cc7db3437ed08bfc5e52a31730a7b5b3dc0140cdd08826dfa15d"
+        }
+      ]
+    },
+    "preserved": [
+      "input files",
+      "document painter body",
+      "interaction painter body",
+      "all original bridge defaults and explicit supported modes",
+      "retirement/storage source",
+      "runtime package versions",
+      "benchmark harness, thresholds, fixtures and sequences"
+    ]
+  },
+  "source_peer_review": {
+    "kind": "single-canvas-original-topology-source-review",
+    "status": "accepted for source integration and fresh qualification; no performance/default-promotion approval",
+    "reviewer": "/root/review_checkpoint",
+    "patch_sha256": "ea6d8669b3bae50eb25efae5ecfdbc7e3629c00a0a648424e98a3baba5e8b4c6",
+    "manifest_sha256": "44f6ebb6aaecdd454f43be880e26a65752d751f38d68b360c8ae5c74ecc5ece3",
+    "files": [
+      {
+        "path": "samples/UnoDraw/App.xaml.cs",
+        "before_sha256": "ae58ccdeb17a5e632dbc2b3668ebf5bbee44e005c894122f123ea9540b875be4",
+        "after_sha256": "345a11537f1e9f812585f1373e2d2db30120f6382c0158826e2475966f71d143",
+        "after_bytes": 2833
+      },
+      {
+        "path": "samples/UnoDraw/Platforms/WebAssembly/App.WebAssembly.cs",
+        "before_sha256": "775fe1cecddfe32161facfdd5ea95fa8df9912bde9d376b5c888f911ac4da3ac",
+        "after_sha256": "8e049dd872a6de12ad1c72aee4efa0a1b4b26f0355754ea6775d4600930cd708",
+        "after_bytes": 3367
+      },
+      {
+        "path": "samples/UnoDraw/Platforms/WebAssembly/Rendering/WebGpuSkiaCanvasBridge.cs",
+        "before_sha256": "b3e13f65ccc57fb624f2c5e34992f878eafd708f924e79a0d82e64f0b4af28a2",
+        "after_sha256": "2b8e95006608f42c34f8f2cd070344fbbc6aca7d6c1004e81048b01f84d864a6",
+        "after_bytes": 13762
+      },
+      {
+        "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvas.Layers.cs",
+        "before_sha256": "e16b43e37ec77d80f2dc73a04d8a0745d7df70992cd60ac93ab355f1adbc11fb",
+        "after_sha256": "dbc4ebae72d9600d4ee4df23a73ae373644ba43cd970a1307d03837e3ace3e29",
+        "after_bytes": 3176
+      },
+      {
+        "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvas.Rendering.cs",
+        "before_sha256": "380628de7827f9e20da6dd594c1d86c780080103bb9ccdeb395c33495043ad09",
+        "after_sha256": "972413d8510db84e652ea9943a533be5091f8d08d65cbe5fe46292a412751469",
+        "after_bytes": 18839
+      },
+      {
+        "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvas.cs",
+        "before_sha256": "eb926bc1ea4911dfea55f2ee7eecee24b7150e9828ab9c60c228a0be75cc5c0b",
+        "after_sha256": "cd4154b2098cf13116004877cd20fb1da3c67ad1ffcafa370fb4a056f605c288",
+        "after_bytes": 19198
+      },
+      {
+        "path": "src/Svg.Editor.Skia.Uno/Controls/SvgEditorCanvasRenderTopology.cs",
+        "before_sha256": null,
+        "after_sha256": "f62c74b8e90e732b3590e62d30102dd7ea9eefa6b826b9a903334b9d30600ac2",
+        "after_bytes": 1610
+      },
+      {
+        "path": "tests/Svg.Editor.Skia.UnitTests/Svg.Editor.Skia.UnitTests.csproj",
+        "before_sha256": "845acf9890112d6fe641d59ff8251643b1c3cfcfa61fb72f3cfd224ec14a8814",
+        "after_sha256": "e6f4faa2c0a95dbea2280caf035e279bde1a5cf652ff7d579638d7a604aa31cc",
+        "after_bytes": 1821
+      },
+      {
+        "path": "tests/Svg.Editor.Skia.UnitTests/SvgEditorCanvasRenderTopologyTests.cs",
+        "before_sha256": null,
+        "after_sha256": "49aa797e4428537ef96a64e91abac7f1a1d081240dcf823d2e4dc6c764acf546",
+        "after_bytes": 3187
+      }
+    ],
+    "review_scope": [
+      "preload child detach/disposal and all remaining references",
+      "immutable per-instance startup topology after first load or render",
+      "lease rejection and stale-release impossibility",
+      "base full/feedback invalidation and original painter order",
+      "unchanged default and renderer registration behavior",
+      "canceled/disposed/reentrant paint notification lifetime",
+      "first-painter completion distinguished from original host upload/presentation"
+    ],
+    "findings": [],
+    "peer_added_tests_or_browser_runs": false,
+    "verification": {
+      "focused_tests_passed": 13,
+      "api_production_files": 33,
+      "api_warnings": 0,
+      "api_errors": 0,
+      "new_browser_runs": 0
+    },
+    "root_remaining_gate": "full actual solution/application build plus newly built original-topology pixel and throughput qualification"
+  },
+  "harness_peer_review": {
+    "reviewer": "/root/performance_continue",
+    "accepted": true,
+    "read_only": true,
+    "review_input_sha256": "846bc7ba677f10c55659173661732552b84d59a95c7c87442cdde120b9682dc5",
+    "base_tree": "6683180195f26b99a26ecc3226f7a9b1f836c72c",
+    "reviewed_files": {
+      ".github/workflows/unodraw-cached-baseline-comparison.yml": "292cbf3553e009d0409dca0d8410f64ed459aa944273872e362bcf4c6e8e5770",
+      ".github/workflows/unodraw-legacy-baseline-comparison.yml": "f76a65f29120881aafa63e1f977b4e2a5cf31611c48e05c614b0f0fdeb4aa6e4",
+      ".github/workflows/unodraw-performance.yml": "9bccefdc82ed20ac50d25234aa3d928fbc485cfdc0250d6b27be6ae34f535353",
+      ".github/workflows/unodraw-svg-quality-shards.yml": "00c6f1e211cab231f2a843d25fb60e08a45bc22b3c4457aad3aaf36acc7b5701",
+      "tests/UnoDraw.BrowserPerformance/legacy_baseline_comparison.py": "169c41c4dace13318dc259ea0ef4cb72377195bdb35075cfc93171e594de953b",
+      "tests/UnoDraw.BrowserPerformance/legacy_baseline_contracts.py": "5a8da10576d8647a5d1646762b513768980281f668df7f68e2d38c8dcde6f9cb",
+      "tests/UnoDraw.BrowserPerformance/performance.py": "0e8c642d0dd6271bfd0ea4c7bb7d1a537bc48972ee3c704011ba88aba6627ceb",
+      "tests/UnoDraw.BrowserPerformance/quality.py": "2552c42735f7c64ad8c21ca2720e4c0a5d8d75cd78c3f5502f53c5452baf3b6c",
+      "tests/UnoDraw.BrowserPerformance/test_legacy_baseline.py": "a87f3605245e64e340e96a29a8459dec0098444254b5f68c1cd753d3680756e7",
+      "tests/UnoDraw.BrowserPerformance/test_quality.py": "1ab000cdb40dd1e1226fd05fa38e2085abadb0a82bb9d976a044c51f6c3b646d",
+      "tests/UnoDraw.BrowserRenderQuality/merge_svg_shards.py": "dc81deae15bd46ae7261a770b94997bd3efc7b090c5a536bbf4c6603dac51c83",
+      "tests/UnoDraw.BrowserRenderQuality/svg_bridge_quality.py": "904b9b50c5cb3ea5e00d2bd7b311f9f5f611af4551a8435384445a8f724b61c4",
+      "tests/UnoDraw.BrowserRenderQuality/svg_fixture_contracts.py": "0ffd5a306847a448aca6cbdc899a3b7579177084ec0a607efd075e5d9a70887d",
+      "tests/UnoDraw.BrowserRenderQuality/test_svg_fixture_contracts.py": "b753b111243aba4756e3f3bdfa13ad1d1c707a3053718c1a7dcc99a2183f69a7",
+      "tests/UnoDraw.BrowserRenderQuality/test_svg_shards.py": "7973b16405721c935d2dd5d29065fcea0c4402fbf79cc96251a8a87075917465",
+      ".github/workflows/docs.yml": "8c66dfa55f316665f79f456a75c683ea2779ddeb73f23c3b45d1d0eae13cb431"
+    },
+    "preservation_audit_sha256": "a4f0e8bf273b92aaea7b5e962d61a1268a8965777e2a858def746ca140d529b7",
+    "unchanged_files_verified_at_frozen_input": 50,
+    "unchanged_function_ast_proofs": 68,
+    "whole_file_equal_after_reversing_only_diagnostics_guard": true,
+    "focused_independent_tests_passed": 5,
+    "focused_contract_scope": [
+      "Single-canvas requires positive integer Document and Interaction counts for all five diagnostic workloads.",
+      "Every pre-existing retained feedback mode still requires zero Document and positive Interaction.",
+      "Single-canvas requires its actual preference and completed original-painter message and rejects competing transport proof.",
+      "All original SVG 48-case/72-pair completeness and original-control identities remain.",
+      "The exact completed-painter message is required during native shard validation."
+    ],
+    "resolved_blocker": {
+      "finding": "The initial storage proof was placed at package root and would be rejected by the exact archive extraction allowlist.",
+      "resolution": "Both storage reports now live outside all served/package roots and have separate artifact uploads. Root allowlists and binary assets remain unchanged."
+    },
+    "workflow_checks": {
+      "parsed": true,
+      "current_candidate_installer_explicit": true,
+      "direct_five_workloads_same_package_run": true,
+      "default_aggregate_separate": true,
+      "read_permissions_unchanged": true,
+      "no_new_timing_inputs_or_warmup_changes": true,
+      "original_pixel_gates_unchanged": true
+    },
+    "limits": [
+      "This is a code and contract review, not browser performance or native output qualification.",
+      "The single diagnostics-only hover guard is after benchmark.stop and after CPU capture; the independent new-mode verifier replaces it with actual complete-painter requirements.",
+      "Single-canvas initialization proves completion of the original painter, not texture upload, new pixels or physical presentation.",
+      "Current 6acf composite timing artifacts remain bound to the original 0ffa application and do not measure this new mode."
+    ],
+    "initial_preservation_review_input_sha256": "22dfac353e435bd3537421f7c8c3a2f318fbb77f252022da6949b58e6529b6ab",
+    "reviewed_file_count": 16,
+    "refreshed_changed_file_hashes_verified": 16
+  },
+  "documentation_addendum": {
+    "scope": "Only these two documentation files changed after the 16-path harness acceptance; all 16 accepted code/workflow paths and remaining 48 preservation files still match their reviewed hashes.",
+    "files": [
+      {
+        "path": "tests/UnoDraw.BrowserPerformance/README.md",
+        "sha256": "0cdac2532e4880a317819f352d28acfd01a07dfb85ff7db4eb9176d1dccdd399"
+      },
+      {
+        "path": "tests/UnoDraw.BrowserRenderQuality/SVG_SCENES.md",
+        "sha256": "15ca03d87ffbf69f7a37a1437760d4af535fa320e57d72a77f0ede0e65c1610c"
+      }
+    ]
+  },
+  "combined_source_proof_sha256": "7b85dd7e23d317ff9481d44f9008b3d0329cc42dc61eb484e53ae1dc6b756ce3",
+  "required_solution_commands": {
+    "head": "21ee03c83052bc5d341c19c58e73557361e74148",
+    "working_change": "Reviewed retirement and ordered storage plus opt-in original single-canvas topology; persistent default unchanged",
+    "working_diff_sha256": "927076ba411238d535c1948b1544f3ac6670e37161d82907dcd01245ad3d8c58",
+    "combined_production_proof_sha256": "7b85dd7e23d317ff9481d44f9008b3d0329cc42dc61eb484e53ae1dc6b756ce3",
+    "started_utc": "2026-11-12T21:53:16.469933+00:00",
+    "fontconfig": "/workspace/scratch/e6bdc61e475d/font-resolution-probe/native-fontconfig.conf",
+    "checks": [
+      {
+        "name": "format",
+        "command": [
+          "dotnet",
+          "format",
+          "--no-restore"
+        ],
+        "exit_code": 1,
+        "timed_out": false,
+        "elapsed_seconds": 1.4683739850006532,
+        "log": "/workspace/scratch/e6bdc61e475d/unodraw-ci/single-canvas-combined-solution/format.log",
+        "log_sha256": "8fcf351ebea0db764fd9dbd035b1225e4600c84a04ede89450d495a557b9a92a",
+        "test_summaries": []
+      },
+      {
+        "name": "build",
+        "command": [
+          "dotnet",
+          "build",
+          "Svg.Skia.slnx",
+          "-c",
+          "Release",
+          "-m:1",
+          "-nr:false",
+          "-p:UseSharedCompilation=false"
+        ],
+        "exit_code": 1,
+        "timed_out": false,
+        "elapsed_seconds": 39.01323720099754,
+        "log": "/workspace/scratch/e6bdc61e475d/unodraw-ci/single-canvas-combined-solution/build.log",
+        "log_sha256": "02254bc20039ef3788a356fb7497d942ddf68ba9e524deccf744a5d069b2cf08",
+        "test_summaries": []
+      },
+      {
+        "name": "test",
+        "command": [
+          "dotnet",
+          "test",
+          "Svg.Skia.slnx",
+          "-c",
+          "Release",
+          "-m:1",
+          "-nr:false",
+          "-p:UseSharedCompilation=false"
+        ],
+        "exit_code": 1,
+        "timed_out": false,
+        "elapsed_seconds": 78.19675883800664,
+        "log": "/workspace/scratch/e6bdc61e475d/unodraw-ci/single-canvas-combined-solution/test.log",
+        "log_sha256": "12ed96712ff2ae1b96014cc582995b15ef214b67e0cb2acd81cda463a0f102f4",
+        "test_summaries": [
+          "Passed!  - Failed:     0, Passed:   141, Skipped:     0, Total:   141, Duration: 208 ms - ShimSkiaSharp.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    19, Skipped:     0, Total:    19, Duration: 916 ms - Svg.Controls.Avalonia.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 248 ms - Svg.Controls.Skia.Avalonia.InvariantGlobalization.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:   136, Skipped:     0, Total:   136, Duration: 3 s - Svg.Controls.Skia.Avalonia.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    28, Skipped:     0, Total:    28, Duration: 949 ms - Svg.Controls.Skia.Uno.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    18, Skipped:     0, Total:    18, Duration: 1 s - Svg.Editor.Skia.Avalonia.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:   948, Skipped:     0, Total:   948, Duration: 10 s - Svg.Editor.Skia.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    20, Skipped:     0, Total:    20, Duration: 292 ms - Svg.Editor.Svg.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:    27, Skipped:     0, Total:    27, Duration: 951 ms - Svg.JavaScript.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:   226, Skipped:     0, Total:   226, Duration: 1 s - Svg.Model.UnitTests.dll (net10.0)",
+          "Passed!  - Failed:     0, Passed:  1308, Skipped:    44, Total:  1352, Duration: 19 s - Svg.Skia.UnitTests.dll (net10.0)"
+        ]
+      }
+    ],
+    "finished_utc": "2026-11-12T21:55:15.152343+00:00"
+  },
+  "completed_test_projects": 11,
+  "test_assertions": {
+    "passed": 2874,
+    "failed": 0,
+    "existing_skips": 44
+  },
+  "local_command_result": "All three required solution commands returned failure due to recorded named-pipe or Uno/MSBuild task-host connection failures. The eleven completed test projects had no failed assertions; there were no C# compiler errors. This is not a successful full application build.",
+  "pending": [
+    "Fresh Interpreter and AOT application build with the actual XAML integration.",
+    "Original-topology direct baseline comparisons on all five unchanged workloads.",
+    "Complete Welcome and extended SVG native-pixel matrices.",
+    "Actual published browser startup/persistence and normal renderer fallback checks."
+  ],
+  "claims_not_made": [
+    "No default promotion, baseline performance recovery, end-to-end persistence or hardware-GPU performance qualification.",
+    "Painter completion messages do not measure upload completion or physical presentation."
+  ]
+}

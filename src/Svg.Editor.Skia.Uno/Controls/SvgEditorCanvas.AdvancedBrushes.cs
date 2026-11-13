@@ -207,7 +207,7 @@ public sealed partial class SvgEditorCanvas
                     _deformationObservedElapsed = _deformationClock.Elapsed.TotalSeconds;
                     AppendDeformationSample(_deformationObservedElapsed, true);
                     RefreshAdvancedBrushPreview(true);
-                    Invalidate();
+                    InvalidateInteraction();
                 }
                 catch (Exception exception) { HandleInteractionFailure(exception); }
             };
@@ -231,7 +231,7 @@ public sealed partial class SvgEditorCanvas
                     { _symbolDwellTimer.Stop(); return; }
                     _freehandPoints.Add(_currentWorld);
                     RefreshAdvancedBrushPreview(true);
-                    Invalidate();
+                    InvalidateInteraction();
                 }
                 catch (Exception exception) { HandleInteractionFailure(exception); }
             };

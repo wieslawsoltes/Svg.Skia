@@ -19,6 +19,8 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
     private EditorDocument? _current;
     private SvgElement? _inspectedElement;
     private long _outlineRevision = -1;
+    private long _resourceRevision = -1;
+    private string? _reportedWorkspaceTitle;
     private bool _refreshPending;
     private bool _refreshing;
     private bool _disposed;
@@ -26,10 +28,13 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
     private bool _dialogVisible;
     private bool _spacePanning;
     private bool _zenMode;
+    private bool _positionUpdatePending;
+    private double _reportedZoom = double.NaN;
 
     public SvgEditorWorkspace()
     {
         InitializeComponent();
+        PositionText.LayoutUpdated += OnPointerPositionLayoutUpdated;
         InitializeStudioWorkspace();
         BuildCommands();
         BuildEditorCommands();
@@ -38,8 +43,8 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         BuildTools();
         InitializeHierarchy();
         Canvas.InteractionStarting += (_, _) => { if (!_dialogVisible) { CommitInspectorEdits(); Focus(FocusState.Pointer); } };
-        Canvas.ViewportChanged += (_, _) => ZoomLabel.Content = $"{Canvas.ZoomPercent:0.#}%";
-        Canvas.PointerPositionChanged += (_, _) => PositionText.Text = $"X {Canvas.PointerPosition.X:0.0}  Y {Canvas.PointerPosition.Y:0.0}";
+        Canvas.ViewportChanged += (_, _) => UpdateZoomLabel();
+        Canvas.PointerPositionChanged += (_, _) => QueuePointerPositionLabel();
         Canvas.InteractionFailed += async (_, args) => await ShowErrorAsync(args.Exception.Message);
         ActualThemeChanged += (_, _) => { Canvas.IsDarkTheme = ActualTheme == ElementTheme.Dark; SaveEditorPreferences(); };
         SizeChanged += (_, _) => UpdateResponsiveLayout();
@@ -62,6 +67,8 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
             Canvas.IsDarkTheme = ActualTheme == ElementTheme.Dark;
             _recoveryTimer.Start();
             UpdateResponsiveLayout();
+            if (_positionUpdatePending)
+                PositionText.InvalidateArrange();
             Focus(FocusState.Programmatic);
         };
         Unloaded += (_, _) =>
@@ -80,6 +87,41 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
     public SvgEditorCanvas Surface => Canvas;
     public Window? HostWindow { get; set; }
     public event EventHandler<string>? WorkspaceTitleChanged;
+
+    private void UpdateZoomLabel()
+    {
+        var zoom = Canvas.Zoom;
+        if (_disposed || zoom == _reportedZoom)
+            return;
+        _reportedZoom = zoom;
+        var text = $"{zoom * 100:0.#}%";
+        if (!Equals(ZoomLabel.Content, text))
+            ZoomLabel.Content = text;
+    }
+
+    private void QueuePointerPositionLabel()
+    {
+        if (_disposed || _positionUpdatePending)
+            return;
+        _positionUpdatePending = true;
+        // Join the layout pass before its frame is recorded. A separate deferred
+        // callback could dirty this label after the camera was already recorded.
+        PositionText.InvalidateArrange();
+    }
+
+    private void OnPointerPositionLayoutUpdated(object? sender, object args)
+    {
+        if (_disposed || !_positionUpdatePending || !IsLoaded || PositionText.Visibility != Visibility.Visible)
+            return;
+
+        // Consume first: changing text can repeat layout within this same pass.
+        // A collapsed/unloaded label keeps the latest pointer pending until shown.
+        _positionUpdatePending = false;
+        var position = Canvas.PointerPosition;
+        var text = $"X {position.X:0.0}  Y {position.Y:0.0}";
+        if (PositionText.Text != text)
+            PositionText.Text = text;
+    }
 
     public void NewDocument(float width = 1200, float height = 800)
     {
@@ -123,8 +165,11 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         _animationClock.Reset();
         _animationPlaybackOrigin = TimeSpan.Zero;
         _current = document;
+        // Legacy retained panel bindings also observe this event on owner changes,
+        // even when two open documents happen to have the same displayed title.
+        _reportedWorkspaceTitle = null;
         _inspectedElement = null;
-        _outlineRevision = -1;
+        _outlineRevision = _resourceRevision = -1;
         Canvas.Controller = document.Controller;
         Canvas.Tool = document.Controller.Session.CurrentTool;
         Canvas.InteractionMode = SvgEditorInteractionMode.None;
@@ -147,7 +192,9 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
             UpdateStudioRulers();
         });
     }
-    private void Controller_Changed(object? sender, EventArgs args)
+    private void Controller_Changed(object? sender, EventArgs args) => QueueWorkspaceRefresh();
+
+    private void QueueWorkspaceRefresh()
     {
         if (_refreshPending || _disposed)
             return;
@@ -161,21 +208,33 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         _refreshing = true;
         try
         {
+            SynchronizeInspectorOwner(controller);
             foreach (var tab in DocumentTabs.TabItems.OfType<TabViewItem>())
                 if (tab.Tag is EditorDocument document)
-                    tab.Header = document.Title;
-            WorkspaceTitleChanged?.Invoke(this, $"{_current!.Title} — UnoDraw");
-            if (_outlineRevision != controller.DocumentRevision)
+                    if (!Equals(tab.Header, document.Title))
+                        tab.Header = document.Title;
+            var title = $"{_current!.Title} — UnoDraw";
+            if (_reportedWorkspaceTitle != title)
             {
-                _outlineRevision = controller.DocumentRevision;
+                _reportedWorkspaceTitle = title;
+                WorkspaceTitleChanged?.Invoke(this, title);
+            }
+            if (IsStudioPanelVisible("layers") && !_outlineDragging && _outlineRevision != controller.DocumentRevision)
+            {
                 RefreshOutline();
+                _outlineRevision = controller.DocumentRevision;
+            }
+            if (IsStudioPanelVisible("resources") && _resourceRevision != controller.DocumentRevision)
+            {
                 RefreshResources();
+                _resourceRevision = controller.DocumentRevision;
             }
             if (controller.SelectedElements.Count > 0)
                 _inspectedElement = controller.SelectedElements[0];
             else if (_inspectedElement is SvgVisualElement || _inspectedElement?.OwnerDocument != controller.Document)
                 _inspectedElement = controller.Document;
-            SynchronizeStudioLayerSelection(controller);
+            if (IsStudioPanelVisible("layers"))
+                SynchronizeStudioLayerSelection(controller);
             RefreshInspector();
             RefreshStudioPanels();
             RefreshEditorPanels();
@@ -347,10 +406,13 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         DisposeEditorKeyboard();
         SaveStudioLayout();
         _disposed = true;
+        PositionText.LayoutUpdated -= OnPointerPositionLayoutUpdated;
+        _positionUpdatePending = false;
         _recoveryTimer.Stop();
         _animationTimer.Stop();
         Canvas.CancelGesture();
         Canvas.Controller = null;
+        ReleaseInspectorTargets();
         DisposeStudioWorkspace();
         foreach (var document in Documents)
         { document.Controller.Changed -= Controller_Changed; document.Dispose(); }

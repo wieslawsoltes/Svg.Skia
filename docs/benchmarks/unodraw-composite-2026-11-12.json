@@ -1,0 +1,2085 @@
+{
+  "schema": 1,
+  "report_kind": "audited_same_artifact_composite_hover",
+  "audited_utc": "2026-11-12T17:31:17.769946+00:00",
+  "source_sha": "523c1ed5e7507d26288e08255b86a2e14994367c",
+  "source_url": "https://github.com/wieslawsoltes/Svg.Skia/commit/523c1ed5e7507d26288e08255b86a2e14994367c",
+  "conclusion": "Cached document composition reduces this matched hover workload wall time by 21.85% with the original native-pixel gates preserved. Active renderer-thread CPU and visible-canvas-associated submission counts are essentially unchanged.",
+  "scope": {
+    "pair": ["persistent", "composite"],
+    "workload": "brush-hover",
+    "same_aot_package": true,
+    "same_runner_for_all_timing_trials": true,
+    "rotating_order": "persistent/composite, composite/persistent, persistent/composite; fresh browser for every trial",
+    "primary_trials": 6,
+    "separate_diagnostic_trials": 2,
+    "trusted_inputs_per_trial": 120,
+    "graphics": "Chromium 143.0.7499.4 WebGPU through SwiftShader software graphics; not physical GPU throughput",
+    "no_direct_comparison_to_regression_baseline_96e": true,
+    "selection_proven_by_this_artifact": false,
+    "default_mode_changed_by_this_experiment": false,
+    "no_pooled_frame_distributions_across_runners": true
+  },
+  "source_artifacts": {
+    "workflow_run_id": 43253533111,
+    "workflow_attempt": 1,
+    "workflow_attempt_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/attempts/1",
+    "workflow_attempt_conclusion": "failure; unrelated experimental WebGL startup and extended-SVG timeout gates remain incomplete",
+    "timing": {
+      "job_id": 131331896015,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131331896015",
+      "job_conclusion": "success",
+      "artifact_id": 13966119354,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/artifacts/13966119354",
+      "artifact_zip_sha256": "d0828152f701f037507f970eebe16031ff8ee2031241b1e51cfbd259ed6b3a70",
+      "source_report_sha256": "1dfb65a2d6cba80d007ffd4fca5ccd7237b08d1582145a98dfad1ee05581deda"
+    },
+    "native_quality": {
+      "job_id": 131331896439,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/job/131331896439",
+      "job_conclusion": "success",
+      "artifact_id": 13965425164,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/artifacts/13965425164",
+      "artifact_zip_sha256": "90e1e1f208e07eec5b2b3b209360f4a549b2468d65a62ba156d12a6b0ac51adf",
+      "source_report_sha256": "8a39641d5cc2bfd1af0dcc32efa6fab5c55611f309008b0682e4b8fa481e84d1"
+    },
+    "application_package": {
+      "artifact_id": 13963857626,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43253533111/artifacts/13963857626",
+      "artifact_zip_sha256": "e20fe98c0199387fc8490570ea5234e8f72c95460a4b388260755124526a1afb"
+    }
+  },
+  "package": {
+    "schema": 2,
+    "role": "candidate",
+    "source_sha": "523c1ed5e7507d26288e08255b86a2e14994367c",
+    "dotnet_sdk": "10.0.403",
+    "dotnet_workload_version": "10.0.403",
+    "source_global_json": {
+      "sdk": {
+        "version": "10.0.100",
+        "rollForward": "latestMinor",
+        "allowPrerelease": true
+      },
+      "msbuild-sdks": {
+        "Uno.Sdk": "7.0.5"
+      }
+    },
+    "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+    "effective_global_json": {
+      "sdk": {
+        "version": "10.0.403",
+        "rollForward": "disable",
+        "allowPrerelease": false,
+        "workloadVersion": "10.0.403"
+      },
+      "msbuild-sdks": {
+        "Uno.Sdk": "7.0.5"
+      }
+    },
+    "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+    "source_configuration_overridden": true,
+    "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+    "dotnet_workload_info": "Workload version: 10.0.403\n Configured to use workload sets when installing new manifests.\n\n [wasm-tools]\n   Installation Source: SDK 10.0.400\n   Manifest Version:    10.0.114/10.0.100\n   Manifest Path:       /usr/share/dotnet/sdk-manifests/10.0.100/microsoft.net.workload.mono.toolchain.current/10.0.114/WorkloadManifest.json\n   Install Type:        FileBased",
+    "uno_sdk": "7.0.5",
+    "runtime_generation": "uno7",
+    "configuration": "Release",
+    "execution_mode": "InterpreterAndAOT",
+    "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+    "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+    "index_sha256": "fe1d3fa0afc3bd31cfaf1c3d3065d81913edadaa0710f709caa2188d6e80b610",
+    "font_assets_sha256": {
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf": "2573f53b71ebee599dfc94c60e1ea848d6d20e7e777d2c65d063822850e738b6",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf": "bc73c45e5810a0971ebeaef4eb6c35dec84607dbe02da6757f9f43d958b6da5f",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf": "b6219df45cbee6f876e6b28f668348e1807b1fb9ad118ea7d687041f0d332384",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf": "0c078107776634131162be46a38245399040c2becc495e93d69d9b6edd65a98d",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf": "a034466210aeb09f7ffdbc9250accd1f5c3e2fb8acbfd3be8aa154993ec43d9b",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf": "5eabd67fe3d8b5b5eee64504ea9e4a5ef7665b643577ef117f3c32fda67cd29f",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf": "46ead38978e28f32ad7dc10d467efe8d8b5786ff98020c3718a296f88ef7f1cc",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf": "4eac502c10daf6608e53e7db86d79769890373ebbd5472a57bbcb75789bc5110",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf": "2ab15629424ace86d429dbc0e5a7beb30d2af3db998a2b03a71601ee6965c334",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf": "bf436f4c34d2c921d0f2d4997e7854050a60feaa89bbacc604ae896ad254ca8b",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf": "6530480277da62efde047eb26e78a7e532d1cfaeec91603e68d63876b9669f0d",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf": "e603135cc3b1200c7260b34f37f9cb1f2178a42b363037e26a1e18276ab78bf0",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf": "b1bf2c582820b5703dbcd339b5dc97235c145185d0fabbb09c224ef87215266b",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf": "13744bbc079f0f492e4fb3b14a15d242b8d9600faacd423d58cdf937fea7ce6b",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf": "08858694d203191fbddbc603f0d82e18d104c27941622afa4b8ff0ccaca12b60",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf": "75dffec080d8dc033a9794ff253614a380f51f7e139aae48daf12ebe9aa4aec4",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf": "f7cb3b6dd0084d59f66fa9e5238b4bb8192ad6949f99a1673c910b832ae2a53e",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf": "621ee76be446afeac7e13fee34bbfa70679f9907f200bb1bd50adfe1ce71a77d",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf": "2bc823a7660f1fd34b0c2a57dd9acd46fedf0ac7abe32a146d2e895e88f39102",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf": "c1c6e126200cefe046a49f36ab020c0dcc844095671977132739459804787ad6",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf": "e1e60f4093232a627f42e215b8fea141a838995631839c1524557c876f3377f7",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf": "69c1f94736232a3b7d78f3df863c2f7561dabbd17192054d082573c5405433a6",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf": "bcbfc3d6e7258e022bf6ccf8152a16920dfc40b55bc4c8254c15f4ff4d68dd5a",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf": "f59481d260f7aafc6c4696dd8608ccbe12714c98e64f8d61422ee75afb9497b5",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf": "17995de0355f8f96e9bf7ecc7dcae2b0aadd5a8b32e82f3909589b826169321c",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf": "6c3543f02911695383f7a24905446d9dac12b3cbeca4f28236c0475bd482064d",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf": "b1a405296720729a9ccb2215ef8e25fa031f28a74a23a782ee003b120d92a887",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf": "c131cd1ca5b9d6e4ace568ee0ccf3cd697b9d54db97b3cc8838a4a89092492c1",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf": "356012920cf82d3ad23c3022a42638d6e9766795c331e52578313c0bb36de912",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf": "3d94b1b6990162aefd796aa74e1e0a730b5aa0077f40503a0187ddb6f648f9b7",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf": "6c73ebe56797e33acff95695547aaec72b130659d1a20f257eb876cf6c9d7f58",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf": "92cd488028cd9e0ee4b1934e48a6aa05e7f1bf04c65eb8104f2486cb49df2096",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf": "f976b54657dc331335418a6330d6cd46ff9ae646bc9b9a3987edcfee0b0ca11b",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf": "6be32b58eb0616a206aa941779a672c6bb97a94de1302d9e1e958d6b8c2af111",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf": "bc97ce0653959b1fcc5db92049dc477734927802e4776e770b84abafce10beaf",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf": "b248380c2975e732fd643e0c00bf5f3ade168e89ca60150e323e3a22d4807b94",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf": "b82891f7b8e0eac507b462953cdb49120d73646e58f40ad0fab6aa0468da7868",
+      "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf": "6b9fb4a0e22bb4996d4116bae2e14a09db5c8f33ef109ef57ff7186af1b68b71"
+    },
+    "supports_render_diagnostics": true
+  },
+  "environment": {
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "device_pixel_ratio": 1,
+    "browser_version": "143.0.7499.4",
+    "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"],
+    "renderer_evidence": {
+      "application_contexts": [
+        {
+          "kind": "webgpu",
+          "connected": true,
+          "width": 1440,
+          "height": 960,
+          "css_width": 1440,
+          "css_height": 960,
+          "draw_calls": 0,
+          "presentations": 5,
+          "target": true
+        }
+      ],
+      "console_start_index": 0,
+      "console_end_index": 11,
+      "capabilities": {
+        "secure_context": true,
+        "api_available": true,
+        "adapter_available": true,
+        "adapter_info": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": "",
+          "is_fallback_adapter": true
+        },
+        "webgl1_available": true,
+        "webgl2_available": true,
+        "canvas2d_available": true
+      },
+      "negotiations": [
+        {
+          "provider": "WebGpuGraphicsProvider",
+          "context": "WebGpu"
+        }
+      ],
+      "expected_console_error_indices": []
+    },
+    "runner": {
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "machine": "x86_64"
+    }
+  },
+  "interpretation": ["All three composite wall times (129.402–132.230 s) are below all three persistent times (164.417–166.385 s) on this runner.", "Median wall time falls from 166.3092 to 129.9633 s; offered-input throughput rises 27.97%. This is not physical FPS.", "Active renderer-thread CPU changes from 1.203667 to 1.197925 s and is effectively unchanged. Task elapsed per operation rises from 16.854875 to 17.289492 ms, an increase of 2.58%.", "Visible-canvas-associated callback, interval and submission medians change from 222 to 221. Every trial records 120 writeTexture calls, so less frequent submission does not explain the wall-time gain.", "This is consistent with less work in the composition path; these observations do not isolate exact GPU draw cost or worker scheduling.", "Both separate diagnostic modes retain the document: Document=0, Interaction=120, Ruler=0 and Navigator=0. Composite proves actual cached-pixel reuse and no fallback.", "The experiment compares two modes of source 523c1ed5. It does not establish performance versus regression baseline 96e5fa9 or the separate selection workload."],
+  "metric_definitions": {
+    "task_elapsed": "TaskDuration in the default timeTicks domain includes blocking and descheduling inside tasks.",
+    "active_renderer_thread_cpu": "ThreadTime tracks active CPU on the renderer main thread; it excludes GPU and worker CPU.",
+    "visible_canvas_associated_submission": "Observed GPUQueue.submit after acquisition of the selected visible canvas texture; not all queue submissions or physical presentation.",
+    "input_latency": "First subsequent observed graphics work or completed graphics-producing callback. It may replay older recorded content and does not prove input-to-new-pixels latency.",
+    "total_gpu_queue_submits": null,
+    "webgpu_draw_primitives": null,
+    "physical_presented_frames": null,
+    "supplied_upload_buffer_bytes": "Observed supplied buffer-view lengths, not verified consumed transfer extents or universal bandwidth.",
+    "chromium_performance_source": "https://github.com/chromium/chromium/blob/143.0.7499.4/third_party/blink/renderer/core/inspector/inspector_performance_agent.cc",
+    "thread_ticks_source": "https://github.com/chromium/chromium/blob/143.0.7499.4/base/time/time.h"
+  },
+  "post_window_diagnostics": {
+    "available": false,
+    "final_capture_validation_elapsed_ms": null,
+    "restore_validation_elapsed_ms": null,
+    "gpu_queue_drain_elapsed_ms": null,
+    "reason": "These diagnostics were introduced after source 523c1ed5. Its primary window ends after two natural rAF opportunities; that is not a GPU completion barrier.",
+    "consequence": "Zero input tails and successful final/restored pixels do not quantify post-window GPU backlog or physical presentation."
+  },
+  "within_runner_primary_medians": {
+    "workload_elapsed_ms": {
+      "persistent_median": 166309.2,
+      "composite_median": 129963.30000000005,
+      "composite_over_persistent": 0.7814558665425607,
+      "percent_change": -21.85441334574393
+    },
+    "active_renderer_thread_cpu_ms": {
+      "persistent_median": 1203.6670000000001,
+      "composite_median": 1197.9250000000002,
+      "composite_over_persistent": 0.9952295776157359,
+      "percent_change": -0.47704223842640614
+    },
+    "task_elapsed_ms": {
+      "persistent_median": 2022.5849999999998,
+      "composite_median": 2074.7389999999996,
+      "composite_over_persistent": 1.025785813698806,
+      "percent_change": 2.578581369880606
+    },
+    "task_elapsed_ms_per_operation": {
+      "persistent_median": 16.854875,
+      "composite_median": 17.289491666666663,
+      "composite_over_persistent": 1.025785813698806,
+      "percent_change": 2.578581369880606
+    },
+    "operations_per_second": {
+      "persistent_median": 0.7215475752393734,
+      "composite_median": 0.9233375883807194,
+      "composite_over_persistent": 1.2796627971127228,
+      "percent_change": 27.96627971127228
+    },
+    "completed_graphics_callbacks": {
+      "persistent_median": 222,
+      "composite_median": 221,
+      "composite_over_persistent": 0.9954954954954955,
+      "percent_change": -0.45045045045044585
+    },
+    "graphics_active_animation_intervals": {
+      "persistent_median": 222,
+      "composite_median": 221,
+      "composite_over_persistent": 0.9954954954954955,
+      "percent_change": -0.45045045045044585
+    },
+    "visible_canvas_associated_submissions": {
+      "persistent_median": 222,
+      "composite_median": 221,
+      "composite_over_persistent": 0.9954954954954955,
+      "percent_change": -0.45045045045044585
+    }
+  },
+  "primary_trials": [
+    {
+      "bridge": "persistent",
+      "trial": 1,
+      "diagnostic_pass": false,
+      "artifact_directory": "primary/trial-1/persistent",
+      "workload_elapsed_ms": 166309.2,
+      "active_renderer_thread_cpu_ms": 1326.7570000000003,
+      "task_elapsed_ms": 2259.6779999999994,
+      "task_elapsed_ms_per_operation": 18.830649999999995,
+      "operations_per_second": 0.7215475752393734,
+      "operations": 120,
+      "trusted_input_events": 120,
+      "completed_graphics_callbacks": 225,
+      "graphics_active_animation_intervals": 225,
+      "visible_canvas_associated_submissions": 225,
+      "observed_graphics_api_calls": {
+        "webgpu.canvasSubmit": 225,
+        "webgpu.writeTexture": 120
+      },
+      "supplied_upload_buffer_bytes": 387064320,
+      "inputs_without_later_graphics": 0,
+      "inputs_without_completed_render_callback": 0,
+      "input_to_next_graphics_ms": {
+        "count": 120,
+        "p50": 1.5,
+        "p95": 27.620000000033176,
+        "p99": 1096.935000000003,
+        "max": 1358.600000000035
+      },
+      "input_to_completed_render_callback_ms": {
+        "count": 120,
+        "p50": 1.5,
+        "p95": 27.825000000046565,
+        "p99": 1096.935000000003,
+        "max": 1358.600000000035
+      },
+      "completed_render_callback_ms": {
+        "count": 225,
+        "p50": 2.7000000000116415,
+        "p95": 7.259999999997668,
+        "p99": 9.632000000043766,
+        "max": 19.900000000023283
+      },
+      "completed_render_callback_interval_ms": {
+        "count": 224,
+        "p50": 1342.6499999999942,
+        "p95": 1382.784999999983,
+        "p99": 1392.4560000000242,
+        "max": 1440.1999999999534
+      },
+      "cdp_ThreadTime_seconds": {
+        "before": 5.8e-05,
+        "after": 1.326815
+      },
+      "cdp_TaskDuration_seconds": {
+        "before": 1.4e-05,
+        "after": 2.259692
+      },
+      "common_warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 226,
+        "graphics_active_animation_intervals": 226,
+        "elapsed_ms": 137110.80000000005,
+        "included_in_primary_metrics": false
+      },
+      "hover_transition_warmup": {
+        "preview_changed_pixels": 68,
+        "cleared_changed_pixel_fraction": 0.0,
+        "region": [425, 405, 475, 455],
+        "included_in_primary_metrics": false
+      },
+      "visual_readiness_and_restore": {
+        "changed_document_pixels": 68,
+        "minimum_changed_pixels": 20,
+        "restored": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          }
+        }
+      },
+      "bridge_evidence": ["UnoDraw canvas bridge preference: persistent RGBA upload.", "UnoDraw canvas bridge initialized: persistent RGBA upload."],
+      "page_errors": [],
+      "resource_errors": []
+    },
+    {
+      "bridge": "composite",
+      "trial": 1,
+      "diagnostic_pass": false,
+      "artifact_directory": "primary/trial-1/composite",
+      "workload_elapsed_ms": 129402.19999999995,
+      "active_renderer_thread_cpu_ms": 1197.9250000000002,
+      "task_elapsed_ms": 2074.7389999999996,
+      "task_elapsed_ms_per_operation": 17.289491666666663,
+      "operations_per_second": 0.9273412662226767,
+      "operations": 120,
+      "trusted_input_events": 120,
+      "completed_graphics_callbacks": 211,
+      "graphics_active_animation_intervals": 211,
+      "visible_canvas_associated_submissions": 211,
+      "observed_graphics_api_calls": {
+        "webgpu.canvasSubmit": 211,
+        "webgpu.writeTexture": 120
+      },
+      "supplied_upload_buffer_bytes": 387064320,
+      "inputs_without_later_graphics": 0,
+      "inputs_without_completed_render_callback": 0,
+      "input_to_next_graphics_ms": {
+        "count": 120,
+        "p50": 2.9500000000116415,
+        "p95": 25.88499999998019,
+        "p99": 1049.854999999929,
+        "max": 1056.5999999999767
+      },
+      "input_to_completed_render_callback_ms": {
+        "count": 120,
+        "p50": 3.0,
+        "p95": 25.88999999997903,
+        "p99": 1049.9360000000045,
+        "max": 1056.6999999999534
+      },
+      "completed_render_callback_ms": {
+        "count": 211,
+        "p50": 2.800000000046566,
+        "p95": 7.149999999965075,
+        "p99": 8.089999999979046,
+        "max": 8.5
+      },
+      "completed_render_callback_interval_ms": {
+        "count": 210,
+        "p50": 1047.7999999999884,
+        "p95": 1080.6149999999848,
+        "p99": 1090.1010000000615,
+        "max": 1097.3000000000466
+      },
+      "cdp_ThreadTime_seconds": {
+        "before": 4.9e-05,
+        "after": 1.197974
+      },
+      "cdp_TaskDuration_seconds": {
+        "before": 1.1e-05,
+        "after": 2.07475
+      },
+      "common_warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 228,
+        "graphics_active_animation_intervals": 228,
+        "elapsed_ms": 135048.80000000005,
+        "included_in_primary_metrics": false
+      },
+      "hover_transition_warmup": {
+        "preview_changed_pixels": 68,
+        "cleared_changed_pixel_fraction": 0.0,
+        "region": [425, 405, 475, 455],
+        "included_in_primary_metrics": false
+      },
+      "visual_readiness_and_restore": {
+        "changed_document_pixels": 68,
+        "minimum_changed_pixels": 20,
+        "restored": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          }
+        }
+      },
+      "bridge_evidence": ["UnoDraw canvas bridge preference: cached document composition.", "UnoDraw canvas bridge initialized: persistent RGBA upload.", "UnoDraw canvas bridge initialized: cached document composition.", "UnoDraw canvas bridge reused cached document pixels."],
+      "page_errors": [],
+      "resource_errors": []
+    },
+    {
+      "bridge": "composite",
+      "trial": 2,
+      "diagnostic_pass": false,
+      "artifact_directory": "primary/trial-2/composite",
+      "workload_elapsed_ms": 132230.0,
+      "active_renderer_thread_cpu_ms": 1288.332,
+      "task_elapsed_ms": 2175.306,
+      "task_elapsed_ms_per_operation": 18.12755,
+      "operations_per_second": 0.9075096422899493,
+      "operations": 120,
+      "trusted_input_events": 120,
+      "completed_graphics_callbacks": 221,
+      "graphics_active_animation_intervals": 221,
+      "visible_canvas_associated_submissions": 221,
+      "observed_graphics_api_calls": {
+        "webgpu.canvasSubmit": 221,
+        "webgpu.writeTexture": 120
+      },
+      "supplied_upload_buffer_bytes": 387064320,
+      "inputs_without_later_graphics": 0,
+      "inputs_without_completed_render_callback": 0,
+      "input_to_next_graphics_ms": {
+        "count": 120,
+        "p50": 1.599999999976717,
+        "p95": 24.315000000043074,
+        "p99": 28.38100000000559,
+        "max": 1097.8999999999069
+      },
+      "input_to_completed_render_callback_ms": {
+        "count": 120,
+        "p50": 1.599999999976717,
+        "p95": 24.410000000020954,
+        "p99": 28.480999999982306,
+        "max": 1098
+      },
+      "completed_render_callback_ms": {
+        "count": 221,
+        "p50": 2.800000000046566,
+        "p95": 7.099999999976717,
+        "p99": 8.260000000032598,
+        "max": 10
+      },
+      "completed_render_callback_interval_ms": {
+        "count": 220,
+        "p50": 1064.6500000000233,
+        "p95": 1103.0400000000022,
+        "p99": 1122.3160000000057,
+        "max": 1134.0
+      },
+      "cdp_ThreadTime_seconds": {
+        "before": 6.3e-05,
+        "after": 1.288395
+      },
+      "cdp_TaskDuration_seconds": {
+        "before": 1.6e-05,
+        "after": 2.175322
+      },
+      "common_warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 229,
+        "graphics_active_animation_intervals": 229,
+        "elapsed_ms": 137000.6000000001,
+        "included_in_primary_metrics": false
+      },
+      "hover_transition_warmup": {
+        "preview_changed_pixels": 68,
+        "cleared_changed_pixel_fraction": 0.0,
+        "region": [425, 405, 475, 455],
+        "included_in_primary_metrics": false
+      },
+      "visual_readiness_and_restore": {
+        "changed_document_pixels": 68,
+        "minimum_changed_pixels": 20,
+        "restored": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          }
+        }
+      },
+      "bridge_evidence": ["UnoDraw canvas bridge preference: cached document composition.", "UnoDraw canvas bridge initialized: persistent RGBA upload.", "UnoDraw canvas bridge initialized: cached document composition.", "UnoDraw canvas bridge reused cached document pixels."],
+      "page_errors": [],
+      "resource_errors": []
+    },
+    {
+      "bridge": "persistent",
+      "trial": 2,
+      "diagnostic_pass": false,
+      "artifact_directory": "primary/trial-2/persistent",
+      "workload_elapsed_ms": 164416.90000000014,
+      "active_renderer_thread_cpu_ms": 1203.6670000000001,
+      "task_elapsed_ms": 1992.873,
+      "task_elapsed_ms_per_operation": 16.607275,
+      "operations_per_second": 0.7298519799363684,
+      "operations": 120,
+      "trusted_input_events": 120,
+      "completed_graphics_callbacks": 222,
+      "graphics_active_animation_intervals": 222,
+      "visible_canvas_associated_submissions": 222,
+      "observed_graphics_api_calls": {
+        "webgpu.canvasSubmit": 222,
+        "webgpu.writeTexture": 120
+      },
+      "supplied_upload_buffer_bytes": 387064320,
+      "inputs_without_later_graphics": 0,
+      "inputs_without_completed_render_callback": 0,
+      "input_to_next_graphics_ms": {
+        "count": 120,
+        "p50": 1.4500000000698492,
+        "p95": 26.140000000083816,
+        "p99": 1356.4730000000377,
+        "max": 1363.8000000000466
+      },
+      "input_to_completed_render_callback_ms": {
+        "count": 120,
+        "p50": 1.5,
+        "p95": 26.234999999951103,
+        "p99": 1356.4730000000377,
+        "max": 1363.8999999999069
+      },
+      "completed_render_callback_ms": {
+        "count": 222,
+        "p50": 2.699999999953434,
+        "p95": 6.894999999913852,
+        "p99": 8.05800000010291,
+        "max": 9
+      },
+      "completed_render_callback_interval_ms": {
+        "count": 221,
+        "p50": 1332.3999999999069,
+        "p95": 1373.3999999999069,
+        "p99": 1383.6000000000465,
+        "max": 1387.3000000000466
+      },
+      "cdp_ThreadTime_seconds": {
+        "before": 5.9e-05,
+        "after": 1.203726
+      },
+      "cdp_TaskDuration_seconds": {
+        "before": 1.1e-05,
+        "after": 1.992884
+      },
+      "common_warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 233,
+        "graphics_active_animation_intervals": 233,
+        "elapsed_ms": 137200.69999999995,
+        "included_in_primary_metrics": false
+      },
+      "hover_transition_warmup": {
+        "preview_changed_pixels": 68,
+        "cleared_changed_pixel_fraction": 0.0,
+        "region": [425, 405, 475, 455],
+        "included_in_primary_metrics": false
+      },
+      "visual_readiness_and_restore": {
+        "changed_document_pixels": 68,
+        "minimum_changed_pixels": 20,
+        "restored": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          }
+        }
+      },
+      "bridge_evidence": ["UnoDraw canvas bridge preference: persistent RGBA upload.", "UnoDraw canvas bridge initialized: persistent RGBA upload."],
+      "page_errors": [],
+      "resource_errors": []
+    },
+    {
+      "bridge": "persistent",
+      "trial": 3,
+      "diagnostic_pass": false,
+      "artifact_directory": "primary/trial-3/persistent",
+      "workload_elapsed_ms": 166385.3999999999,
+      "active_renderer_thread_cpu_ms": 1188.427,
+      "task_elapsed_ms": 2022.5849999999998,
+      "task_elapsed_ms_per_operation": 16.854875,
+      "operations_per_second": 0.7212171260218749,
+      "operations": 120,
+      "trusted_input_events": 120,
+      "completed_graphics_callbacks": 220,
+      "graphics_active_animation_intervals": 220,
+      "visible_canvas_associated_submissions": 220,
+      "observed_graphics_api_calls": {
+        "webgpu.canvasSubmit": 220,
+        "webgpu.writeTexture": 120
+      },
+      "supplied_upload_buffer_bytes": 387064320,
+      "inputs_without_later_graphics": 0,
+      "inputs_without_completed_render_callback": 0,
+      "input_to_next_graphics_ms": {
+        "count": 120,
+        "p50": 1.4000000001396984,
+        "p95": 27.335000000044236,
+        "p99": 1091.1119999999164,
+        "max": 1348.2999999998137
+      },
+      "input_to_completed_render_callback_ms": {
+        "count": 120,
+        "p50": 1.4000000001396984,
+        "p95": 27.43000000013271,
+        "p99": 1091.1929999999918,
+        "max": 1348.3999999999069
+      },
+      "completed_render_callback_ms": {
+        "count": 220,
+        "p50": 2.75,
+        "p95": 7.099999999860302,
+        "p99": 8.0,
+        "max": 13.199999999953434
+      },
+      "completed_render_callback_interval_ms": {
+        "count": 219,
+        "p50": 1341.0999999998603,
+        "p95": 1372.049999999907,
+        "p99": 1381.8459999999404,
+        "max": 1387.9000000001397
+      },
+      "cdp_ThreadTime_seconds": {
+        "before": 5.4e-05,
+        "after": 1.188481
+      },
+      "cdp_TaskDuration_seconds": {
+        "before": 1.3e-05,
+        "after": 2.022598
+      },
+      "common_warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 233,
+        "graphics_active_animation_intervals": 233,
+        "elapsed_ms": 137053.90000000014,
+        "included_in_primary_metrics": false
+      },
+      "hover_transition_warmup": {
+        "preview_changed_pixels": 68,
+        "cleared_changed_pixel_fraction": 0.0,
+        "region": [425, 405, 475, 455],
+        "included_in_primary_metrics": false
+      },
+      "visual_readiness_and_restore": {
+        "changed_document_pixels": 68,
+        "minimum_changed_pixels": 20,
+        "restored": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          }
+        }
+      },
+      "bridge_evidence": ["UnoDraw canvas bridge preference: persistent RGBA upload.", "UnoDraw canvas bridge initialized: persistent RGBA upload."],
+      "page_errors": [],
+      "resource_errors": []
+    },
+    {
+      "bridge": "composite",
+      "trial": 3,
+      "diagnostic_pass": false,
+      "artifact_directory": "primary/trial-3/composite",
+      "workload_elapsed_ms": 129963.30000000005,
+      "active_renderer_thread_cpu_ms": 1168.1860000000001,
+      "task_elapsed_ms": 2017.62,
+      "task_elapsed_ms_per_operation": 16.813499999999998,
+      "operations_per_second": 0.9233375883807194,
+      "operations": 120,
+      "trusted_input_events": 120,
+      "completed_graphics_callbacks": 228,
+      "graphics_active_animation_intervals": 228,
+      "visible_canvas_associated_submissions": 228,
+      "observed_graphics_api_calls": {
+        "webgpu.canvasSubmit": 228,
+        "webgpu.writeTexture": 120
+      },
+      "supplied_upload_buffer_bytes": 387064320,
+      "inputs_without_later_graphics": 0,
+      "inputs_without_completed_render_callback": 0,
+      "input_to_next_graphics_ms": {
+        "count": 120,
+        "p50": 1.3999999999068677,
+        "p95": 21.475000000128052,
+        "p99": 25.061999999913386,
+        "max": 26.899999999906868
+      },
+      "input_to_completed_render_callback_ms": {
+        "count": 120,
+        "p50": 1.3999999999068677,
+        "p95": 21.56999999999534,
+        "p99": 25.142999999988824,
+        "max": 27.100000000093132
+      },
+      "completed_render_callback_ms": {
+        "count": 228,
+        "p50": 2.699999999953434,
+        "p95": 7.129999999969727,
+        "p99": 8.100000000030269,
+        "max": 9.899999999906868
+      },
+      "completed_render_callback_interval_ms": {
+        "count": 227,
+        "p50": 1046.6000000000931,
+        "p95": 1079.4800000000512,
+        "p99": 1087.2579999999655,
+        "max": 1089.8000000000466
+      },
+      "cdp_ThreadTime_seconds": {
+        "before": 5.5e-05,
+        "after": 1.168241
+      },
+      "cdp_TaskDuration_seconds": {
+        "before": 1.3e-05,
+        "after": 2.017633
+      },
+      "common_warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 224,
+        "graphics_active_animation_intervals": 224,
+        "elapsed_ms": 139852.0,
+        "included_in_primary_metrics": false
+      },
+      "hover_transition_warmup": {
+        "preview_changed_pixels": 68,
+        "cleared_changed_pixel_fraction": 0.0,
+        "region": [425, 405, 475, 455],
+        "included_in_primary_metrics": false
+      },
+      "visual_readiness_and_restore": {
+        "changed_document_pixels": 68,
+        "minimum_changed_pixels": 20,
+        "restored": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          }
+        }
+      },
+      "bridge_evidence": ["UnoDraw canvas bridge preference: cached document composition.", "UnoDraw canvas bridge initialized: persistent RGBA upload.", "UnoDraw canvas bridge initialized: cached document composition.", "UnoDraw canvas bridge reused cached document pixels."],
+      "page_errors": [],
+      "resource_errors": []
+    }
+  ],
+  "diagnostic_trials_excluded_from_primary_ratios": [
+    {
+      "bridge": "persistent",
+      "trial": 1,
+      "diagnostic_pass": true,
+      "artifact_directory": "diagnostic/trial-1/persistent",
+      "workload_elapsed_ms": 166905.7999999998,
+      "active_renderer_thread_cpu_ms": 1410.567,
+      "task_elapsed_ms": 2294.7529999999997,
+      "task_elapsed_ms_per_operation": 19.122941666666666,
+      "operations_per_second": 0.7189684241050948,
+      "operations": 120,
+      "trusted_input_events": 120,
+      "completed_graphics_callbacks": 225,
+      "graphics_active_animation_intervals": 225,
+      "visible_canvas_associated_submissions": 225,
+      "observed_graphics_api_calls": {
+        "webgpu.canvasSubmit": 225,
+        "webgpu.writeTexture": 120
+      },
+      "supplied_upload_buffer_bytes": 387064320,
+      "inputs_without_later_graphics": 0,
+      "inputs_without_completed_render_callback": 0,
+      "input_to_next_graphics_ms": {
+        "count": 120,
+        "p50": 1.6000000000931323,
+        "p95": 29.84000000027008,
+        "p99": 36.364000000115496,
+        "max": 46.6999999997206
+      },
+      "input_to_completed_render_callback_ms": {
+        "count": 120,
+        "p50": 1.6000000000931323,
+        "p95": 29.845000000274737,
+        "p99": 36.38300000013319,
+        "max": 46.6999999997206
+      },
+      "completed_render_callback_ms": {
+        "count": 225,
+        "p50": 3.0,
+        "p95": 8.039999999664719,
+        "p99": 9.700000000074505,
+        "max": 21.299999999813735
+      },
+      "completed_render_callback_interval_ms": {
+        "count": 224,
+        "p50": 1344.25,
+        "p95": 1388.85,
+        "p99": 1402.8640000000503,
+        "max": 1432.2999999998137
+      },
+      "cdp_ThreadTime_seconds": {
+        "before": 0.090629,
+        "after": 1.501196
+      },
+      "cdp_TaskDuration_seconds": {
+        "before": 0.155168,
+        "after": 2.449921
+      },
+      "common_warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 228,
+        "graphics_active_animation_intervals": 228,
+        "elapsed_ms": 138154.59999999986,
+        "included_in_primary_metrics": false
+      },
+      "hover_transition_warmup": {
+        "preview_changed_pixels": 68,
+        "cleared_changed_pixel_fraction": 0.0,
+        "region": [425, 405, 475, 455],
+        "included_in_primary_metrics": false
+      },
+      "visual_readiness_and_restore": {
+        "changed_document_pixels": 68,
+        "minimum_changed_pixels": 20,
+        "restored": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          }
+        }
+      },
+      "bridge_evidence": ["UnoDraw canvas bridge preference: persistent RGBA upload.", "UnoDraw canvas bridge initialized: persistent RGBA upload."],
+      "page_errors": [],
+      "resource_errors": [],
+      "managed_render_diagnostics": {
+        "before_reset": {
+          "enabled": true,
+          "timestamp": 163106599999,
+          "stopwatchFrequency": 1000000000,
+          "threadAllocatedBytes": 131317216,
+          "gen0Collections": 19,
+          "gen1Collections": 5,
+          "gen2Collections": 5,
+          "phases": [
+            {
+              "phase": "Document",
+              "count": 124,
+              "totalMilliseconds": 31920.099999,
+              "maxMilliseconds": 438.800001,
+              "allocatedBytes": 23832
+            },
+            {
+              "phase": "Interaction",
+              "count": 130,
+              "totalMilliseconds": 39.999994,
+              "maxMilliseconds": 5.2,
+              "allocatedBytes": 20224
+            },
+            {
+              "phase": "Ruler",
+              "count": 242,
+              "totalMilliseconds": 247.000004,
+              "maxMilliseconds": 5.8,
+              "allocatedBytes": 1858000
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ]
+        },
+        "after": {
+          "enabled": true,
+          "timestamp": 330192099999,
+          "stopwatchFrequency": 1000000000,
+          "threadAllocatedBytes": 152989816,
+          "gen0Collections": 23,
+          "gen1Collections": 5,
+          "gen2Collections": 5,
+          "phases": [
+            {
+              "phase": "Document",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Interaction",
+              "count": 120,
+              "totalMilliseconds": 67.999997,
+              "maxMilliseconds": 5.4,
+              "allocatedBytes": 17280
+            },
+            {
+              "phase": "Ruler",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ]
+        },
+        "thread_allocated_bytes_delta_including_observer": 21672600,
+        "gc_collections_delta": {
+          "gen0Collections": 4,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        }
+      },
+      "runtime_phase_logs": ["[frame-phases] record=3.3ms finish=0.0ms draw=2.1ms tick=0.0ms layout=1.2ms(59) gap=713.3ms | measures=58 arranges=118 | >20ms=31 >33ms=31 max=1545.6ms | gc0=+2 gc1=+0 gc2=+0 pause=0.0ms heap=63MB (avg/frame, 60 renders, 63 draws)", "[webgpu-stats] 1440x960: ops=366 emitted=358 sharedOps=0 scissorChanges=198 clipUp=2KB arena=18834 rebuilds=134(miss134/masks0) stamps=245 pool=111/0 walked=398 walkPaths=0 culled=0/0 clipCulled=0 ringBands=22 prepass=1979 clearFolds=0 layers=shadow0/matrix0/mask0/plain0 fan=refused15/points0/tri2/area13/fold0 atlas=try3391/key-no0/hit2281/baked935 clipMasks=0 fillMasks=0/0/nocache0 sheet=0 shadowSheet=0 bakes=171 layerSheet=0/0/full0/noedges175/scaleblk180/big0/pages1", "[webgpu-frame] replays=1 damage=1220x856 cmds=107 renderInto=2.5ms finishSubmit=0.1ms opsBuild=133.2ms (walk=118.8 rebuild=39.2 stamp=3.8 bake=11.1 upload=4.0) encode=58.6ms", "[frame-phases] record=2.1ms finish=0.0ms draw=3.0ms tick=0.0ms layout=1.2ms(68) gap=787.1ms | measures=70 arranges=140 | >20ms=35 >33ms=34 max=1429.1ms | gc0=+1 gc1=+0 gc2=+0 pause=0.0ms heap=66MB (avg/frame, 60 renders, 59 draws)", "[frame-phases] record=2.3ms finish=0.0ms draw=2.5ms tick=0.0ms layout=1.2ms(62) gap=716.9ms | measures=62 arranges=124 | >20ms=31 >33ms=31 max=1426.6ms | gc0=+0 gc1=+0 gc2=+0 pause=0.0ms heap=68MB (avg/frame, 60 renders, 60 draws)", "[webgpu-stats] 1440x960: ops=366 emitted=358 sharedOps=0 scissorChanges=198 clipUp=2KB arena=18840 rebuilds=120(miss120/masks0) stamps=240 pool=120/0 walked=420 walkPaths=0 culled=0/0 clipCulled=0 ringBands=22 prepass=2100 clearFolds=0 layers=shadow0/matrix0/mask0/plain0 fan=refused15/points0/tri2/area13/fold0 atlas=try4111/key-no0/hit2810/baked1126 clipMasks=0 fillMasks=0/0/nocache0 sheet=0 shadowSheet=0 bakes=231 layerSheet=0/0/full0/noedges175/scaleblk240/big0/pages1", "[webgpu-frame] replays=1 damage=1220x856 cmds=107 renderInto=7.5ms finishSubmit=0.3ms opsBuild=114.6ms (walk=102.5 rebuild=24.5 stamp=2.6 bake=16.0 upload=1.1) encode=95.7ms"]
+    },
+    {
+      "bridge": "composite",
+      "trial": 1,
+      "diagnostic_pass": true,
+      "artifact_directory": "diagnostic/trial-1/composite",
+      "workload_elapsed_ms": 128176.80000000028,
+      "active_renderer_thread_cpu_ms": 1207.7830000000001,
+      "task_elapsed_ms": 2041.2590000000002,
+      "task_elapsed_ms_per_operation": 17.01049166666667,
+      "operations_per_second": 0.9362068642687268,
+      "operations": 120,
+      "trusted_input_events": 120,
+      "completed_graphics_callbacks": 229,
+      "graphics_active_animation_intervals": 229,
+      "visible_canvas_associated_submissions": 229,
+      "observed_graphics_api_calls": {
+        "webgpu.canvasSubmit": 229,
+        "webgpu.writeTexture": 120
+      },
+      "supplied_upload_buffer_bytes": 387064320,
+      "inputs_without_later_graphics": 0,
+      "inputs_without_completed_render_callback": 0,
+      "input_to_next_graphics_ms": {
+        "count": 120,
+        "p50": 1.3500000000931323,
+        "p95": 23.04499999999534,
+        "p99": 28.04300000004005,
+        "max": 30.100000000093132
+      },
+      "input_to_completed_render_callback_ms": {
+        "count": 120,
+        "p50": 1.3999999999068677,
+        "p95": 23.049999999999997,
+        "p99": 28.04300000004005,
+        "max": 30.100000000093132
+      },
+      "completed_render_callback_ms": {
+        "count": 229,
+        "p50": 2.8999999999068677,
+        "p95": 6.920000000111758,
+        "p99": 8.0160000000149,
+        "max": 9
+      },
+      "completed_render_callback_interval_ms": {
+        "count": 228,
+        "p50": 1031.149999999674,
+        "p95": 1062.744999999972,
+        "p99": 1072.0029999999142,
+        "max": 1083.6000000000931
+      },
+      "cdp_ThreadTime_seconds": {
+        "before": 0.074759,
+        "after": 1.282542
+      },
+      "cdp_TaskDuration_seconds": {
+        "before": 0.148325,
+        "after": 2.189584
+      },
+      "common_warmup": {
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 235,
+        "graphics_active_animation_intervals": 235,
+        "elapsed_ms": 133723.7000000002,
+        "included_in_primary_metrics": false
+      },
+      "hover_transition_warmup": {
+        "preview_changed_pixels": 68,
+        "cleared_changed_pixel_fraction": 0.0,
+        "region": [425, 405, 475, 455],
+        "included_in_primary_metrics": false
+      },
+      "visual_readiness_and_restore": {
+        "changed_document_pixels": 68,
+        "minimum_changed_pixels": 20,
+        "restored": {
+          "color_family_pixels": {
+            "indigo": 41704,
+            "green": 83276,
+            "peach": 11757
+          },
+          "changed_pixel_fraction": 0.0,
+          "ruler_changed_pixel_fraction": {
+            "horizontal": 0.0,
+            "vertical": 0.0
+          }
+        }
+      },
+      "bridge_evidence": ["UnoDraw canvas bridge preference: cached document composition.", "UnoDraw canvas bridge initialized: persistent RGBA upload.", "UnoDraw canvas bridge initialized: cached document composition.", "UnoDraw canvas bridge reused cached document pixels."],
+      "page_errors": [],
+      "resource_errors": [],
+      "managed_render_diagnostics": {
+        "before_reset": {
+          "enabled": true,
+          "timestamp": 159495099999,
+          "stopwatchFrequency": 1000000000,
+          "threadAllocatedBytes": 131560584,
+          "gen0Collections": 19,
+          "gen1Collections": 5,
+          "gen2Collections": 5,
+          "phases": [
+            {
+              "phase": "Document",
+              "count": 122,
+              "totalMilliseconds": 31107.899996,
+              "maxMilliseconds": 397.5,
+              "allocatedBytes": 14952
+            },
+            {
+              "phase": "Interaction",
+              "count": 132,
+              "totalMilliseconds": 37.199991,
+              "maxMilliseconds": 5.5,
+              "allocatedBytes": 20512
+            },
+            {
+              "phase": "Ruler",
+              "count": 242,
+              "totalMilliseconds": 284.599994,
+              "maxMilliseconds": 8.9,
+              "allocatedBytes": 1858000
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ]
+        },
+        "after": {
+          "enabled": true,
+          "timestamp": 287854899999,
+          "stopwatchFrequency": 1000000000,
+          "threadAllocatedBytes": 153150088,
+          "gen0Collections": 23,
+          "gen1Collections": 5,
+          "gen2Collections": 5,
+          "phases": [
+            {
+              "phase": "Document",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Interaction",
+              "count": 120,
+              "totalMilliseconds": 52.39998,
+              "maxMilliseconds": 7.300001,
+              "allocatedBytes": 17280
+            },
+            {
+              "phase": "Ruler",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            },
+            {
+              "phase": "Navigator",
+              "count": 0,
+              "totalMilliseconds": 0,
+              "maxMilliseconds": 0,
+              "allocatedBytes": 0
+            }
+          ]
+        },
+        "thread_allocated_bytes_delta_including_observer": 21589504,
+        "gc_collections_delta": {
+          "gen0Collections": 4,
+          "gen1Collections": 0,
+          "gen2Collections": 0
+        }
+      },
+      "runtime_phase_logs": ["[frame-phases] record=6.8ms finish=0.0ms draw=2.3ms tick=0.0ms layout=1.4ms(63) gap=572.9ms | measures=66 arranges=127 | >20ms=35 >33ms=34 max=1927.2ms | gc0=+1 gc1=+0 gc2=+0 pause=0.0ms heap=62MB (avg/frame, 60 renders, 63 draws)", "[webgpu-stats] 1440x960: ops=365 emitted=357 sharedOps=0 scissorChanges=197 clipUp=2KB arena=18780 rebuilds=134(miss134/masks0) stamps=243 pool=109/0 walked=396 walkPaths=0 culled=0/0 clipCulled=0 ringBands=22 prepass=1947 clearFolds=0 layers=shadow0/matrix0/mask0/plain0 fan=refused15/points0/tri2/area13/fold0 atlas=try3370/key-no0/hit2264/baked929 clipMasks=0 fillMasks=0/0/nocache0 sheet=0 shadowSheet=0 bakes=169 layerSheet=0/0/full0/noedges177/scaleblk180/big0/pages1", "[webgpu-frame] replays=1 damage=1220x856 cmds=103 renderInto=6.0ms finishSubmit=0.1ms opsBuild=123.1ms (walk=111.9 rebuild=19.0 stamp=9.3 bake=12.7 upload=0.5) encode=50.5ms", "[frame-phases] record=2.0ms finish=0.0ms draw=2.3ms tick=0.0ms layout=0.9ms(60) gap=533.7ms | measures=62 arranges=124 | >20ms=31 >33ms=30 max=1107.6ms | gc0=+1 gc1=+0 gc2=+0 pause=0.0ms heap=64MB (avg/frame, 60 renders, 59 draws)", "[frame-phases] record=2.1ms finish=0.0ms draw=2.2ms tick=0.0ms layout=0.8ms(62) gap=550.0ms | measures=62 arranges=124 | >20ms=31 >33ms=31 max=1085.4ms | gc0=+1 gc1=+0 gc2=+0 pause=0.0ms heap=66MB (avg/frame, 60 renders, 60 draws)", "[webgpu-stats] 1440x960: ops=365 emitted=357 sharedOps=0 scissorChanges=197 clipUp=2KB arena=18780 rebuilds=120(miss120/masks0) stamps=240 pool=120/0 walked=420 walkPaths=0 culled=0/0 clipCulled=0 ringBands=22 prepass=2100 clearFolds=0 layers=shadow0/matrix0/mask0/plain0 fan=refused15/points0/tri2/area13/fold0 atlas=try4090/key-no0/hit2793/baked1120 clipMasks=0 fillMasks=0/0/nocache0 sheet=0 shadowSheet=0 bakes=229 layerSheet=0/0/full0/noedges177/scaleblk240/big0/pages1", "[webgpu-frame] replays=1 damage=1220x856 cmds=103 renderInto=6.0ms finishSubmit=0.1ms opsBuild=108.3ms (walk=99.7 rebuild=21.8 stamp=2.0 bake=6.6 upload=0.7) encode=68.3ms"]
+    }
+  ],
+  "native_quality": {
+    "unchanged_luminance_threshold": 12,
+    "unchanged_maximum_changed_fraction": 0.001,
+    "resampling_used": false,
+    "timing_pair": {
+      "pair": ["persistent", "composite"],
+      "independently_recomputed_pairs": 9,
+      "maximum_changed_pixel_fractions": {
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0,
+        "whole_frame": 0.0
+      },
+      "maximum_channel_difference": 6,
+      "pairs": [
+        {
+          "trial": 1,
+          "state": "before",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 1
+        },
+        {
+          "trial": 1,
+          "state": "after",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 2
+        },
+        {
+          "trial": 1,
+          "state": "restored",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 1
+        },
+        {
+          "trial": 2,
+          "state": "before",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 6
+        },
+        {
+          "trial": 2,
+          "state": "after",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 6
+        },
+        {
+          "trial": 2,
+          "state": "restored",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 6
+        },
+        {
+          "trial": 3,
+          "state": "before",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 1
+        },
+        {
+          "trial": 3,
+          "state": "after",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 2
+        },
+        {
+          "trial": 3,
+          "state": "restored",
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false,
+          "maximum_channel_difference": 1
+        }
+      ]
+    },
+    "separate_aot_lifecycle_gate": {
+      "pair": ["legacy", "composite"],
+      "case_count": 6,
+      "native_capture_count": 60,
+      "independently_recomputed_pairs": 30,
+      "dprs": [1, 1.25, 2],
+      "maximum_changed_pixel_fractions": {
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "navigator": 0,
+        "vertical_ruler": 0.0,
+        "whole_frame": 0.0
+      },
+      "maximum_channel_difference": 6,
+      "byte_exact_rgb_pair_count": 0,
+      "whole_browser_byte_exact_claimed": false,
+      "cases": [
+        {
+          "bridge": "legacy",
+          "dpr": 1,
+          "passed": true,
+          "native_states": ["01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay", "03c-selection-overlay", "04-navigator-visible", "05-navigator-hidden", "06-navigator-shown-again", "07-compact", "09-desktop-restored"],
+          "bridge_evidence": ["UnoDraw canvas bridge preference: legacy raster texture upload."],
+          "navigator_restore": {
+            "physical_size": [1440, 960],
+            "device_pixel_ratio": 1,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "resize_restore": {
+            "physical_size": [1440, 960],
+            "device_pixel_ratio": 1,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "bridge": "composite",
+          "dpr": 1,
+          "passed": true,
+          "native_states": ["01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay", "03c-selection-overlay", "04-navigator-visible", "05-navigator-hidden", "06-navigator-shown-again", "07-compact", "09-desktop-restored"],
+          "bridge_evidence": ["UnoDraw canvas bridge preference: cached document composition.", "UnoDraw canvas bridge initialized: persistent RGBA upload.", "UnoDraw canvas bridge initialized: cached document composition.", "UnoDraw canvas bridge reused cached document pixels."],
+          "navigator_restore": {
+            "physical_size": [1440, 960],
+            "device_pixel_ratio": 1,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "resize_restore": {
+            "physical_size": [1440, 960],
+            "device_pixel_ratio": 1,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 1.25,
+          "passed": true,
+          "native_states": ["01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay", "03c-selection-overlay", "04-navigator-visible", "05-navigator-hidden", "06-navigator-shown-again", "07-compact", "09-desktop-restored"],
+          "bridge_evidence": ["UnoDraw canvas bridge preference: legacy raster texture upload."],
+          "navigator_restore": {
+            "physical_size": [1800, 1200],
+            "device_pixel_ratio": 1.25,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "resize_restore": {
+            "physical_size": [1800, 1200],
+            "device_pixel_ratio": 1.25,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "bridge": "composite",
+          "dpr": 1.25,
+          "passed": true,
+          "native_states": ["01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay", "03c-selection-overlay", "04-navigator-visible", "05-navigator-hidden", "06-navigator-shown-again", "07-compact", "09-desktop-restored"],
+          "bridge_evidence": ["UnoDraw canvas bridge preference: cached document composition.", "UnoDraw canvas bridge initialized: persistent RGBA upload.", "UnoDraw canvas bridge initialized: cached document composition.", "UnoDraw canvas bridge reused cached document pixels."],
+          "navigator_restore": {
+            "physical_size": [1800, 1200],
+            "device_pixel_ratio": 1.25,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "resize_restore": {
+            "physical_size": [1800, 1200],
+            "device_pixel_ratio": 1.25,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "bridge": "legacy",
+          "dpr": 2,
+          "passed": true,
+          "native_states": ["01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay", "03c-selection-overlay", "04-navigator-visible", "05-navigator-hidden", "06-navigator-shown-again", "07-compact", "09-desktop-restored"],
+          "bridge_evidence": ["UnoDraw canvas bridge preference: legacy raster texture upload."],
+          "navigator_restore": {
+            "physical_size": [2880, 1920],
+            "device_pixel_ratio": 2,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "resize_restore": {
+            "physical_size": [2880, 1920],
+            "device_pixel_ratio": 2,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "page_errors": [],
+          "resource_errors": []
+        },
+        {
+          "bridge": "composite",
+          "dpr": 2,
+          "passed": true,
+          "native_states": ["01-desktop", "02-actual-size", "03-refitted", "03b-brush-overlay", "03c-selection-overlay", "04-navigator-visible", "05-navigator-hidden", "06-navigator-shown-again", "07-compact", "09-desktop-restored"],
+          "bridge_evidence": ["UnoDraw canvas bridge preference: cached document composition.", "UnoDraw canvas bridge initialized: persistent RGBA upload.", "UnoDraw canvas bridge initialized: cached document composition.", "UnoDraw canvas bridge reused cached document pixels."],
+          "navigator_restore": {
+            "physical_size": [2880, 1920],
+            "device_pixel_ratio": 2,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "resize_restore": {
+            "physical_size": [2880, 1920],
+            "device_pixel_ratio": 2,
+            "changed_pixel_fractions": {
+              "whole_frame": 0.0,
+              "document": 0.0,
+              "horizontal_ruler": 0.0,
+              "vertical_ruler": 0.0,
+              "navigator": 0.0
+            },
+            "maximum_changed_fraction": 0.001,
+            "luminance_threshold": 12,
+            "resized_for_comparison": false
+          },
+          "page_errors": [],
+          "resource_errors": []
+        }
+      ],
+      "pairs": [
+        {
+          "dpr": 1,
+          "state": "01-desktop",
+          "maximum_channel_difference": 1,
+          "nonzero_luminance_pixels": 1,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "02-actual-size",
+          "maximum_channel_difference": 1,
+          "nonzero_luminance_pixels": 1,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "03-refitted",
+          "maximum_channel_difference": 1,
+          "nonzero_luminance_pixels": 1,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "03b-brush-overlay",
+          "maximum_channel_difference": 1,
+          "nonzero_luminance_pixels": 76,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "03c-selection-overlay",
+          "maximum_channel_difference": 1,
+          "nonzero_luminance_pixels": 6287,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "04-navigator-visible",
+          "maximum_channel_difference": 3,
+          "nonzero_luminance_pixels": 69,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "05-navigator-hidden",
+          "maximum_channel_difference": 1,
+          "nonzero_luminance_pixels": 66,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "06-navigator-shown-again",
+          "maximum_channel_difference": 3,
+          "nonzero_luminance_pixels": 72,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "07-compact",
+          "maximum_channel_difference": 1,
+          "nonzero_luminance_pixels": 1,
+          "physical_size": [390, 844],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1,
+          "state": "09-desktop-restored",
+          "maximum_channel_difference": 2,
+          "nonzero_luminance_pixels": 43,
+          "physical_size": [1440, 960],
+          "device_pixel_ratio": 1,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "01-desktop",
+          "maximum_channel_difference": 4,
+          "nonzero_luminance_pixels": 115,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "02-actual-size",
+          "maximum_channel_difference": 3,
+          "nonzero_luminance_pixels": 112,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "03-refitted",
+          "maximum_channel_difference": 3,
+          "nonzero_luminance_pixels": 111,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "03b-brush-overlay",
+          "maximum_channel_difference": 3,
+          "nonzero_luminance_pixels": 234,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "03c-selection-overlay",
+          "maximum_channel_difference": 4,
+          "nonzero_luminance_pixels": 5807,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "04-navigator-visible",
+          "maximum_channel_difference": 2,
+          "nonzero_luminance_pixels": 179,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "05-navigator-hidden",
+          "maximum_channel_difference": 2,
+          "nonzero_luminance_pixels": 214,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "06-navigator-shown-again",
+          "maximum_channel_difference": 2,
+          "nonzero_luminance_pixels": 179,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "07-compact",
+          "maximum_channel_difference": 1,
+          "nonzero_luminance_pixels": 25,
+          "physical_size": [488, 1055],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 1.25,
+          "state": "09-desktop-restored",
+          "maximum_channel_difference": 2,
+          "nonzero_luminance_pixels": 96,
+          "physical_size": [1800, 1200],
+          "device_pixel_ratio": 1.25,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "01-desktop",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 200,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "02-actual-size",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 218,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "03-refitted",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 200,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "03b-brush-overlay",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 372,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "03c-selection-overlay",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 9111,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "04-navigator-visible",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 286,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "05-navigator-hidden",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 311,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "06-navigator-shown-again",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 289,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "07-compact",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 56,
+          "physical_size": [780, 1688],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        },
+        {
+          "dpr": 2,
+          "state": "09-desktop-restored",
+          "maximum_channel_difference": 6,
+          "nonzero_luminance_pixels": 187,
+          "physical_size": [2880, 1920],
+          "device_pixel_ratio": 2,
+          "changed_pixel_fractions": {
+            "whole_frame": 0.0,
+            "document": 0.0,
+            "horizontal_ruler": 0.0,
+            "vertical_ruler": 0.0,
+            "navigator": 0.0
+          },
+          "maximum_changed_fraction": 0.001,
+          "luminance_threshold": 12,
+          "resized_for_comparison": false
+        }
+      ]
+    }
+  }
+}

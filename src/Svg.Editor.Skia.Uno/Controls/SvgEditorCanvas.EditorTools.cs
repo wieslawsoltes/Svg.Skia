@@ -38,7 +38,7 @@ public sealed partial class SvgEditorCanvas
             CancelGesture();
             _interactionMode = value;
             UpdateCursor();
-            Invalidate();
+            InvalidateInteraction();
         }
     }
 

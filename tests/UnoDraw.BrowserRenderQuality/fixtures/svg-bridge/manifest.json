@@ -1,0 +1,48 @@
+{
+  "native_fixture_source": "tests/Svg.Editor.Skia.UnitTests/RgbaCanvasEquivalenceTests.cs",
+  "native_fixture_source_sha256": "0bc15916615bbcc66b58ae021826bfe57a9489a10102b299ef24d877dd71ed68",
+  "embedded_png_generation": "SkiaSharp 4.151.1; identical CreateEmbeddedImage body from RgbaCanvasEquivalenceTests",
+  "embedded_png_sha256": "6da86c7b2214b75cfb857b50510e88911130ee6187b76e95c69bd73629353cd2",
+  "fixtures": [
+    {
+      "name": "gradients",
+      "file": "gradients.svg",
+      "sha256": "6f34e6078e8bb040ae0c062dbc67af445445523753d849f79ae3ecc3833fc508"
+    },
+    {
+      "name": "filters",
+      "file": "filters.svg",
+      "sha256": "5e14b52bf57abf70824e5304498427b86673e926a35e1dd16df6777f1b8fcc4d"
+    },
+    {
+      "name": "mask",
+      "file": "mask.svg",
+      "sha256": "c00778755655bd29ba819591a211f60f2fae216bf1e6da716418030eb7da20b7"
+    },
+    {
+      "name": "clip",
+      "file": "clip.svg",
+      "sha256": "18b03d26aa4e74cd41d1327b514641c0df16458d723bad79f8e1468332b6f41c"
+    },
+    {
+      "name": "pattern",
+      "file": "pattern.svg",
+      "sha256": "24b03f7c59ebb0067e6f29d3cfc3493851519a09938f6ab0a116e95e94e9912f"
+    },
+    {
+      "name": "text",
+      "file": "text.svg",
+      "sha256": "82a2260869b808bde7bbbac021d1d2a385bc4216abe0980eba569d0db387666f"
+    },
+    {
+      "name": "image",
+      "file": "image.svg",
+      "sha256": "534c278c65ae6cbe10f0d9757f0f54728d6eb58145a1366adbf9b0651b9b9c8a"
+    },
+    {
+      "name": "opacity-and-strokes",
+      "file": "opacity-and-strokes.svg",
+      "sha256": "86dd884bacd494767485ce78b90e8085d2bb7e563473679f7d2ae494bd78daae"
+    }
+  ]
+}

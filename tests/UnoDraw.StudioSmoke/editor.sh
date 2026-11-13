@@ -3,6 +3,7 @@ set -euo pipefail
 
 # Continue the established production workflow in the same native application.
 source "$(cd "$(dirname "$0")" && pwd)/command-center.sh" "$@"
+source "$source_dir/inspector.sh"
 
 command 'Reset workspace'
 command 'Fit artboard'

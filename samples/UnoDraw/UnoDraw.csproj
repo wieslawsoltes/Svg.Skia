@@ -19,8 +19,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
-    <!-- WebGPU composes the workspace while SKCanvasElement uses its raster texture
-         bridge. Uno 7.0.32's optional GL island fails during zero-sized resize. -->
+    <!-- The opt-in diagnostics export uses the runtime-generated JS interop stub. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- WebGPU composes the workspace. Editor painters use persistent device-scale
+         RGBA textures; unsupported painters retain Uno's normal raster fallback. -->
     <UnoFeatures>$(UnoFeatures)WebGpu;</UnoFeatures>
     <!-- Keep the published package relocatable under the docs' /unodraw/ folder. -->
     <WasmShellWebAppBasePath>./</WasmShellWebAppBasePath>
@@ -65,6 +67,8 @@
     <UnoSplashScreen Include="Branding/splash.svg" BackgroundColor="#19191F" BaseSize="64,64" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
+    <EmbeddedResource Include="Platforms/WebAssembly/BrowserStorageSynchronization.js"
+                      LogicalName="UnoDraw.BrowserStorageSynchronization.source" />
     <PackageReference Include="SkiaSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
@@ -72,6 +76,8 @@
          is unavailable to browser AOT. Keep it interpreted; editor/rendering stay AOT. -->
     <MonoRuntimeMixedModeExcludedAssembly Include="System.Private.Windows.Core.dll" />
   </ItemGroup>
+  <Import Project="Platforms/WebAssembly/Rendering/UnoDraw.Graphite.targets"
+          Condition="'$(TargetFramework)' == 'net10.0-browserwasm'" />
   <!-- TrimMode=copy alone applies only to assemblies marked IsTrimmable. Use the
        SDK's PrepareForILLink metadata extension point to also preserve unmarked
        SVG, editor and dependency assemblies; no types or converters are removed. -->

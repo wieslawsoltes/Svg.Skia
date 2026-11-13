@@ -5,6 +5,7 @@
     <OutputType>Library</OutputType>
     <IsPackable>False</IsPackable>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Uno.Svg.Skia.UnitTests</RootNamespace>
   </PropertyGroup>
 
@@ -15,6 +16,8 @@
   <Import Project="..\..\build\SkiaSharp.Native.props" />
 
   <ItemGroup>
+    <Compile Include="../../samples/UnoDraw/Platforms/WebAssembly/Rendering/SingleCanvasGraphicsObservation.cs"
+             Link="Rendering/SingleCanvasGraphicsObservation.cs" />
     <ProjectReference Include="..\..\src\Svg.Controls.Skia.Uno\Svg.Controls.Skia.Uno.csproj" />
     <ProjectReference Include="..\..\src\Svg.Skia.JavaScript\Svg.Skia.JavaScript.csproj" />
     <ProjectReference Include="..\..\src\SvgML.Uno\SvgML.Uno.csproj" />

@@ -1,0 +1,1011 @@
+{
+  "schema": 1,
+  "evidence_kind": "verified_immutable_same_snapshot_texture_transport",
+  "experiment_report_kind": "same_snapshot_texture_transport_experiment",
+  "primary_comparison": false,
+  "application_source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+  "harness_source_sha": "f8c8ffffdcf0a81d50cca80499236f82624edeb9",
+  "scope": [
+    "Three alternating independent pairs on one runner use the same unchanged d0 Release AOT package and WebGPU compositor.",
+    "The compared candidate is the existing persistent combined upload selected by canvasBridge=composite; this does not test the newer legacy-composite mode.",
+    "This is independent of the baseline96e versus current-default matrix. No ratios are multiplied or pooled across jobs.",
+    "All six primary trials keep the original full common pan warmup, 121 real selection inputs, zero unobserved tails and original native quality gates.",
+    "The candidate samples have substantial elapsed-time spread; all three are retained without outlier removal.",
+    "Callbacks and visible-canvas submissions do not prove physical presentation or a new native scene replay for every input.",
+    "The separate runtime-cadence diagnostic has its own evidence and is not pooled with these primary timings."
+  ],
+  "artifact": {
+    "run_id": 43282970869,
+    "job_id": 131408835350,
+    "url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43282970869",
+    "id": 13976085931,
+    "name": "unodraw-pinned-legacy-composite-selection",
+    "archive_sha256": "87ad701ffd59950603b458342bffb4491120f1de9c5c34654846213c3bfd14d7",
+    "archive_bytes": 5986739,
+    "report_sha256": "e8af0bc703c1ab39cbadcb201502dadc977862f50dbd2d1cb0c1fcf570c100b6"
+  },
+  "application_package": {
+    "manifest": {
+      "schema": 2,
+      "role": "candidate",
+      "source_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "source_global_json": {
+        "sdk": {
+          "version": "10.0.100",
+          "rollForward": "latestMinor",
+          "allowPrerelease": true
+        },
+        "msbuild-sdks": {
+          "Uno.Sdk": "7.0.5"
+        }
+      },
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json": {
+        "sdk": {
+          "version": "10.0.403",
+          "rollForward": "disable",
+          "allowPrerelease": false,
+          "workloadVersion": "10.0.403"
+        },
+        "msbuild-sdks": {
+          "Uno.Sdk": "7.0.5"
+        }
+      },
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "dotnet_workload_info": "Workload version: 10.0.403\n Configured to use workload sets when installing new manifests.\n\n [wasm-tools]\n   Installation Source: SDK 10.0.400\n   Manifest Version:    10.0.114/10.0.100\n   Manifest Path:       /usr/share/dotnet/sdk-manifests/10.0.100/microsoft.net.workload.mono.toolchain.current/10.0.114/WorkloadManifest.json\n   Install Type:        FileBased",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "a0622ea730064ee73459f0e044fde058100bc9f8478124521a2a7a6c0091d510",
+      "font_assets_sha256": {
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.Fluent/Fonts/uno-fluentui-assets.ttf": "2573f53b71ebee599dfc94c60e1ea848d6d20e7e777d2c65d063822850e738b6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Bold.ttf": "bc73c45e5810a0971ebeaef4eb6c35dec84607dbe02da6757f9f43d958b6da5f",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-BoldItalic.ttf": "b6219df45cbee6f876e6b28f668348e1807b1fb9ad118ea7d687041f0d332384",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBold.ttf": "0c078107776634131162be46a38245399040c2becc495e93d69d9b6edd65a98d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-ExtraBoldItalic.ttf": "a034466210aeb09f7ffdbc9250accd1f5c3e2fb8acbfd3be8aa154993ec43d9b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Italic.ttf": "5eabd67fe3d8b5b5eee64504ea9e4a5ef7665b643577ef117f3c32fda67cd29f",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Light.ttf": "46ead38978e28f32ad7dc10d467efe8d8b5786ff98020c3718a296f88ef7f1cc",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-LightItalic.ttf": "4eac502c10daf6608e53e7db86d79769890373ebbd5472a57bbcb75789bc5110",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Medium.ttf": "2ab15629424ace86d429dbc0e5a7beb30d2af3db998a2b03a71601ee6965c334",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-MediumItalic.ttf": "bf436f4c34d2c921d0f2d4997e7854050a60feaa89bbacc604ae896ad254ca8b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-Regular.ttf": "6530480277da62efde047eb26e78a7e532d1cfaeec91603e68d63876b9669f0d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBold.ttf": "e603135cc3b1200c7260b34f37f9cb1f2178a42b363037e26a1e18276ab78bf0",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans-SemiBoldItalic.ttf": "b1bf2c582820b5703dbcd339b5dc97235c145185d0fabbb09c224ef87215266b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans.ttf": "13744bbc079f0f492e4fb3b14a15d242b8d9600faacd423d58cdf937fea7ce6b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Bold.ttf": "08858694d203191fbddbc603f0d82e18d104c27941622afa4b8ff0ccaca12b60",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-BoldItalic.ttf": "75dffec080d8dc033a9794ff253614a380f51f7e139aae48daf12ebe9aa4aec4",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBold.ttf": "f7cb3b6dd0084d59f66fa9e5238b4bb8192ad6949f99a1673c910b832ae2a53e",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-ExtraBoldItalic.ttf": "621ee76be446afeac7e13fee34bbfa70679f9907f200bb1bd50adfe1ce71a77d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Italic.ttf": "2bc823a7660f1fd34b0c2a57dd9acd46fedf0ac7abe32a146d2e895e88f39102",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Light.ttf": "c1c6e126200cefe046a49f36ab020c0dcc844095671977132739459804787ad6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-LightItalic.ttf": "e1e60f4093232a627f42e215b8fea141a838995631839c1524557c876f3377f7",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Medium.ttf": "69c1f94736232a3b7d78f3df863c2f7561dabbd17192054d082573c5405433a6",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-MediumItalic.ttf": "bcbfc3d6e7258e022bf6ccf8152a16920dfc40b55bc4c8254c15f4ff4d68dd5a",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-Regular.ttf": "f59481d260f7aafc6c4696dd8608ccbe12714c98e64f8d61422ee75afb9497b5",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBold.ttf": "17995de0355f8f96e9bf7ecc7dcae2b0aadd5a8b32e82f3909589b826169321c",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_Condensed-SemiBoldItalic.ttf": "6c3543f02911695383f7a24905446d9dac12b3cbeca4f28236c0475bd482064d",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Bold.ttf": "b1a405296720729a9ccb2215ef8e25fa031f28a74a23a782ee003b120d92a887",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-BoldItalic.ttf": "c131cd1ca5b9d6e4ace568ee0ccf3cd697b9d54db97b3cc8838a4a89092492c1",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBold.ttf": "356012920cf82d3ad23c3022a42638d6e9766795c331e52578313c0bb36de912",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-ExtraBoldItalic.ttf": "3d94b1b6990162aefd796aa74e1e0a730b5aa0077f40503a0187ddb6f648f9b7",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Italic.ttf": "6c73ebe56797e33acff95695547aaec72b130659d1a20f257eb876cf6c9d7f58",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Light.ttf": "92cd488028cd9e0ee4b1934e48a6aa05e7f1bf04c65eb8104f2486cb49df2096",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-LightItalic.ttf": "f976b54657dc331335418a6330d6cd46ff9ae646bc9b9a3987edcfee0b0ca11b",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Medium.ttf": "6be32b58eb0616a206aa941779a672c6bb97a94de1302d9e1e958d6b8c2af111",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-MediumItalic.ttf": "bc97ce0653959b1fcc5db92049dc477734927802e4776e770b84abafce10beaf",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-Regular.ttf": "b248380c2975e732fd643e0c00bf5f3ade168e89ca60150e323e3a22d4807b94",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBold.ttf": "b82891f7b8e0eac507b462953cdb49120d73646e58f40ad0fab6aa0468da7868",
+        "package_04b56f631fe1153effbea771718b25473fbd7d62/Uno.Fonts.OpenSans/Fonts/OpenSans_SemiCondensed-SemiBoldItalic.ttf": "6b9fb4a0e22bb4996d4116bae2e14a09db5c8f33ef109ef57ff7186af1b68b71"
+      },
+      "supports_render_diagnostics": true
+    },
+    "manifest_sha256": "1e594957d4c93c47918e8aa1e8974de9655075cbb688291490b7ce8cc4ef46a1",
+    "artifact_metadata": {
+      "id": 13967029731,
+      "node_id": "MDg6QXJ0aWZhY3QxMzk2NzAyOTczMQ==",
+      "name": "unodraw-performance-package-candidate",
+      "size_in_bytes": 175804274,
+      "url": "https://api.github.com/repos/wieslawsoltes/Svg.Skia/actions/artifacts/13967029731",
+      "archive_download_url": "https://api.github.com/repos/wieslawsoltes/Svg.Skia/actions/artifacts/13967029731/zip",
+      "expired": false,
+      "digest": "sha256:1c3716d3eecfb3f0a245686c09d0f876d2b2624988108483a551d93f463f7524",
+      "created_at": "2026-11-12T17:34:26Z",
+      "updated_at": "2026-11-12T17:34:26Z",
+      "expires_at": "2026-11-19T17:34:16Z",
+      "workflow_run": {
+        "id": 43265614141,
+        "repository_id": 216883277,
+        "head_repository_id": 216883277,
+        "head_branch": "codex/unodraw-rendering-performance",
+        "head_sha": "d0dafea8b705bf5e706ee8f5c008663d2d71fa12"
+      }
+    },
+    "served_file_count": 907,
+    "served_inventory_sha256": "1be90926ecb1494c4ca7cb2b3e93e801a659fb4aa0033c26f3656f0a1947fe82",
+    "verified_original_archive_and_all_served_files_before_and_after": true
+  },
+  "environment": {
+    "browser_version": "143.0.7499.4",
+    "browser_launch_arguments": [
+      "--enable-unsafe-swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-webgpu",
+      "--use-vulkan=swiftshader",
+      "--enable-features=Vulkan"
+    ],
+    "viewport": {
+      "width": 1440,
+      "height": 960
+    },
+    "device_scale_factor": 1,
+    "cross_origin_isolated": false,
+    "runner": {
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "machine": "x86_64"
+    },
+    "graphics": "SwiftShader software graphics; not physical GPU throughput"
+  },
+  "measurement": {
+    "workload": "selection",
+    "repeats_per_bridge": 3,
+    "primary_trial_count": 6,
+    "separate_diagnostic_count": 2,
+    "executed_order": [
+      [
+        1,
+        "legacy"
+      ],
+      [
+        1,
+        "composite"
+      ],
+      [
+        2,
+        "composite"
+      ],
+      [
+        2,
+        "legacy"
+      ],
+      [
+        3,
+        "legacy"
+      ],
+      [
+        3,
+        "composite"
+      ]
+    ],
+    "sample_columns": [
+      "trial",
+      "canvas_bridge",
+      "elapsed_ms",
+      "thread_cpu_ms",
+      "task_duration_ms",
+      "operations_per_second",
+      "operations",
+      "input_events",
+      "inputs_without_later_graphics",
+      "inputs_without_completed_render_callback",
+      "completed_render_callbacks",
+      "graphics_active_animation_intervals",
+      "webgpu_canvas_submissions",
+      "write_texture_calls",
+      "supplied_upload_buffer_bytes",
+      "upload_calls_without_buffer_size",
+      "final_capture_validation_elapsed_ms",
+      "restore_validation_elapsed_ms"
+    ],
+    "primary_samples": [
+      [
+        1,
+        "legacy",
+        104940.59999999998,
+        6486.876,
+        11792.514,
+        1.1530332397565863,
+        121,
+        121,
+        0,
+        0,
+        124,
+        124,
+        124,
+        1210,
+        520255956,
+        0,
+        110.44205299998566,
+        2777.135374000011
+      ],
+      [
+        1,
+        "composite",
+        69513,
+        4430.415999999999,
+        7793.685,
+        1.7406815991253435,
+        121,
+        121,
+        0,
+        0,
+        127,
+        127,
+        127,
+        115,
+        370936640,
+        0,
+        114.66810499996427,
+        2387.2307670000055
+      ],
+      [
+        2,
+        "composite",
+        44649.80000000005,
+        3446.587,
+        5640.249000000001,
+        2.709978544136813,
+        121,
+        121,
+        0,
+        0,
+        128,
+        128,
+        128,
+        111,
+        358034496,
+        0,
+        116.57442000000628,
+        1876.1016639999752
+      ],
+      [
+        2,
+        "legacy",
+        109206.29999999993,
+        6292.543000000001,
+        11512.511,
+        1.1079946852883036,
+        121,
+        121,
+        0,
+        0,
+        124,
+        124,
+        124,
+        1210,
+        520255956,
+        0,
+        119.38077699994665,
+        1792.002491000062
+      ],
+      [
+        3,
+        "legacy",
+        105022.69999999995,
+        6233.17,
+        11314.992,
+        1.1521318724428153,
+        121,
+        121,
+        0,
+        0,
+        125,
+        125,
+        125,
+        1200,
+        515956320,
+        0,
+        117.10827199999585,
+        2368.156749000036
+      ],
+      [
+        3,
+        "composite",
+        91416.3999999999,
+        4937.324,
+        8726.208999999999,
+        1.3236137060746225,
+        121,
+        121,
+        0,
+        0,
+        127,
+        127,
+        127,
+        117,
+        377387712,
+        0,
+        126.2746170000355,
+        2712.350595000089
+      ]
+    ],
+    "warmups": [
+      {
+        "trial": 1,
+        "bridge": "legacy",
+        "diagnostic": false,
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 234,
+        "graphics_active_animation_intervals": 234,
+        "elapsed_ms": 73816.29999999999,
+        "included_in_primary_metrics": false
+      },
+      {
+        "trial": 1,
+        "bridge": "composite",
+        "diagnostic": false,
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 230,
+        "graphics_active_animation_intervals": 230,
+        "elapsed_ms": 71544.19999999995,
+        "included_in_primary_metrics": false
+      },
+      {
+        "trial": 2,
+        "bridge": "composite",
+        "diagnostic": false,
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 228,
+        "graphics_active_animation_intervals": 228,
+        "elapsed_ms": 72878.29999999993,
+        "included_in_primary_metrics": false
+      },
+      {
+        "trial": 2,
+        "bridge": "legacy",
+        "diagnostic": false,
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 236,
+        "graphics_active_animation_intervals": 236,
+        "elapsed_ms": 74876.3999999999,
+        "included_in_primary_metrics": false
+      },
+      {
+        "trial": 3,
+        "bridge": "legacy",
+        "diagnostic": false,
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 236,
+        "graphics_active_animation_intervals": 236,
+        "elapsed_ms": 72023.0,
+        "included_in_primary_metrics": false
+      },
+      {
+        "trial": 3,
+        "bridge": "composite",
+        "diagnostic": false,
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 232,
+        "graphics_active_animation_intervals": 232,
+        "elapsed_ms": 84135.40000000014,
+        "included_in_primary_metrics": false
+      },
+      {
+        "trial": 1,
+        "bridge": "legacy",
+        "diagnostic": true,
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 233,
+        "graphics_active_animation_intervals": 233,
+        "elapsed_ms": 75218.30000000005,
+        "included_in_primary_metrics": false
+      },
+      {
+        "trial": 1,
+        "bridge": "composite",
+        "diagnostic": true,
+        "offered_pointer_moves": 120,
+        "trusted_pointer_moves": 120,
+        "completed_graphics_callbacks": 234,
+        "graphics_active_animation_intervals": 234,
+        "elapsed_ms": 78467.69999999995,
+        "included_in_primary_metrics": false
+      }
+    ],
+    "median_comparisons": [
+      {
+        "metric": "elapsed_ms",
+        "trial_values": {
+          "legacy": [
+            104940.59999999998,
+            109206.29999999993,
+            105022.69999999995
+          ],
+          "composite": [
+            69513,
+            44649.80000000005,
+            91416.3999999999
+          ]
+        },
+        "medians": {
+          "legacy": 105022.69999999995,
+          "composite": 69513
+        },
+        "composite_over_legacy": 0.6618854780918795
+      },
+      {
+        "metric": "operations_per_second",
+        "trial_values": {
+          "legacy": [
+            1.1530332397565863,
+            1.1079946852883036,
+            1.1521318724428153
+          ],
+          "composite": [
+            1.7406815991253435,
+            2.709978544136813,
+            1.3236137060746225
+          ]
+        },
+        "medians": {
+          "legacy": 1.1521318724428153,
+          "composite": 1.7406815991253435
+        },
+        "composite_over_legacy": 1.510835383309596
+      },
+      {
+        "metric": "cpu_task_ms_per_operation",
+        "trial_values": {
+          "legacy": [
+            97.45879338842974,
+            95.14471900826446,
+            93.5123305785124
+          ],
+          "composite": [
+            64.41061983471074,
+            46.61362809917356,
+            72.1174297520661
+          ]
+        },
+        "medians": {
+          "legacy": 95.14471900826446,
+          "composite": 64.41061983471074
+        },
+        "composite_over_legacy": 0.6769752489270152
+      },
+      {
+        "metric": "thread_cpu_ms",
+        "trial_values": {
+          "legacy": [
+            6486.876,
+            6292.543000000001,
+            6233.17
+          ],
+          "composite": [
+            4430.415999999999,
+            3446.587,
+            4937.324
+          ]
+        },
+        "medians": {
+          "legacy": 6292.543000000001,
+          "composite": 4430.415999999999
+        },
+        "composite_over_legacy": 0.7040740126845377
+      },
+      {
+        "metric": "thread_cpu_ms_per_operation",
+        "trial_values": {
+          "legacy": [
+            53.61054545454546,
+            52.00448760330579,
+            51.51380165289256
+          ],
+          "composite": [
+            36.6150082644628,
+            28.484190082644627,
+            40.80433057851239
+          ]
+        },
+        "medians": {
+          "legacy": 52.00448760330579,
+          "composite": 36.6150082644628
+        },
+        "composite_over_legacy": 0.7040740126845376
+      },
+      {
+        "metric": "completed_render_callbacks",
+        "trial_values": {
+          "legacy": [
+            124,
+            124,
+            125
+          ],
+          "composite": [
+            127,
+            128,
+            127
+          ]
+        },
+        "medians": {
+          "legacy": 124,
+          "composite": 127
+        },
+        "composite_over_legacy": 1.0241935483870968
+      },
+      {
+        "metric": "webgpu_canvas_submissions",
+        "trial_values": {
+          "legacy": [
+            124,
+            124,
+            125
+          ],
+          "composite": [
+            127,
+            128,
+            127
+          ]
+        },
+        "medians": {
+          "legacy": 124,
+          "composite": 127
+        },
+        "composite_over_legacy": 1.0241935483870968
+      }
+    ],
+    "experiment_duration_seconds_including_startup_warmups_and_postwindow": 1471.9582316875458,
+    "scope": "TaskDuration includes blocking. ThreadTime is renderer-thread active CPU. Supplied buffer bytes are not measured physical transfer traffic."
+  },
+  "native_quality": {
+    "passed": true,
+    "recomputed_pair_count": 9,
+    "luminance_threshold": 12,
+    "maximum_changed_fraction": 0.001,
+    "resized": false,
+    "maximum_observed_fraction_by_region": {
+      "whole_frame": 0.0,
+      "document": 0.0,
+      "horizontal_ruler": 0.0,
+      "vertical_ruler": 0.0
+    },
+    "pairs": [
+      {
+        "trial": 1,
+        "state": "before",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      },
+      {
+        "trial": 1,
+        "state": "after",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      },
+      {
+        "trial": 1,
+        "state": "restored",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      },
+      {
+        "trial": 2,
+        "state": "before",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      },
+      {
+        "trial": 2,
+        "state": "after",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      },
+      {
+        "trial": 2,
+        "state": "restored",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      },
+      {
+        "trial": 3,
+        "state": "before",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      },
+      {
+        "trial": 3,
+        "state": "after",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      },
+      {
+        "trial": 3,
+        "state": "restored",
+        "passed": true,
+        "physical_size": [
+          1440,
+          960
+        ],
+        "device_pixel_ratio": 1,
+        "changed_pixel_fractions": {
+          "whole_frame": 0.0,
+          "document": 0.0,
+          "horizontal_ruler": 0.0,
+          "vertical_ruler": 0.0
+        },
+        "maximum_changed_fraction": 0.001,
+        "luminance_threshold": 12,
+        "resized_for_comparison": false
+      }
+    ],
+    "selection_and_restore_proofs": [
+      {
+        "trial": 1,
+        "bridge": "legacy",
+        "quality": {
+          "changed_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "final_capture_validation_elapsed_ms": 110.44205299998566,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          },
+          "restore_validation_elapsed_ms": 2777.135374000011,
+          "post_sample_timing_scope": "Outside the primary window: final screenshot/readiness/native-pixel validation, then restore commands and screenshot validation. Includes automation and Python image analysis; not renderer CPU or physical presentation."
+        }
+      },
+      {
+        "trial": 1,
+        "bridge": "composite",
+        "quality": {
+          "changed_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "final_capture_validation_elapsed_ms": 114.66810499996427,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          },
+          "restore_validation_elapsed_ms": 2387.2307670000055,
+          "post_sample_timing_scope": "Outside the primary window: final screenshot/readiness/native-pixel validation, then restore commands and screenshot validation. Includes automation and Python image analysis; not renderer CPU or physical presentation."
+        }
+      },
+      {
+        "trial": 2,
+        "bridge": "composite",
+        "quality": {
+          "changed_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "final_capture_validation_elapsed_ms": 116.57442000000628,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          },
+          "restore_validation_elapsed_ms": 1876.1016639999752,
+          "post_sample_timing_scope": "Outside the primary window: final screenshot/readiness/native-pixel validation, then restore commands and screenshot validation. Includes automation and Python image analysis; not renderer CPU or physical presentation."
+        }
+      },
+      {
+        "trial": 2,
+        "bridge": "legacy",
+        "quality": {
+          "changed_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "final_capture_validation_elapsed_ms": 119.38077699994665,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          },
+          "restore_validation_elapsed_ms": 1792.002491000062,
+          "post_sample_timing_scope": "Outside the primary window: final screenshot/readiness/native-pixel validation, then restore commands and screenshot validation. Includes automation and Python image analysis; not renderer CPU or physical presentation."
+        }
+      },
+      {
+        "trial": 3,
+        "bridge": "legacy",
+        "quality": {
+          "changed_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "final_capture_validation_elapsed_ms": 117.10827199999585,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          },
+          "restore_validation_elapsed_ms": 2368.156749000036,
+          "post_sample_timing_scope": "Outside the primary window: final screenshot/readiness/native-pixel validation, then restore commands and screenshot validation. Includes automation and Python image analysis; not renderer CPU or physical presentation."
+        }
+      },
+      {
+        "trial": 3,
+        "bridge": "composite",
+        "quality": {
+          "changed_document_pixels": 14380,
+          "minimum_changed_pixels": 50,
+          "final_capture_validation_elapsed_ms": 126.2746170000355,
+          "restored": {
+            "color_family_pixels": {
+              "indigo": 41704,
+              "green": 83276,
+              "peach": 11757
+            },
+            "changed_pixel_fraction": 0.0,
+            "ruler_changed_pixel_fraction": {
+              "horizontal": 0.0,
+              "vertical": 0.0
+            }
+          },
+          "restore_validation_elapsed_ms": 2712.350595000089,
+          "post_sample_timing_scope": "Outside the primary window: final screenshot/readiness/native-pixel validation, then restore commands and screenshot validation. Includes automation and Python image analysis; not renderer CPU or physical presentation."
+        }
+      }
+    ]
+  },
+  "separate_diagnostics": [
+    {
+      "sample": [
+        1,
+        "legacy",
+        108064.80000000005,
+        6519.802000000001,
+        11917.812,
+        1.119698551239626,
+        121,
+        121,
+        0,
+        0,
+        124,
+        124,
+        124,
+        1210,
+        520255956,
+        0,
+        125.11258500012445,
+        2639.6339210000406
+      ],
+      "managed_phases": [
+        {
+          "phase": "Document",
+          "count": 0,
+          "totalMilliseconds": 0,
+          "maxMilliseconds": 0,
+          "allocatedBytes": 0
+        },
+        {
+          "phase": "Interaction",
+          "count": 121,
+          "totalMilliseconds": 210.1,
+          "maxMilliseconds": 6.9,
+          "allocatedBytes": 334424
+        },
+        {
+          "phase": "Ruler",
+          "count": 0,
+          "totalMilliseconds": 0,
+          "maxMilliseconds": 0,
+          "allocatedBytes": 0
+        },
+        {
+          "phase": "Navigator",
+          "count": 0,
+          "totalMilliseconds": 0,
+          "maxMilliseconds": 0,
+          "allocatedBytes": 0
+        }
+      ],
+      "runtime_phase_log_count": 6,
+      "runtime_phase_logs_sha256": "3eb4d4b4cc6a1d25c5daddb6c24a4b55fd1be32b2707d6f2b2b2587c4607a989",
+      "scope": "Excluded from primary medians; sparse logs are not full native scene-replay counts."
+    },
+    {
+      "sample": [
+        1,
+        "composite",
+        90005.30000000005,
+        5239.530999999999,
+        9409.262999999999,
+        1.3443652762670635,
+        121,
+        121,
+        0,
+        0,
+        125,
+        125,
+        125,
+        118,
+        380613248,
+        0,
+        860.8451669999795,
+        2396.8537170001127
+      ],
+      "managed_phases": [
+        {
+          "phase": "Document",
+          "count": 0,
+          "totalMilliseconds": 0,
+          "maxMilliseconds": 0,
+          "allocatedBytes": 0
+        },
+        {
+          "phase": "Interaction",
+          "count": 118,
+          "totalMilliseconds": 202.4,
+          "maxMilliseconds": 7.200001,
+          "allocatedBytes": 328592
+        },
+        {
+          "phase": "Ruler",
+          "count": 0,
+          "totalMilliseconds": 0,
+          "maxMilliseconds": 0,
+          "allocatedBytes": 0
+        },
+        {
+          "phase": "Navigator",
+          "count": 0,
+          "totalMilliseconds": 0,
+          "maxMilliseconds": 0,
+          "allocatedBytes": 0
+        }
+      ],
+      "runtime_phase_log_count": 6,
+      "runtime_phase_logs_sha256": "48881538e2c472aaf730d7ac16008976a0409c609f2eb9d3a38cf0a2cb7b98fc",
+      "scope": "Excluded from primary medians; sparse logs are not full native scene-replay counts."
+    }
+  ],
+  "audit": {
+    "artifact_sha256_verified": true,
+    "source_and_package_inventory_independently_verified": true,
+    "all_primary_and_diagnostic_contracts_recomputed": true,
+    "all_nine_native_pairs_recomputed": true,
+    "stored_medians_and_ratios_equal_recomputation": true,
+    "current_default_recovery_established": false,
+    "new_legacy_composite_measured": false
+  }
+}

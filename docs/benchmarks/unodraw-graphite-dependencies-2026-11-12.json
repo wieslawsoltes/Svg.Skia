@@ -1,0 +1,333 @@
+{
+  "schema": 1,
+  "date": "2026-11-12",
+  "scope": "Package ABI, standalone native link and native CPU pixel checks. This does not establish real Uno browser linking, GPU quality, frame rate or input throughput.",
+  "packages": {
+    "uno": "7.0.32",
+    "skia_before": "4.151.1",
+    "skia_after": "4.156.0",
+    "harfbuzz_before": "14.4.0",
+    "harfbuzz_after": "14.4.0.100"
+  },
+  "dawn": {
+    "release": "v20260624.223603",
+    "revision": "11ab3f92ed451db8c1e1366abcddd9c202e0738d",
+    "compared_files": 17,
+    "identical_files": 16,
+    "only_difference": "Uno adds one $WebGPU__postset line exporting unoWebGpuImportDevice, unoWebGpuJsObject and unoWebGpuImportTexture; C++ and C/C++ headers and generated struct/signature tables are identical.",
+    "files": [
+      {
+        "path": "README.md",
+        "uno_sha256": "468490d2af778a7d33ab95dd0ae9a13622d88b3c061de9941bb14ecbbdc67c3d",
+        "skia_sha256": "468490d2af778a7d33ab95dd0ae9a13622d88b3c061de9941bb14ecbbdc67c3d",
+        "identical": true
+      },
+      {
+        "path": "VERSION.txt",
+        "uno_sha256": "7cb325d1ff8dfde4ace7a41a30e90da65f6f13f61f681bb4d594fa48f8187c3a",
+        "skia_sha256": "7cb325d1ff8dfde4ace7a41a30e90da65f6f13f61f681bb4d594fa48f8187c3a",
+        "identical": true
+      },
+      {
+        "path": "emdawnwebgpu.port.py",
+        "uno_sha256": "e7b10f47f448d48b7bbecd5968d970cab16daff8847936c3b0dbb766c9d66719",
+        "skia_sha256": "e7b10f47f448d48b7bbecd5968d970cab16daff8847936c3b0dbb766c9d66719",
+        "identical": true
+      },
+      {
+        "path": "webgpu/include/webgpu/webgpu.h",
+        "uno_sha256": "32752878e300afd639ca0c0c057c6b95a7dacbde429b348d26693803912f48a8",
+        "skia_sha256": "32752878e300afd639ca0c0c057c6b95a7dacbde429b348d26693803912f48a8",
+        "identical": true
+      },
+      {
+        "path": "webgpu/include/webgpu/webgpu_glfw.h",
+        "uno_sha256": "0d34411aa2a02d6c3f5f58c5b4eac831572a6ce05241ebd0756913688696a738",
+        "skia_sha256": "0d34411aa2a02d6c3f5f58c5b4eac831572a6ce05241ebd0756913688696a738",
+        "identical": true
+      },
+      {
+        "path": "webgpu/src/LICENSE",
+        "uno_sha256": "2f79bf3699b0870251255b381670237f73f21a04a38c094f791eba39c5fd1df7",
+        "skia_sha256": "2f79bf3699b0870251255b381670237f73f21a04a38c094f791eba39c5fd1df7",
+        "identical": true
+      },
+      {
+        "path": "webgpu/src/library_webgpu.js",
+        "uno_sha256": "35cead12839cb9404c16d2ffede2ee76a93748f3635d79fb05f483b238ffd299",
+        "skia_sha256": "1357722270f4d5f8c6a5ac30466e518ce81b7eff4d9daf2aa6c0f1d720711b79",
+        "identical": false
+      },
+      {
+        "path": "webgpu/src/library_webgpu_enum_tables.js",
+        "uno_sha256": "2752fb7056ecc5668ed2aaff7944a8e40b7c12a4f56476a61f002e79d35a3f58",
+        "skia_sha256": "2752fb7056ecc5668ed2aaff7944a8e40b7c12a4f56476a61f002e79d35a3f58",
+        "identical": true
+      },
+      {
+        "path": "webgpu/src/library_webgpu_generated_sig_info.js",
+        "uno_sha256": "462f862078dcd3a36db32e4076f0e582ef0f92e8f5eb19d787f8703bbd408fb7",
+        "skia_sha256": "462f862078dcd3a36db32e4076f0e582ef0f92e8f5eb19d787f8703bbd408fb7",
+        "identical": true
+      },
+      {
+        "path": "webgpu/src/library_webgpu_generated_struct_info.js",
+        "uno_sha256": "3bb5e72fb952ca82a48966e75738f650b625e9466bad68e0974f817facbf9e1c",
+        "skia_sha256": "3bb5e72fb952ca82a48966e75738f650b625e9466bad68e0974f817facbf9e1c",
+        "identical": true
+      },
+      {
+        "path": "webgpu/src/webgpu-externs.js",
+        "uno_sha256": "1ee1d010e156a070f251e6bd1b5211b82a979c2c5930f292075f0b2224390f0f",
+        "skia_sha256": "1ee1d010e156a070f251e6bd1b5211b82a979c2c5930f292075f0b2224390f0f",
+        "identical": true
+      },
+      {
+        "path": "webgpu/src/webgpu.cpp",
+        "uno_sha256": "fdb0072f46dc2d86b99383ea849fad408b768c2b9d19bf9f2defbaa41389587b",
+        "skia_sha256": "fdb0072f46dc2d86b99383ea849fad408b768c2b9d19bf9f2defbaa41389587b",
+        "identical": true
+      },
+      {
+        "path": "webgpu_cpp/LICENSE",
+        "uno_sha256": "7e1efc85a78732a13d7ddfc8b52912da7c8f8d3c6d334624b20e3f3a96297de0",
+        "skia_sha256": "7e1efc85a78732a13d7ddfc8b52912da7c8f8d3c6d334624b20e3f3a96297de0",
+        "identical": true
+      },
+      {
+        "path": "webgpu_cpp/include/dawn/webgpu_cpp_print.h",
+        "uno_sha256": "370846bf25a30bd55734feec2b1ce8086f1c906a15833c753dac6d4a364bfd43",
+        "skia_sha256": "370846bf25a30bd55734feec2b1ce8086f1c906a15833c753dac6d4a364bfd43",
+        "identical": true
+      },
+      {
+        "path": "webgpu_cpp/include/webgpu/webgpu_cpp.h",
+        "uno_sha256": "89b9eaecf42977e749b534f96b03341659f30b4b8061f617c0d5b793f2e53683",
+        "skia_sha256": "89b9eaecf42977e749b534f96b03341659f30b4b8061f617c0d5b793f2e53683",
+        "identical": true
+      },
+      {
+        "path": "webgpu_cpp/include/webgpu/webgpu_cpp_chained_struct.h",
+        "uno_sha256": "582e62d371f29391d78a7356c634c6b76e1d58b6257a6f5be51701d15797fce1",
+        "skia_sha256": "582e62d371f29391d78a7356c634c6b76e1d58b6257a6f5be51701d15797fce1",
+        "identical": true
+      },
+      {
+        "path": "webgpu_cpp/include/webgpu/webgpu_enum_class_bitmasks.h",
+        "uno_sha256": "cae961820e1d3b4dde5b2b4938d549f587bd0e513857bb018850036b646fe821",
+        "skia_sha256": "cae961820e1d3b4dde5b2b4938d549f587bd0e513857bb018850036b646fe821",
+        "identical": true
+      }
+    ]
+  },
+  "native_link": {
+    "passed": true,
+    "toolchain": "Emscripten 3.1.56 supplied with .NET 10.0.14 wasm-tools",
+    "variant": "st,simd",
+    "javascript_port_owner": "Uno.WinUI.Composition.WebGpu 7.0.32",
+    "native_port_owner": "SkiaSharp.NativeAssets.WebAssembly 4.156.0 / libSkiaSharp.a / libemdawnwebgpu.webgpu.o",
+    "skia_port_map_entries": 152,
+    "duplicate_port_archive_map_entries": 0,
+    "link_map_sha256": "164e32c25233bb0518690b01b7c9ecf327f3f7969170d2b12c2cf33babf4bd9e"
+  },
+  "native_cpu_raster": {
+    "scope": "Native Linux CPU raster cross-version comparison, no browser/GPU or timing claim",
+    "versions": [
+      "4.151.1",
+      "4.156.0-aligned"
+    ],
+    "cases": 81,
+    "full_native_bounds": true,
+    "resampled": false,
+    "raw_exact_cases": 81,
+    "luma_threshold": 12,
+    "maximum_changed_fraction": 0.001,
+    "luma_failures": {
+      "native_png_rgb": 0,
+      "over_white": 0,
+      "over_dark": 0
+    },
+    "same_fontconfig_sha256": "04e7e6573dd45764d5dd094407c6e1704afbcb22fef399d76ac5defee622387e",
+    "harfbuzz_native_sha256": {
+      "before": "1e31690a3d1c46a5148d2846e1760665a1c649d685c708ab888e3ff5fdc7efa1",
+      "after": "cf67521e2a26fb8fcca249298457323d03e8c8ca10171d37cdae2815c6bf0512"
+    },
+    "harfbuzz_version_change": "14.4.0 to 14.4.0.100",
+    "same_renderer_assembly_sha256": {
+      "ExCSS": "6b166e638181eba3150f0d10379d1cc8362af6dfd518e9e9e194aa9a746293c2",
+      "ShimSkiaSharp": "3868d0c9a43e0ce589ebc74ff1bf20314f8d97ab757f0e7d7dd52761c709ec61",
+      "Svg.Animation": "e3b8c4d454a3be9f53898eedf2804093f1555bccb28da0c4e0958d483a8ba5c2",
+      "Svg.Custom": "113093d8a7722ba82fd3b5e2e543aca14b8054d45672104d3d89a847c60a19c8",
+      "Svg.Editor.Skia": "bc9b9cfd5b48ecaf2ecb8e6ea3680715d2b9e279340564d20d65b15c4b73f80f",
+      "Svg.Model": "f0d42fcdac9ae387100b5c3e2441d9949d5149312cb10af586186ca168f243cd",
+      "Svg.SceneGraph": "dee20cad6ae298c8caeb4a1dc6299150540f609de951f7222993ddd734c1215b",
+      "Svg.Skia": "10bb89f8e17e8f587e623a369e71fd1f24f66f9b3a4692f7885cbaf225335c73"
+    },
+    "native_fixture_source_sha256": "0bc15916615bbcc66b58ae021826bfe57a9489a10102b299ef24d877dd71ed68",
+    "runner_source_sha256": {
+      "Program.cs": "9c96fd476a3d556ef3123b8e25644d7550e723a91ee3879a9b17e329868a4adc",
+      "ProgramAligned.cs": "46cf706c4658a2c5659375bd5e5f02b5880852f7be5a0d9866cc94cedc895b1a"
+    },
+    "scenes": [
+      {
+        "scene": "clip",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      },
+      {
+        "scene": "filters",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      },
+      {
+        "scene": "gradients",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      },
+      {
+        "scene": "image",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      },
+      {
+        "scene": "mask",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      },
+      {
+        "scene": "opacity-and-strokes",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      },
+      {
+        "scene": "pattern",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      },
+      {
+        "scene": "text",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      },
+      {
+        "scene": "welcome",
+        "cases": 9,
+        "raw_exact_cases": 9,
+        "maximum_raw_channel_difference": 0,
+        "luma_failures": {
+          "native_png_rgb": 0,
+          "over_white": 0,
+          "over_dark": 0
+        },
+        "maximum_full_frame_luma_fraction": {
+          "native_png_rgb": 0.0,
+          "over_white": 0.0,
+          "over_dark": 0.0
+        }
+      }
+    ]
+  },
+  "source_urls": [
+    "https://github.com/mono/SkiaSharp/tree/v4.156.0/binding/SkiaSharp/Gpu/Graphite",
+    "https://github.com/mono/SkiaSharp/blob/v4.156.0/native/wasm/build.cake",
+    "https://github.com/mono/SkiaSharp/blob/v4.156.0/binding/IncludeNativeAssets.SkiaSharp.targets",
+    "https://github.com/unoplatform/uno/blob/78c746d28293975e64ba0f162af6f44f3c3daaab/src/Uno.UI.Composition.WebGpu.Init/wgpu-wasm.targets",
+    "https://github.com/emscripten-core/emscripten/blob/3.1.56/src/modules.js",
+    "https://github.com/emscripten-core/emscripten/blob/3.1.56/src/utility.js"
+  ],
+  "required_browser_gates": [
+    "Actual Uno interpreter and AOT publish",
+    "No-fallback native-size bridge quality at DPR 1, 1.25 and 2",
+    "Eight canonical SVG scenes at three DPRs and camera states",
+    "Matched same-AOT pan and zoom timing including post-window queue drain",
+    "Old/new default-provider pixel checks after the browser dependency upgrade"
+  ]
+}

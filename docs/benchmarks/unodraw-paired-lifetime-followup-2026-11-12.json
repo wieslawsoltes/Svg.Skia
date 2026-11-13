@@ -1,0 +1,2171 @@
+{
+  "schema": 1,
+  "measured_date_utc": "2026-11-12",
+  "application_source_sha": "cbfeb0c603a8f729b4b1d489aecf99324c73c169",
+  "run_id": 43272580441,
+  "workflow_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441",
+  "report_kind": "audited_same_candidate_bridge_experiment_followup",
+  "primary_comparison": false,
+  "default_promotion_qualified": false,
+  "original_baseline_recovery_measured": false,
+  "verification": {
+    "experiments": 4,
+    "primary_samples": 24,
+    "separate_diagnostics": 8,
+    "native_pairs_independently_recomputed": 36,
+    "native_pairs_passed": 36,
+    "all_archive_and_report_sha256_verified": true,
+    "all_modes_use_exact_same_candidate_package": true,
+    "all_source_mode_input_tail_and_warmup_contracts_passed": true,
+    "all_page_and_resource_errors_empty": true
+  },
+  "browser": {
+    "launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"],
+    "version": "143.0.7499.4"
+  },
+  "measurement": {
+    "execution_mode": "InterpreterAndAOT",
+    "configuration": "Release",
+    "repeats": 3,
+    "viewport_css": {
+      "width": 1440,
+      "height": 960
+    },
+    "device_pixel_ratio": 1,
+    "configured_steps": 120,
+    "selection_operations": 121,
+    "other_operations": 120,
+    "graphics_description": "Chromium SwiftShader software graphics; no physical GPU throughput claim"
+  },
+  "package": {
+    "schema": 2,
+    "role": "candidate",
+    "source_sha": "cbfeb0c603a8f729b4b1d489aecf99324c73c169",
+    "dotnet_sdk": "10.0.403",
+    "dotnet_workload_version": "10.0.403",
+    "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+    "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+    "source_configuration_overridden": true,
+    "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+    "uno_sdk": "7.0.5",
+    "runtime_generation": "uno7",
+    "configuration": "Release",
+    "execution_mode": "InterpreterAndAOT",
+    "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+    "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+    "index_sha256": "dc1d7f21a125bbd074806bdebdf46069d0934d549d47b307866533d3207753ae",
+    "supports_render_diagnostics": true,
+    "full_manifest_canonical_sha256": "3971458b922c95ad781c4444871024aaa35e7691b47acaf8b76fc4255f138c1f",
+    "font_asset_count": 38,
+    "font_manifest_canonical_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936",
+    "artifact": {
+      "id": 13971214019,
+      "name": "unodraw-performance-package-candidate",
+      "sha256": "a6522fbf7abf8ac947096a02871b5d8ca7ac86e12b02d9a004ee23a2f9ab0ec3",
+      "bytes": 175806733
+    }
+  },
+  "primary_sample_columns": ["bridge", "trial", "elapsed_ms", "renderer_thread_cpu_ms", "task_elapsed_ms", "task_ms_per_operation", "offered_operations_per_second", "operations", "trusted_inputs", "completed_callbacks", "graphics_active_animation_intervals", "visible_canvas_submissions", "graphite_document_submissions", "write_texture_calls_all_canvases", "supplied_upload_buffer_bytes", "inputs_without_later_graphics", "inputs_without_completed_callback"],
+  "diagnostic_sample_columns": ["bridge", "trial", "elapsed_ms", "renderer_thread_cpu_ms", "task_elapsed_ms", "task_ms_per_operation", "offered_operations_per_second", "operations", "trusted_inputs", "completed_callbacks", "graphics_active_animation_intervals", "visible_canvas_submissions", "graphite_document_submissions", "write_texture_calls_all_canvases", "supplied_upload_buffer_bytes", "inputs_without_later_graphics", "inputs_without_completed_callback"],
+  "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+  "paired_elapsed_columns": ["trial", "persistent_elapsed_ms", "candidate_elapsed_ms", "candidate_over_persistent"],
+  "native_pair_columns": ["trial", "state", "passed", "whole_frame_fraction", "document_fraction", "horizontal_ruler_fraction", "vertical_ruler_fraction"],
+  "native_pixel_gate": {
+    "luminance_threshold": 12,
+    "maximum_changed_fraction_per_region": 0.001,
+    "resized": false
+  },
+  "experiments": [
+    {
+      "name": "graphite-raster-pan",
+      "workload": "pan",
+      "candidate_bridge": "graphite",
+      "graphite_coverage": "raster",
+      "graphite_effective_sample_count": 1,
+      "job_id": 131397550441,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/job/131397550441",
+      "artifact": {
+        "id": 13973684055,
+        "name": "unodraw-graphite-raster-document-raster-experiment-pan",
+        "sha256": "ffc39649d8afd78d1b383f65b5c07ab6e07d2b45a1b0be4415b51e6ac0a4dbcc",
+        "bytes": 5917786
+      },
+      "report_sha256": "6a22d1667d8830dcc48cb6f4b270e3e4e44fe6cb4a717835bf2631902893bbda",
+      "runner": {
+        "platform": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "started_unix": 1794508206.2331126,
+      "total_experiment_duration_seconds": 1756.640192747116,
+      "same_artifact_mode_pair": ["persistent", "graphite"],
+      "correctness_contracts_passed": true,
+      "primary_sample_count": 6,
+      "separate_diagnostic_count": 2,
+      "native_pairs_independently_recomputed": 9,
+      "native_pairs_passed": 9,
+      "primary_samples_in_actual_order": [
+        ["persistent", 1, 88803.0, 21959.873000000003, 26443.843999999997, 220.36536666666663, 1.351305699131786, 120, 120, 233, 233, 233, null, 362, 412586752, 0, 0],
+        ["graphite", 1, 105475.90000000002, 2021.6409999999998, 3181.504, 26.512533333333334, 1.1377006501011129, 120, 120, 229, 229, 229, 121, 241, 22296896, 0, 0],
+        ["graphite", 2, 103548.30000000005, 1928.8220000000001, 2932.449, 24.437075, 1.1588794794313373, 120, 120, 225, 225, 225, 120, 240, 19071360, 0, 0],
+        ["persistent", 2, 88680.79999999981, 21784.73, 26011.612, 216.76343333333335, 1.3531677657395993, 120, 120, 234, 234, 234, null, 362, 412586752, 0, 0],
+        ["persistent", 3, 88676.6000000001, 21747.879999999997, 26189.089, 218.24240833333334, 1.353231855980043, 120, 120, 231, 231, 231, null, 362, 412586752, 0, 0],
+        ["graphite", 3, 104416.5, 2014.5690000000002, 3063.926, 25.532716666666666, 1.149243654020198, 120, 120, 229, 229, 229, 121, 241, 22296896, 0, 0]
+      ],
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 88680.79999999981,
+          "renderer_thread_cpu_ms": 21784.73,
+          "task_elapsed_ms": 26189.089,
+          "task_ms_per_operation": 218.24240833333334,
+          "offered_operations_per_second": 1.3531677657395993,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 233,
+          "graphics_active_animation_intervals": 233,
+          "visible_canvas_submissions": 233,
+          "graphite_document_submissions": null,
+          "write_texture_calls_all_canvases": 362,
+          "supplied_upload_buffer_bytes": 412586752
+        },
+        "graphite": {
+          "elapsed_ms": 104416.5,
+          "renderer_thread_cpu_ms": 2014.5690000000002,
+          "task_elapsed_ms": 3063.926,
+          "task_ms_per_operation": 25.532716666666666,
+          "offered_operations_per_second": 1.149243654020198,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 229,
+          "graphics_active_animation_intervals": 229,
+          "visible_canvas_submissions": 229,
+          "graphite_document_submissions": 121,
+          "write_texture_calls_all_canvases": 241,
+          "supplied_upload_buffer_bytes": 22296896
+        }
+      },
+      "candidate_over_persistent": {
+        "elapsed_ms": 1.1774420167612405,
+        "renderer_thread_cpu_ms": 0.0924761977770668,
+        "task_elapsed_ms": 0.1169924620134744,
+        "task_ms_per_operation": 0.11699246201347438,
+        "offered_operations_per_second": 0.8492987219452847,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.9828326180257511,
+        "graphics_active_animation_intervals": 0.9828326180257511,
+        "visible_canvas_submissions": 0.9828326180257511,
+        "graphite_document_submissions": null,
+        "write_texture_calls_all_canvases": 0.6657458563535912,
+        "supplied_upload_buffer_bytes": 0.054041715813502415
+      },
+      "paired_elapsed_results": [
+        [1, 88803.0, 105475.90000000002, 1.1877515399254532],
+        [2, 88680.79999999981, 103548.30000000005, 1.167651847976115],
+        [3, 88676.6000000001, 104416.5, 1.1774977840828347]
+      ],
+      "actual_renderer_proofs": [
+        {
+          "bridge": "persistent",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "181a9d53eb31d9293a3d963c008e13044039b9c5d80d1488f2759f73cab3d113",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 232,
+            "graphics_active_animation_intervals": 232,
+            "elapsed_ms": 89913.29999999999,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 13,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "c51419f79da14cf8f2b15e1d157477fa1b22be297796a92151b9254985342320",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 221,
+            "graphics_active_animation_intervals": 221,
+            "elapsed_ms": 105335.5,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 13,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "b75fd4bdeb9b1b49174a7735b1d8ec86a072d170b605c1ebd35f9da7d0d26fdb",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 218,
+            "graphics_active_animation_intervals": 218,
+            "elapsed_ms": 105896.80000000005,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "15184084fd96665d119d9c20e0ca2a14f389959c639e47b7a5b57b90a4cbed94",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 224,
+            "graphics_active_animation_intervals": 224,
+            "elapsed_ms": 89820.1000000001,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "f917dcc8de6c138387041c37334a52a0fbf306ac6f5de78c64c751d0edf4fa2c",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 226,
+            "graphics_active_animation_intervals": 226,
+            "elapsed_ms": 89260.80000000005,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 13,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "ce3e89f0003b763f72b15f6b8ef1cb82843433b944ceabdb1c7e169ff978830d",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 229,
+            "graphics_active_animation_intervals": 229,
+            "elapsed_ms": 105844.6000000001,
+            "included_in_primary_metrics": false
+          }
+        }
+      ],
+      "separate_diagnostics": [
+        {
+          "sample": ["persistent", 1, 88599.6000000001, 21870.768, 26508.076, 220.90063333333333, 1.3544079205775181, 120, 120, 234, 234, 234, null, 362, 412586752, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 121, 24235.799996, 352.900001, 13552],
+            ["Interaction", 121, 25.699994, 0.399999, 17424],
+            ["Ruler", 240, 237.499998, 5.8, 1845240],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 7,
+          "console_canonical_sha256": "9b8e1600633448fcaa1e3cd6d5a65ba9090936485a930d79ccc5420553fcce1b",
+          "hover_layer_isolation": null
+        },
+        {
+          "sample": ["graphite", 1, 104645.59999999986, 2005.2910000000002, 3032.3, 25.269166666666667, 1.1467276216104658, 120, 120, 227, 227, 227, 121, 241, 22296896, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 121, 788.999999, 12.5, 1906120],
+            ["Interaction", 121, 33.100004, 3.200001, 17424],
+            ["Ruler", 240, 248.50002, 6.8, 1845240],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 8,
+          "console_canonical_sha256": "74b199ea77b4c5f9d2c69f8f34cf03f3ddd6f8b289d80254580c506e21a8f57e",
+          "hover_layer_isolation": null
+        }
+      ],
+      "post_window_observations": [
+        {
+          "bridge": "persistent",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 1492.7396420000036,
+          "restore_validation_elapsed_ms": 2512.358845000051,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 840.2364260000468,
+          "restore_validation_elapsed_ms": 2864.7237029999815,
+          "graphite_queue_drain": {
+            "available": true,
+            "result": {
+              "completed": true,
+              "queueCount": 1,
+              "duration_ms": 862.4000000000233,
+              "errors": []
+            },
+            "request_elapsed_ms_including_automation": 868.8843670000779,
+            "scope": "After primary and managed snapshots; waits asynchronously for shared-queue work submitted before the request. Does not submit or flush work, establish input causality, or prove physical presentation. Other bridge modes do not expose matched drain measurements."
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 837.2223879999865,
+          "restore_validation_elapsed_ms": 2851.326941000025,
+          "graphite_queue_drain": {
+            "available": true,
+            "result": {
+              "completed": true,
+              "queueCount": 1,
+              "duration_ms": 1705.8000000000466,
+              "errors": []
+            },
+            "request_elapsed_ms_including_automation": 1714.5717770000601,
+            "scope": "After primary and managed snapshots; waits asynchronously for shared-queue work submitted before the request. Does not submit or flush work, establish input causality, or prove physical presentation. Other bridge modes do not expose matched drain measurements."
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 1517.935241000032,
+          "restore_validation_elapsed_ms": 2488.9703920000557,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 1471.0765600000286,
+          "restore_validation_elapsed_ms": 2538.6603410001953,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 817.3417519999475,
+          "restore_validation_elapsed_ms": 3324.9994230000084,
+          "graphite_queue_drain": {
+            "available": true,
+            "result": {
+              "completed": true,
+              "queueCount": 1,
+              "duration_ms": 869.0999999998603,
+              "errors": []
+            },
+            "request_elapsed_ms_including_automation": 871.7055919998984,
+            "scope": "After primary and managed snapshots; waits asynchronously for shared-queue work submitted before the request. Does not submit or flush work, establish input causality, or prove physical presentation. Other bridge modes do not expose matched drain measurements."
+          }
+        }
+      ],
+      "native_pixel_pairs": [
+        [1, "before", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [1, "after", true, 0.00018156828703703705, 0.00035526315789473687, 0.0, 0.0],
+        [1, "restored", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [2, "before", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [2, "after", true, 0.00018156828703703705, 0.00035526315789473687, 0.0, 0.0],
+        [2, "restored", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [3, "before", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [3, "after", true, 0.00018156828703703705, 0.00035526315789473687, 0.0, 0.0],
+        [3, "restored", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0]
+      ],
+      "maximum_native_region_fractions": {
+        "whole_frame": 0.00018156828703703705,
+        "document": 0.0003669590643274854,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      }
+    },
+    {
+      "name": "graphite-raster-zoom",
+      "workload": "zoom",
+      "candidate_bridge": "graphite",
+      "graphite_coverage": "raster",
+      "graphite_effective_sample_count": 1,
+      "job_id": 131397550555,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/job/131397550555",
+      "artifact": {
+        "id": 13976558562,
+        "name": "unodraw-graphite-raster-document-raster-experiment-zoom",
+        "sha256": "64e8527675657f69c4a23c0c3c8af4d20fe162310afb9dc2fab75626baba88e5",
+        "bytes": 6051940
+      },
+      "report_sha256": "64491dce5b774ede3b0d8eb013c2c355c1053eb12238842cf4c66245dbc1b745",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "started_unix": 1794508697.6464517,
+      "total_experiment_duration_seconds": 3221.1176257133484,
+      "same_artifact_mode_pair": ["persistent", "graphite"],
+      "correctness_contracts_passed": true,
+      "primary_sample_count": 6,
+      "separate_diagnostic_count": 2,
+      "native_pairs_independently_recomputed": 9,
+      "native_pairs_passed": 9,
+      "primary_samples_in_actual_order": [
+        ["persistent", 1, 144610.6, 34098.129, 43900.537, 365.8378083333333, 0.829814688549802, 120, 120, 243, 243, 243, null, 336, 379059968, 0, 0],
+        ["graphite", 1, 182431.69999999995, 3393.1549999999997, 5514.918, 45.957649999999994, 0.6577804186443477, 120, 120, 230, 230, 230, 112, 224, 17799936, 0, 0],
+        ["graphite", 2, 185292.7000000002, 3465.642, 5599.5289999999995, 46.66274166666666, 0.6476240024566531, 120, 120, 229, 229, 229, 112, 224, 17799936, 0, 0],
+        ["persistent", 2, 145122.19999999995, 31777.291999999998, 39445.309, 328.71090833333335, 0.8268893387779405, 120, 120, 256, 256, 256, null, 336, 379059968, 0, 0],
+        ["persistent", 3, 147968.0, 30530.413000000004, 35513.325000000004, 295.94437500000004, 0.8109861591695502, 120, 120, 259, 259, 259, null, 336, 379059968, 0, 0],
+        ["graphite", 3, 184355.8999999999, 3412.342, 5751.6359999999995, 47.930299999999995, 0.6509148879965331, 120, 120, 231, 231, 231, 112, 224, 17799936, 0, 0]
+      ],
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 145122.19999999995,
+          "renderer_thread_cpu_ms": 31777.291999999998,
+          "task_elapsed_ms": 39445.309,
+          "task_ms_per_operation": 328.71090833333335,
+          "offered_operations_per_second": 0.8268893387779405,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 256,
+          "graphics_active_animation_intervals": 256,
+          "visible_canvas_submissions": 256,
+          "graphite_document_submissions": null,
+          "write_texture_calls_all_canvases": 336,
+          "supplied_upload_buffer_bytes": 379059968
+        },
+        "graphite": {
+          "elapsed_ms": 184355.8999999999,
+          "renderer_thread_cpu_ms": 3412.342,
+          "task_elapsed_ms": 5599.5289999999995,
+          "task_ms_per_operation": 46.66274166666666,
+          "offered_operations_per_second": 0.6509148879965331,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 230,
+          "graphics_active_animation_intervals": 230,
+          "visible_canvas_submissions": 230,
+          "graphite_document_submissions": 112,
+          "write_texture_calls_all_canvases": 224,
+          "supplied_upload_buffer_bytes": 17799936
+        }
+      },
+      "candidate_over_persistent": {
+        "elapsed_ms": 1.2703494020901003,
+        "renderer_thread_cpu_ms": 0.10738303314203113,
+        "task_elapsed_ms": 0.14195677868818316,
+        "task_ms_per_operation": 0.14195677868818316,
+        "offered_operations_per_second": 0.7871850046567538,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.8984375,
+        "graphics_active_animation_intervals": 0.8984375,
+        "visible_canvas_submissions": 0.8984375,
+        "graphite_document_submissions": null,
+        "write_texture_calls_all_canvases": 0.6666666666666666,
+        "supplied_upload_buffer_bytes": 0.04695810030775922
+      },
+      "paired_elapsed_results": [
+        [1, 144610.6, 182431.69999999995, 1.261537535975924],
+        [2, 145122.19999999995, 185292.7000000002, 1.2768046515281621],
+        [3, 147968.0, 184355.8999999999, 1.24591736051038]
+      ],
+      "actual_renderer_proofs": [
+        {
+          "bridge": "persistent",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 14,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "7d91e0b87b10528421608a9d3d3b0a987b6202ccbb924c738e7faaa07641424f",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 230,
+            "graphics_active_animation_intervals": 230,
+            "elapsed_ms": 175154.09999999998,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 16,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "deefaf40afbbcff12c7b5e3123858333c1cf7d5b5f2f6aa8917878d139a9ce4a",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 223,
+            "graphics_active_animation_intervals": 223,
+            "elapsed_ms": 213134.00000000006,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 13,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "4da433fe1487a465169be2b3074af3355aeb0fcf805a8748483c13e6659644a9",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 210,
+            "graphics_active_animation_intervals": 210,
+            "elapsed_ms": 212995.50000000012,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "ec75982bcc6c0f303b916eda62644ee80cb6840f0df098aa42c2db5e38907a0f",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 230,
+            "graphics_active_animation_intervals": 230,
+            "elapsed_ms": 174604.5,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "4682f952586fa48d3867c9cb3b0a161c5ab03016298b2a76837ba27956dc5dbd",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 227,
+            "graphics_active_animation_intervals": 227,
+            "elapsed_ms": 174953.69999999995,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 13,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "a19d46bf94fc4fac34fa9cf7a60fba951ff8ab17debd9618786c0eba7b0afda5",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 225,
+            "graphics_active_animation_intervals": 225,
+            "elapsed_ms": 214791.80000000028,
+            "included_in_primary_metrics": false
+          }
+        }
+      ],
+      "separate_diagnostics": [
+        {
+          "sample": ["persistent", 1, 145431.5, 32834.708999999995, 40097.967, 334.149725, 0.8251307316502958, 120, 120, 251, 251, 251, null, 336, 379059968, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 112, 37848.100005, 741.6, 12544],
+            ["Interaction", 112, 21.199999, 3.200001, 16128],
+            ["Ruler", 224, 282.299999, 8.200001, 1405128],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 7,
+          "console_canonical_sha256": "0def57db6ccfe879f132a34fd3afc2ca7d67934e799d7ae0b5cd0285b9fdb894",
+          "hover_layer_isolation": null
+        },
+        {
+          "sample": ["graphite", 1, 183565.5, 3447.7219999999998, 5699.4529999999995, 47.495441666666665, 0.6537176103352754, 120, 120, 228, 228, 228, 112, 224, 17799936, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 112, 2827.700003, 47, 2475792],
+            ["Interaction", 112, 24.499998, 3.300001, 16128],
+            ["Ruler", 224, 284.999996, 5.9, 1405128],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 8,
+          "console_canonical_sha256": "91068bcda45e77b2f3da5af4256c7f6c7e46c661ec55a23e5e6b447250e68a40",
+          "hover_layer_isolation": null
+        }
+      ],
+      "post_window_observations": [
+        {
+          "bridge": "persistent",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 1176.88199600002,
+          "restore_validation_elapsed_ms": 6084.018645000015,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 1152.3317769999721,
+          "restore_validation_elapsed_ms": 7058.4240690000115,
+          "graphite_queue_drain": {
+            "available": true,
+            "result": {
+              "completed": true,
+              "queueCount": 1,
+              "duration_ms": 1.6999999999534339,
+              "errors": []
+            },
+            "request_elapsed_ms_including_automation": 4.550593999965713,
+            "scope": "After primary and managed snapshots; waits asynchronously for shared-queue work submitted before the request. Does not submit or flush work, establish input causality, or prove physical presentation. Other bridge modes do not expose matched drain measurements."
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 1166.8486010000834,
+          "restore_validation_elapsed_ms": 7055.579250999926,
+          "graphite_queue_drain": {
+            "available": true,
+            "result": {
+              "completed": true,
+              "queueCount": 1,
+              "duration_ms": 0.19999999995343387,
+              "errors": []
+            },
+            "request_elapsed_ms_including_automation": 2.0208040000397887,
+            "scope": "After primary and managed snapshots; waits asynchronously for shared-queue work submitted before the request. Does not submit or flush work, establish input causality, or prove physical presentation. Other bridge modes do not expose matched drain measurements."
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 2222.19337599995,
+          "restore_validation_elapsed_ms": 6136.422368000012,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 1159.0163659998325,
+          "restore_validation_elapsed_ms": 6136.758660999931,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "graphite",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 1146.107407999807,
+          "restore_validation_elapsed_ms": 7150.012146000336,
+          "graphite_queue_drain": {
+            "available": true,
+            "result": {
+              "completed": true,
+              "queueCount": 1,
+              "duration_ms": 1623.6000000000931,
+              "errors": []
+            },
+            "request_elapsed_ms_including_automation": 1627.3096340000848,
+            "scope": "After primary and managed snapshots; waits asynchronously for shared-queue work submitted before the request. Does not submit or flush work, establish input causality, or prove physical presentation. Other bridge modes do not expose matched drain measurements."
+          }
+        }
+      ],
+      "native_pixel_pairs": [
+        [1, "before", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [1, "after", true, 0.00023220486111111112, 0.00045906432748538014, 0.0, 0.0],
+        [1, "restored", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [2, "before", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [2, "after", true, 0.00023220486111111112, 0.00045906432748538014, 0.0, 0.0],
+        [2, "restored", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [3, "before", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0],
+        [3, "after", true, 0.00023220486111111112, 0.00045906432748538014, 0.0, 0.0],
+        [3, "restored", true, 0.00018156828703703705, 0.0003669590643274854, 0.0, 0.0]
+      ],
+      "maximum_native_region_fractions": {
+        "whole_frame": 0.00023220486111111112,
+        "document": 0.00045906432748538014,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      }
+    },
+    {
+      "name": "composite-brush-hover",
+      "workload": "brush-hover",
+      "candidate_bridge": "composite",
+      "graphite_coverage": null,
+      "graphite_effective_sample_count": null,
+      "job_id": 131397550610,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/job/131397550610",
+      "artifact": {
+        "id": 13976085861,
+        "name": "unodraw-document-raster-experiment-brush-hover",
+        "sha256": "982c0159ad80a5d1c2945d4e79c6cbce7c5d0dc60e6c7df15f8d8fbb5a6f82c7",
+        "bytes": 7090513
+      },
+      "report_sha256": "e51527eea73f5a2b1177f7643384804afeeb2ab83d6089b8e44491f7829b2e70",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "started_unix": 1794508104.8263934,
+      "total_experiment_duration_seconds": 2533.733514070511,
+      "same_artifact_mode_pair": ["persistent", "composite"],
+      "correctness_contracts_passed": true,
+      "primary_sample_count": 6,
+      "separate_diagnostic_count": 2,
+      "native_pairs_independently_recomputed": 9,
+      "native_pairs_passed": 9,
+      "primary_samples_in_actual_order": [
+        ["persistent", 1, 166178.5, 1287.107, 2149.024, 17.90853333333333, 0.7221150750548356, 120, 120, 229, 229, 229, null, 120, 387064320, 0, 0],
+        ["composite", 1, 131434.09999999998, 1232.2830000000001, 2125.108, 17.709233333333334, 0.9130050725040155, 120, 120, 225, 225, 225, null, 120, 387064320, 0, 0],
+        ["composite", 2, 127447.29999999993, 1246.7330000000002, 2054.712, 17.1226, 0.9415656510573395, 120, 120, 219, 219, 219, null, 120, 387064320, 0, 0],
+        ["persistent", 2, 166261.80000000005, 1275.921, 2154.856, 17.957133333333335, 0.7217532830752462, 120, 120, 229, 229, 229, null, 120, 387064320, 0, 0],
+        ["persistent", 3, 165621.7000000002, 1264.096, 2108.933, 17.574441666666665, 0.724542738059082, 120, 120, 224, 224, 224, null, 120, 387064320, 0, 0],
+        ["composite", 3, 132247.7000000002, 1191.419, 1967.0990000000002, 16.39249166666667, 0.9073881814201671, 120, 120, 226, 226, 226, null, 120, 387064320, 0, 0]
+      ],
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 166178.5,
+          "renderer_thread_cpu_ms": 1275.921,
+          "task_elapsed_ms": 2149.024,
+          "task_ms_per_operation": 17.90853333333333,
+          "offered_operations_per_second": 0.7221150750548356,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 229,
+          "graphics_active_animation_intervals": 229,
+          "visible_canvas_submissions": 229,
+          "graphite_document_submissions": null,
+          "write_texture_calls_all_canvases": 120,
+          "supplied_upload_buffer_bytes": 387064320
+        },
+        "composite": {
+          "elapsed_ms": 131434.09999999998,
+          "renderer_thread_cpu_ms": 1232.2830000000001,
+          "task_elapsed_ms": 2054.712,
+          "task_ms_per_operation": 17.1226,
+          "offered_operations_per_second": 0.9130050725040155,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 225,
+          "graphics_active_animation_intervals": 225,
+          "visible_canvas_submissions": 225,
+          "graphite_document_submissions": null,
+          "write_texture_calls_all_canvases": 120,
+          "supplied_upload_buffer_bytes": 387064320
+        }
+      },
+      "candidate_over_persistent": {
+        "elapsed_ms": 0.7909212082188729,
+        "renderer_thread_cpu_ms": 0.9657988229678798,
+        "task_elapsed_ms": 0.9561140312997901,
+        "task_ms_per_operation": 0.9561140312997901,
+        "offered_operations_per_second": 1.264348445342571,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.982532751091703,
+        "graphics_active_animation_intervals": 0.982532751091703,
+        "visible_canvas_submissions": 0.982532751091703,
+        "graphite_document_submissions": null,
+        "write_texture_calls_all_canvases": 1.0,
+        "supplied_upload_buffer_bytes": 1.0
+      },
+      "paired_elapsed_results": [
+        [1, 166178.5, 131434.09999999998, 0.7909212082188729],
+        [2, 166261.80000000005, 127447.29999999993, 0.7665458932839647],
+        [3, 165621.7000000002, 132247.7000000002, 0.7984925888334683]
+      ],
+      "actual_renderer_proofs": [
+        {
+          "bridge": "persistent",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "a5b0d8faccf0c7bf99540520cb4e324b7f3f3239f9a5232a61f381d80c2eb7dd",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 225,
+            "graphics_active_animation_intervals": 225,
+            "elapsed_ms": 137580.3,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 12,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "a526b39efcdc1df25e1e8a5ee99e20a2a3d3589af644a60a81dd47aae31f9217",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 231,
+            "graphics_active_animation_intervals": 231,
+            "elapsed_ms": 136841.30000000005,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 12,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "a47b81db5bc9988a4c0cc3c1af52dcd8d58ba3108db56652dbf41f7b938ac55a",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 228,
+            "graphics_active_animation_intervals": 228,
+            "elapsed_ms": 132397.30000000005,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "0f977a5b3486ac393751d836299cc5343554f1325d275bc3bb1dc217c4d08b4c",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 228,
+            "graphics_active_animation_intervals": 228,
+            "elapsed_ms": 136282.6000000001,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "c5e82950a81c49f94c4ac77e1965ac012e4b66f882271deb47c68f079e8dabcd",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 229,
+            "graphics_active_animation_intervals": 229,
+            "elapsed_ms": 137373.69999999995,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 12,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "1e27b790e0dd322cc5e885c1206a40fd33f051060309c2c942bd466d22207a57",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 224,
+            "graphics_active_animation_intervals": 224,
+            "elapsed_ms": 136640.6000000001,
+            "included_in_primary_metrics": false
+          }
+        }
+      ],
+      "separate_diagnostics": [
+        {
+          "sample": ["persistent", 1, 165498.19999999972, 1246.753, 2133.785, 17.781541666666666, 0.7250834148045127, 120, 120, 216, 216, 216, null, 120, 387064320, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 0, 0, 0, 0],
+            ["Interaction", 120, 69.199993, 4.9, 17280],
+            ["Ruler", 0, 0, 0, 0],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 7,
+          "console_canonical_sha256": "b580e58adf9862f2592153e70e154a0839dfcd082ff4ca1c3c92866be2d4d5af",
+          "hover_layer_isolation": "Document count is zero; Interaction count increased"
+        },
+        {
+          "sample": ["composite", 1, 131923.5, 1236.946, 2042.3200000000002, 17.019333333333336, 0.9096180741111326, 120, 120, 229, 229, 229, null, 120, 387064320, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 0, 0, 0, 0],
+            ["Interaction", 120, 53.200008, 3.400001, 17280],
+            ["Ruler", 0, 0, 0, 0],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 7,
+          "console_canonical_sha256": "40f8196b73ce3ea918c7c486b5abc304b57c6f9a6ad07dec185440b444ccbeb4",
+          "hover_layer_isolation": "Document count is zero; Interaction count increased"
+        }
+      ],
+      "post_window_observations": [
+        {
+          "bridge": "persistent",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 1430.9490349999692,
+          "restore_validation_elapsed_ms": 3879.338995000012,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 1152.5900550000188,
+          "restore_validation_elapsed_ms": 3415.861755000037,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 1132.5116860000435,
+          "restore_validation_elapsed_ms": 3375.4433540000264,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 118.69656300018505,
+          "restore_validation_elapsed_ms": 5985.652617000142,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 1425.2226839998912,
+          "restore_validation_elapsed_ms": 5877.7493340001,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 1151.0463609999988,
+          "restore_validation_elapsed_ms": 4696.114164000164,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        }
+      ],
+      "native_pixel_pairs": [
+        [1, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [1, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [1, "restored", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "restored", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "restored", true, 0.0, 0.0, 0.0, 0.0]
+      ],
+      "maximum_native_region_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      }
+    },
+    {
+      "name": "composite-selection",
+      "workload": "selection",
+      "candidate_bridge": "composite",
+      "graphite_coverage": null,
+      "graphite_effective_sample_count": null,
+      "job_id": 131397550558,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/job/131397550558",
+      "artifact": {
+        "id": 13977965162,
+        "name": "unodraw-document-raster-experiment-selection",
+        "sha256": "eb697ac5c7542ef2e669044d60cd3a07ffe63b1ca25b37cd92c302fd99ef4496",
+        "bytes": 5948350
+      },
+      "report_sha256": "a11117307e3474075c130738d43a358488d432b564e0d291e2321e82efbc6f2e",
+      "runner": {
+        "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+        "machine": "x86_64"
+      },
+      "started_unix": 1794508701.6110475,
+      "total_experiment_duration_seconds": 3366.960660457611,
+      "same_artifact_mode_pair": ["persistent", "composite"],
+      "correctness_contracts_passed": true,
+      "primary_sample_count": 6,
+      "separate_diagnostic_count": 2,
+      "native_pairs_independently_recomputed": 9,
+      "native_pairs_passed": 9,
+      "primary_samples_in_actual_order": [
+        ["persistent", 1, 247822.80000000002, 9858.33, 17564.5, 145.1611570247934, 0.4882520897996471, 121, 121, 126, 126, 126, null, 120, 387064320, 0, 0],
+        ["composite", 1, 217155.29999999993, 9927.515, 18013.876, 148.87500826446282, 0.5572049127974313, 121, 121, 124, 124, 124, null, 121, 390289856, 0, 0],
+        ["composite", 2, 208571.5, 8980.306, 16265.819000000001, 134.42825619834713, 0.5801367876243878, 121, 121, 124, 124, 124, null, 120, 387064320, 0, 0],
+        ["persistent", 2, 205554.09999999986, 7981.819, 14007.298999999999, 115.76280165289255, 0.5886528169469745, 121, 121, 124, 124, 124, null, 117, 377387712, 0, 0],
+        ["persistent", 3, 253643.7999999998, 8990.294, 16032.363, 132.49886776859503, 0.4770469453619607, 121, 121, 125, 125, 125, null, 121, 390289856, 0, 0],
+        ["composite", 3, 184454.2999999998, 8139.051, 14386.529999999999, 118.89694214876032, 0.6559890444408188, 121, 121, 127, 127, 127, null, 116, 374162176, 0, 0]
+      ],
+      "medians": {
+        "persistent": {
+          "elapsed_ms": 247822.80000000002,
+          "renderer_thread_cpu_ms": 8990.294,
+          "task_elapsed_ms": 16032.363,
+          "task_ms_per_operation": 132.49886776859503,
+          "offered_operations_per_second": 0.4882520897996471,
+          "operations": 121,
+          "trusted_inputs": 121,
+          "completed_callbacks": 125,
+          "graphics_active_animation_intervals": 125,
+          "visible_canvas_submissions": 125,
+          "graphite_document_submissions": null,
+          "write_texture_calls_all_canvases": 120,
+          "supplied_upload_buffer_bytes": 387064320
+        },
+        "composite": {
+          "elapsed_ms": 208571.5,
+          "renderer_thread_cpu_ms": 8980.306,
+          "task_elapsed_ms": 16265.819000000001,
+          "task_ms_per_operation": 134.42825619834713,
+          "offered_operations_per_second": 0.5801367876243878,
+          "operations": 121,
+          "trusted_inputs": 121,
+          "completed_callbacks": 124,
+          "graphics_active_animation_intervals": 124,
+          "visible_canvas_submissions": 124,
+          "graphite_document_submissions": null,
+          "write_texture_calls_all_canvases": 120,
+          "supplied_upload_buffer_bytes": 387064320
+        }
+      },
+      "candidate_over_persistent": {
+        "elapsed_ms": 0.8416154607243562,
+        "renderer_thread_cpu_ms": 0.9988890240964312,
+        "task_elapsed_ms": 1.0145615465418294,
+        "task_ms_per_operation": 1.0145615465418294,
+        "offered_operations_per_second": 1.1881910999345549,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.992,
+        "graphics_active_animation_intervals": 0.992,
+        "visible_canvas_submissions": 0.992,
+        "graphite_document_submissions": null,
+        "write_texture_calls_all_canvases": 1.0,
+        "supplied_upload_buffer_bytes": 1.0
+      },
+      "paired_elapsed_results": [
+        [1, 247822.80000000002, 217155.29999999993, 0.8762523060832171],
+        [2, 205554.09999999986, 208571.5, 1.0146793471888915],
+        [3, 253643.7999999998, 184454.2999999998, 0.7272178543295754]
+      ],
+      "actual_renderer_proofs": [
+        {
+          "bridge": "persistent",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "91a58d776fd2b874b22bdab0d185df07ec1fc07736dfcda04056baa0cd339d6e",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 228,
+            "graphics_active_animation_intervals": 228,
+            "elapsed_ms": 176371.30000000002,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 1,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 12,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "14d81562a840183b97c922d88714a73f471441d02ced03b615c2232f3d8a4ea6",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 234,
+            "graphics_active_animation_intervals": 234,
+            "elapsed_ms": 177172.5,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 12,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "93ee73e3d3b393b78d16be923d731190c71bee4da5d6e3fd3863dc3cccf62136",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 233,
+            "graphics_active_animation_intervals": 233,
+            "elapsed_ms": 173792.8999999999,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 2,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 11,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "25fa2028e26260c2aaef7f1a9b5cb63edf150bd8e8a6fccae566807521ff104c",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 233,
+            "graphics_active_animation_intervals": 233,
+            "elapsed_ms": 174912.80000000005,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 14,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "66a52f2568bd38052b5328abc9c2741692abf94f00c11d1c84ab177a7efe759f",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 231,
+            "graphics_active_animation_intervals": 231,
+            "elapsed_ms": 175177.7999999998,
+            "included_in_primary_metrics": false
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 3,
+          "renderer": {
+            "application_contexts": [
+              {
+                "kind": "webgpu",
+                "connected": true,
+                "width": 1440,
+                "height": 960,
+                "css_width": 1440,
+                "css_height": 960,
+                "draw_calls": 0,
+                "presentations": 5,
+                "target": true
+              }
+            ],
+            "console_start_index": 0,
+            "console_end_index": 15,
+            "capabilities": {
+              "secure_context": true,
+              "api_available": true,
+              "adapter_available": true,
+              "adapter_info": {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": "",
+                "is_fallback_adapter": true
+              },
+              "webgl1_available": true,
+              "webgl2_available": true,
+              "canvas2d_available": true
+            },
+            "negotiations": [
+              {
+                "provider": "WebGpuGraphicsProvider",
+                "context": "WebGpu"
+              }
+            ],
+            "expected_console_error_indices": []
+          },
+          "console_canonical_sha256": "18e97d8eb106edcd7933a92bdbb017556c877c31a03a0854e84260b79530dce3",
+          "common_warmup": {
+            "offered_pointer_moves": 120,
+            "trusted_pointer_moves": 120,
+            "completed_graphics_callbacks": 231,
+            "graphics_active_animation_intervals": 231,
+            "elapsed_ms": 174106.30000000028,
+            "included_in_primary_metrics": false
+          }
+        }
+      ],
+      "separate_diagnostics": [
+        {
+          "sample": ["persistent", 1, 214868.0, 8081.339999999999, 14222.989, 117.54536363636363, 0.5631364372545005, 121, 121, 127, 127, 127, null, 118, 380613248, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 0, 0, 0, 0],
+            ["Interaction", 118, 306.499995, 6.699999, 333392],
+            ["Ruler", 0, 0, 0, 0],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 4,
+          "console_canonical_sha256": "8c3e49c83873c8b34553bbe8924e6721d9f4219f907f82f010495883599eef8c",
+          "hover_layer_isolation": null
+        },
+        {
+          "sample": ["composite", 1, 145403.19999999972, 7043.400000000001, 12010.893, 99.26357851239669, 0.832168755570718, 121, 121, 126, 126, 126, null, 115, 370936640, 0, 0],
+          "excluded_from_primary_medians": true,
+          "paint_phases": [
+            ["Document", 0, 0, 0, 0],
+            ["Interaction", 115, 313.199987, 9, 332360],
+            ["Ruler", 0, 0, 0, 0],
+            ["Navigator", 0, 0, 0, 0]
+          ],
+          "runtime_phase_log_count": 5,
+          "console_canonical_sha256": "a8d502532bb606c8cdf3ad0fb4ba139e4cc1a4a137f1023174b97cc0d71fd5e0",
+          "hover_layer_isolation": null
+        }
+      ],
+      "post_window_observations": [
+        {
+          "bridge": "persistent",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 186.99467800001912,
+          "restore_validation_elapsed_ms": 5256.405615000062,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 1,
+          "final_capture_validation_elapsed_ms": 1968.1471889999784,
+          "restore_validation_elapsed_ms": 4363.415245000056,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 180.92971700002636,
+          "restore_validation_elapsed_ms": 4361.260412999854,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 2,
+          "final_capture_validation_elapsed_ms": 181.02330100009567,
+          "restore_validation_elapsed_ms": 5179.148851000036,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "persistent",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 187.06303600038154,
+          "restore_validation_elapsed_ms": 5223.257480000029,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        },
+        {
+          "bridge": "composite",
+          "trial": 3,
+          "final_capture_validation_elapsed_ms": 184.2408920001617,
+          "restore_validation_elapsed_ms": 4387.068768000063,
+          "graphite_queue_drain": {
+            "available": false,
+            "reason": "This diagnostic is exposed only for the selected Graphite bridge"
+          }
+        }
+      ],
+      "native_pixel_pairs": [
+        [1, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [1, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [1, "restored", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [2, "restored", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "before", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "after", true, 0.0, 0.0, 0.0, 0.0],
+        [3, "restored", true, 0.0, 0.0, 0.0, 0.0]
+      ],
+      "maximum_native_region_fractions": {
+        "whole_frame": 0.0,
+        "document": 0.0,
+        "horizontal_ruler": 0.0,
+        "vertical_ruler": 0.0
+      }
+    }
+  ],
+  "scope": [
+    "Each experiment uses one matched runner and one immutable cbfeb AOT package. No timings, frame distributions, percentiles, or ratios are pooled across jobs or source snapshots.",
+    "The persistent control and old composite bridge both use retained RGBA texture upload. The old composite mode here is distinct from the later legacy-composite mode using the original Uno uploader.",
+    "Raster-coverage Graphite requests effective sample count one. Both measured pan and zoom pass the unchanged native timing gate but are slower in wall time despite much lower active renderer-thread CPU.",
+    "The composite hover and selection gains compare against persistent within this snapshot. They do not establish recovery against the original 96e baseline and must not be multiplied by a ratio from another job.",
+    "Six primary samples determine each comparison. Two instrumented diagnostic runs are separate and excluded from all primary medians and ratios.",
+    "The three before/after/restored native pairs in each trial cover the Welcome timing fixture at DPR1. Broader Welcome lifecycle, fractional-DPR, and extended-SVG qualification belong to separate evidence and are not inferred from these 36 pairs.",
+    "ThreadTime measures active renderer main-thread CPU and excludes GPU and worker CPU. TaskDuration is elapsed task time and can include waits.",
+    "Offered operations per second and completed callbacks/submissions are not displayed frames or proven input-to-new-pixels latency. The input-tail checks only establish the existing observer's later-callback and graphics contracts.",
+    "All primary windows exclude startup, full warmup, screenshots, restore validation, and queue drains. Total experiment duration includes those phases plus separate diagnostics; it must not be replaced by a sum of primary windows.",
+    "Graphite drains asynchronously await previously submitted shared-queue work after measurement. The other bridge modes have no matched drain metric; these observations do not prove physical presentation or isolate GPU execution time.",
+    "Upload call counts and supplied JavaScript buffer bytes are API observations, not measured physical transfer bytes. Raw reports, console logs, renderer state, and all PNGs remain bound by the original artifact digests."
+  ]
+}

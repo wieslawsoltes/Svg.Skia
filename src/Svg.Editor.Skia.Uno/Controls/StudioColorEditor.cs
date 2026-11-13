@@ -31,6 +31,8 @@ public sealed class StudioColorEditor : UserControl, IDisposable
     private SvgEditorController? _controller;
     private SvgSolidPaintDraft? _draft;
     private readonly StudioDraftInputTracker _draftInputs;
+    private readonly StudioPanelRefreshState _refreshState = new(observeSelection: true);
+    private readonly StudioEditorVisibility _visibility;
     private bool _dirty, _syncing, _loaded, _disposed, _refreshPending, _applying, _strokeTarget;
     public Action? BeforeApply { get; set; }
     /// <summary>Optional host coordination. Return false to keep every retained draft on its current target.</summary>
@@ -41,6 +43,7 @@ public sealed class StudioColorEditor : UserControl, IDisposable
     public StudioColorEditor()
     {
         IsTabStop = false;
+        _visibility = new StudioEditorVisibility(this, Synchronize);
         _draftInputs = new StudioDraftInputTracker(this, () => _syncing || _disposed, UpdateStatus);
         Resources.MergedDictionaries.Add(new StudioThemeResources());
         var content = new StackPanel { Spacing = 12 };
@@ -100,6 +103,7 @@ public sealed class StudioColorEditor : UserControl, IDisposable
             if (_loaded || _disposed)
                 return;
             _loaded = true;
+            _visibility.Attach();
             if (_controller is not null)
                 _controller.Changed += ControllerChanged;
             Synchronize();
@@ -109,6 +113,7 @@ public sealed class StudioColorEditor : UserControl, IDisposable
             if (_controller is not null)
                 _controller.Changed -= ControllerChanged;
             _loaded = false;
+            _visibility.Dispose();
         };
         ResetDraft();
     }
@@ -139,22 +144,36 @@ public sealed class StudioColorEditor : UserControl, IDisposable
         try
         { _target.SelectedIndex = stroke ? 1 : 0; }
         finally { _syncing = false; }
-        ResetDraft();
+        _draft = null;
+        _refreshState.Invalidate();
+        Synchronize();
     }
     public void BindController(SvgEditorController? controller)
     {
-        if (_disposed || ReferenceEquals(controller, _controller))
+        if (_disposed)
             return;
-        if (_loaded && _controller is not null)
-            _controller.Changed -= ControllerChanged;
-        _controller = controller;
-        if (_loaded && _controller is not null)
-            _controller.Changed += ControllerChanged;
+        if (!ReferenceEquals(controller, _controller))
+        {
+            if (_loaded && _controller is not null)
+                _controller.Changed -= ControllerChanged;
+            _controller = controller;
+            if (_loaded && _controller is not null)
+                _controller.Changed += ControllerChanged;
+        }
+        ReleaseForeignCleanDraft();
         Synchronize();
+    }
+    private void ReleaseForeignCleanDraft()
+    {
+        if (_refreshState.BelongsTo(_controller) || HasPendingDraft)
+            return;
+        _draft = null;
+        _refreshState.Invalidate();
     }
     private void ControllerChanged(object? sender, EventArgs args)
     {
-        if (_refreshPending || _disposed || _applying)
+        ReleaseForeignCleanDraft();
+        if (_refreshPending || _disposed || _applying || !_refreshState.NeedsRefresh(_visibility.IsVisible, _controller))
             return;
         _refreshPending = true;
         if (!DispatcherQueue.TryEnqueue(() =>
@@ -167,8 +186,13 @@ public sealed class StudioColorEditor : UserControl, IDisposable
     }
     private void Synchronize()
     {
+        if (_disposed || !_refreshState.NeedsRefresh(_visibility.IsVisible, _controller))
+            return;
         if (HasPendingDraft)
+        {
             UpdateStatus();
+            _refreshState.Complete(_controller);
+        }
         else
             ResetDraft();
     }
@@ -202,6 +226,7 @@ public sealed class StudioColorEditor : UserControl, IDisposable
             _apply.IsEnabled = false;
             _none.IsEnabled = _draft?.IsCurrent(_controller) == true;
             _reset.IsEnabled = _controller is not null;
+            _refreshState.Complete(_controller);
         }
     }
     private void UpdateStatus()
@@ -247,6 +272,8 @@ public sealed class StudioColorEditor : UserControl, IDisposable
         if (_controller is not null)
             _controller.Changed -= ControllerChanged;
         _draftInputs.Dispose();
+        _visibility.Dispose();
+        _refreshState.Invalidate();
         _controller = null;
         _draft = null;
         BeforeApply = null;

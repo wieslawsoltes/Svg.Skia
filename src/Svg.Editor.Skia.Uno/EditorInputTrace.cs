@@ -24,7 +24,7 @@ internal static class EditorInputTrace
         var sequence = Interlocked.Increment(ref _sequence);
         if (sequence > MaximumEntries)
             return;
-        Console.Error.WriteLine($"[EditorInput {sequence} {Environment.TickCount64}] {message}");
+        Console.WriteLine($"[EditorInput {sequence} {Environment.TickCount64}] {message}");
     }
 
     internal static void Key(string stage, VirtualKey key, bool handled, bool modal, XamlRoot? root, bool usesCommandKey)
@@ -74,7 +74,9 @@ internal static class EditorInputTrace
             if (id is "StudioCommandSearchBox" or "StudioCommandSearchResults" or "StudioGradientApply"
                 or "StudioGradientTarget" or "StudioGradientPosition" or "StudioColorTarget" or "StudioColorApply"
                 or "studio-panel-picker-RightTop" or "studio-panel-picker-RightBottom"
-                or "studio-panel-picker-Left" or "studio-panel-picker-Bottom")
+                or "studio-panel-picker-Left" or "studio-panel-picker-Bottom"
+                or "InspectorX" or "InspectorY" or "InspectorWidth" or "InspectorHeight"
+                or "InspectorDocumentWidth" or "InspectorDocumentHeight" or "InspectorWeight" or "InspectorOpacity")
                 return id;
             const string prefix = "StudioReferencePoint";
             if (id is not null && id.Length == prefix.Length + 1 && id.StartsWith(prefix, StringComparison.Ordinal)

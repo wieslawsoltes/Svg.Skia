@@ -1,0 +1,316 @@
+{
+  "schema": 1,
+  "report_kind": "audited_graphite_coverage_welcome_interpreter",
+  "audited_utc": "2026-11-12T18:12:00.017025+00:00",
+  "source_sha": "cbfeb0c603a8f729b4b1d489aecf99324c73c169",
+  "source_url": "https://github.com/wieslawsoltes/Svg.Skia/commit/cbfeb0c603a8f729b4b1d489aecf99324c73c169",
+  "conclusion": "The public raster coverage option passes all 30 Welcome Interpreter native-pixel comparisons; native default coverage fails ten. Neither mode falls back. This does not establish AOT, extended-SVG quality or performance.",
+  "scope": {
+    "fixture": "Welcome.svg",
+    "execution_mode": "Interpreter",
+    "device_pixel_ratios": [
+      1,
+      1.25,
+      2
+    ],
+    "control": "legacy SKCanvasElement CPU raster upload",
+    "candidate": "Graphite direct shared-queue document rendering",
+    "independent_jobs_publish_same_source_and_configuration": true,
+    "identical_complete_package_manifests": true,
+    "full_application_archive_byte_identity_verified": false,
+    "graphics": "Chromium 143.0.7499.4 WebGPU through SwiftShader software graphics",
+    "aot_qualified": false,
+    "extended_svg_qualified": false,
+    "performance_evidence_included": false,
+    "default_bridge_changed": false,
+    "raw_cpu_graphite_byte_equality_claimed": false
+  },
+  "source_artifacts": {
+    "workflow_run_id": 43272580441,
+    "workflow_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441",
+    "default": {
+      "job_id": 131372689786,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/job/131372689786",
+      "job_conclusion": "failure",
+      "artifact_id": 13971246160,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/artifacts/13971246160",
+      "artifact_zip_sha256": "bbeac9871b4080e9502c50b0f4d84bd198e411488816c54c85764e2c966e9b8c",
+      "source_report_sha256": "9a8a01c1dd1568c58ed1b3947db8f3cd619673a7ff52bd839c5c93ff25b82776"
+    },
+    "raster": {
+      "job_id": 131372689449,
+      "job_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/job/131372689449",
+      "job_conclusion": "success",
+      "artifact_id": 13969284624,
+      "artifact_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441/artifacts/13969284624",
+      "artifact_zip_sha256": "77a5dfd6bb0ce5a4e03d23feca2077a8b2943d373d86e03e44007b6cfa5daaef",
+      "source_report_sha256": "5ce37c11efc9443e152b12a99ed3952488d2c9128994be26c19917c74c1e0614"
+    }
+  },
+  "manifest_identity": {
+    "canonicalization": "UTF-8 json.dumps(manifest, sort_keys=True, separators=(comma, colon), ensure_ascii=False), without a trailing newline",
+    "complete_manifest_sha256": "a53d8b7efc4c882104522f6f6d2a6d57080c8bee2c12edf0d11cb37b3f7349ac",
+    "dotnet_sdk": "10.0.403",
+    "dotnet_workload_version": "10.0.403",
+    "uno_sdk": "7.0.5",
+    "configuration": "Release",
+    "execution_mode": "Interpreter",
+    "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+    "index_sha256": "0e6a7d322ff685d2f6cff3545c665fa11e7686e8e3173f1f34628f640230c5a4",
+    "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+    "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+    "font_asset_count": 38,
+    "canonical_font_asset_manifest_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936"
+  },
+  "environment": {
+    "browser_version": "143.0.7499.4",
+    "browser_launch_arguments": [
+      "--enable-unsafe-swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-unsafe-webgpu",
+      "--use-vulkan=swiftshader",
+      "--enable-features=Vulkan"
+    ],
+    "actual_backend": {
+      "provider": "WebGpuGraphicsProvider",
+      "context": "WebGpu"
+    }
+  },
+  "coverage_options": {
+    "default": {
+      "query": "canvasBridge=graphite&graphiteCoverage=default",
+      "requested_internal_multisample_count": 0,
+      "native_default_internal_multisample_count": 4,
+      "actual_context_log": "UnoDraw Graphite coverage initialized: default (InternalMultisampleCount=0)."
+    },
+    "raster": {
+      "query": "canvasBridge=graphite&graphiteCoverage=raster",
+      "requested_internal_multisample_count": 1,
+      "actual_context_log": "UnoDraw Graphite coverage initialized: raster (InternalMultisampleCount=1)."
+    },
+    "selection_note": "Count 1 selects Skia raster path coverage for general paths. Antialiasing remains enabled. Specialized analytic shapes and recognized rounded clips keep their own renderers.",
+    "native_source_pin": "d1717dc22ef2203b7fc9bf0e01078b37b1a4af6b",
+    "native_source_urls": [
+      "https://github.com/mono/skia/blob/d1717dc22ef2203b7fc9bf0e01078b37b1a4af6b/src/gpu/graphite/RendererProvider.cpp#L88",
+      "https://github.com/mono/skia/blob/d1717dc22ef2203b7fc9bf0e01078b37b1a4af6b/src/gpu/graphite/RasterPathUtils.cpp#L64",
+      "https://github.com/mono/skia/blob/d1717dc22ef2203b7fc9bf0e01078b37b1a4af6b/src/gpu/graphite/Device.cpp#L2154"
+    ]
+  },
+  "quality_contract": {
+    "source_path": "tests/UnoDraw.BrowserPerformance/quality.py",
+    "source_sha256": "98e1730410ba1311a94e7541e228566ee13588380d1dc753bd5d7e6818cbd901",
+    "native_pixels": true,
+    "resized_for_comparison": false,
+    "difference": "PIL.ImageChops.difference(first.convert(RGB), second.convert(RGB)).convert(L)",
+    "luminance_threshold_exclusive": 12,
+    "maximum_changed_pixel_fraction_in_every_region": 0.001,
+    "desktop_css_regions": {
+      "document": [
+        100,
+        160,
+        1050,
+        880
+      ],
+      "horizontal_ruler": [
+        92,
+        102,
+        1088,
+        125
+      ],
+      "vertical_ruler": [
+        68,
+        125,
+        91,
+        932
+      ],
+      "navigator": [
+        1100,
+        120,
+        1410,
+        420
+      ]
+    },
+    "region_bounds": "Each CSS edge is rounded after multiplying by DPR; whole_frame always covers every physical pixel. Navigator applies only to marked states; compact uses whole_frame.",
+    "required_states": [
+      "01-desktop",
+      "02-actual-size",
+      "03-refitted",
+      "03b-brush-overlay",
+      "03c-selection-overlay",
+      "04-navigator-visible",
+      "05-navigator-hidden",
+      "06-navigator-shown-again",
+      "07-compact",
+      "09-desktop-restored"
+    ],
+    "independent_recalculation_matches_original_all_60_outcomes": true,
+    "failed_default_pairs_preserved": true
+  },
+  "summary": {
+    "default": {
+      "lifecycle_cases_passed": 6,
+      "required_captures_present": 60,
+      "native_pairs_passed": 20,
+      "native_pairs_failed": 10,
+      "maximum_region_changed_fraction": 0.0019108187134502924
+    },
+    "raster": {
+      "lifecycle_cases_passed": 6,
+      "required_captures_present": 60,
+      "native_pairs_passed": 30,
+      "native_pairs_failed": 0,
+      "maximum_region_changed_fraction": 0.0003669590643274854
+    }
+  },
+  "actual_bridge_evidence": {
+    "columns": [
+      "coverage",
+      "bridge",
+      "dpr",
+      "lifecycle_passed",
+      "required_captures",
+      "graphite_initializations",
+      "auxiliary_persistent_initializations",
+      "actual_coverage_context_logs",
+      "fallback_logs",
+      "page_errors",
+      "resource_errors",
+      "navigator_and_zero_size_restore_region_fractions_all_zero"
+    ],
+    "rows": [
+      ["default","legacy",1,true,10,0,0,0,0,0,0,true],
+      ["default","graphite",1,true,10,1,1,2,0,0,0,true],
+      ["default","legacy",1.25,true,10,0,0,0,0,0,0,true],
+      ["default","graphite",1.25,true,10,1,1,2,0,0,0,true],
+      ["default","legacy",2,true,10,0,0,0,0,0,0,true],
+      ["default","graphite",2,true,10,1,1,2,0,0,0,true],
+      ["raster","legacy",1,true,10,0,0,0,0,0,0,true],
+      ["raster","graphite",1,true,10,1,1,2,0,0,0,true],
+      ["raster","legacy",1.25,true,10,0,0,0,0,0,0,true],
+      ["raster","graphite",1.25,true,10,1,1,2,0,0,0,true],
+      ["raster","legacy",2,true,10,0,0,0,0,0,0,true],
+      ["raster","graphite",2,true,10,1,1,2,0,0,0,true]
+    ],
+    "verification": "All candidate contexts exclusively emit the requested coverage log, Graphite selection and successful initialization. All legacy controls exclusively select legacy. Backend negotiation is WebGpu in every case.",
+    "graphite_preference_log": "UnoDraw canvas bridge preference: Graphite document rasterization.",
+    "graphite_initialized_log": "UnoDraw canvas bridge initialized: Graphite document rasterization."
+  },
+  "native_quality_outcomes": {
+    "columns": [
+      "dpr",
+      "state",
+      "physical_size",
+      "default_passed",
+      "default_changed_pixel_fractions",
+      "raster_passed",
+      "raster_changed_pixel_fractions"
+    ],
+    "rows": [
+      [1,"01-desktop",[1440,960],false,{"whole_frame": 0.000945457175925926,"document": 0.0019108187134502924,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.00018156828703703705,"document": 0.0003669590643274854,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1,"02-actual-size",[1440,960],true,{"whole_frame": 0.0003443287037037037,"document": 0.0006798245614035087,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.00014684606481481482,"document": 0.0002850877192982456,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1,"03-refitted",[1440,960],false,{"whole_frame": 0.000945457175925926,"document": 0.0019108187134502924,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.00018156828703703705,"document": 0.0003669590643274854,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1,"03b-brush-overlay",[1440,960],false,{"whole_frame": 0.000945457175925926,"document": 0.0019108187134502924,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.00018156828703703705,"document": 0.0003669590643274854,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1,"03c-selection-overlay",[1440,960],false,{"whole_frame": 0.0005056423611111111,"document": 0.0010219298245614035,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.00017650462962962962,"document": 0.0003567251461988304,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1,"04-navigator-visible",[1440,960],false,{"whole_frame": 0.000945457175925926,"document": 0.0019108187134502924,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 0.00018156828703703705,"document": 0.0003669590643274854,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}],
+      [1,"05-navigator-hidden",[1440,960],false,{"whole_frame": 0.000945457175925926,"document": 0.0019108187134502924,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.00018156828703703705,"document": 0.0003669590643274854,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1,"06-navigator-shown-again",[1440,960],false,{"whole_frame": 0.000945457175925926,"document": 0.0019108187134502924,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 0.00018156828703703705,"document": 0.0003669590643274854,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}],
+      [1,"07-compact",[390,844],false,{"whole_frame": 0.00158889293960384},true,{"whole_frame": 0.00027038522299185805}],
+      [1,"09-desktop-restored",[1440,960],false,{"whole_frame": 0.000945457175925926,"document": 0.0019108187134502924,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 0.00018156828703703705,"document": 0.0003669590643274854,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}],
+      [1.25,"01-desktop",[1800,1200],true,{"whole_frame": 0.00035046296296296296,"document": 0.0007086024524946176,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.0001162037037037037,"document": 0.00023495272863427875,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1.25,"02-actual-size",[1800,1200],false,{"whole_frame": 0.0006425925925925926,"document": 0.0012842834409809978,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 3.0092592592592593e-05,"document": 6.084433211644669e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1.25,"03-refitted",[1800,1200],true,{"whole_frame": 0.00035046296296296296,"document": 0.0007086024524946176,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.0001162037037037037,"document": 0.00023495272863427875,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1.25,"03b-brush-overlay",[1800,1200],true,{"whole_frame": 0.00035046296296296296,"document": 0.0007086024524946176,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.0001162037037037037,"document": 0.00023495272863427875,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1.25,"03c-selection-overlay",[1800,1200],true,{"whole_frame": 0.0003083333333333333,"document": 0.0006234203875315923,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.00011574074074074075,"document": 0.00023401666198633343,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1.25,"04-navigator-visible",[1800,1200],true,{"whole_frame": 0.00035046296296296296,"document": 0.0007086024524946176,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 0.0001162037037037037,"document": 0.00023495272863427875,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}],
+      [1.25,"05-navigator-hidden",[1800,1200],true,{"whole_frame": 0.00035046296296296296,"document": 0.0007086024524946176,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 0.0001162037037037037,"document": 0.00023495272863427875,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [1.25,"06-navigator-shown-again",[1800,1200],true,{"whole_frame": 0.00035046296296296296,"document": 0.0007086024524946176,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 0.0001162037037037037,"document": 0.00023495272863427875,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}],
+      [1.25,"07-compact",[488,1055],true,{"whole_frame": 0.000771113355605625},true,{"whole_frame": 0.00021560096340610674}],
+      [1.25,"09-desktop-restored",[1800,1200],true,{"whole_frame": 0.00035046296296296296,"document": 0.0007086024524946176,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 0.0001162037037037037,"document": 0.00023495272863427875,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}],
+      [2,"01-desktop",[2880,1920],true,{"whole_frame": 0.00029893663194444444,"document": 0.0006041666666666667,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 1.808449074074074e-05,"document": 3.654970760233918e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [2,"02-actual-size",[2880,1920],true,{"whole_frame": 0.0001830150462962963,"document": 0.00036074561403508774,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 1.591435185185185e-05,"document": 3.179824561403509e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [2,"03-refitted",[2880,1920],true,{"whole_frame": 0.00029893663194444444,"document": 0.0006041666666666667,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 1.808449074074074e-05,"document": 3.654970760233918e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [2,"03b-brush-overlay",[2880,1920],true,{"whole_frame": 0.00029893663194444444,"document": 0.0006041666666666667,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 1.808449074074074e-05,"document": 3.654970760233918e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [2,"03c-selection-overlay",[2880,1920],true,{"whole_frame": 0.000224609375,"document": 0.0004539473684210526,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 1.681857638888889e-05,"document": 3.399122807017544e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [2,"04-navigator-visible",[2880,1920],true,{"whole_frame": 0.00029893663194444444,"document": 0.0006041666666666667,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 1.808449074074074e-05,"document": 3.654970760233918e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}],
+      [2,"05-navigator-hidden",[2880,1920],true,{"whole_frame": 0.00029893663194444444,"document": 0.0006041666666666667,"horizontal_ruler": 0.0,"vertical_ruler": 0.0},true,{"whole_frame": 1.808449074074074e-05,"document": 3.654970760233918e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0}],
+      [2,"06-navigator-shown-again",[2880,1920],true,{"whole_frame": 0.00029893663194444444,"document": 0.0006041666666666667,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 1.808449074074074e-05,"document": 3.654970760233918e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}],
+      [2,"07-compact",[780,1688],true,{"whole_frame": 0.0003296269291529955},true,{"whole_frame": 3.645643456069996e-05}],
+      [2,"09-desktop-restored",[2880,1920],true,{"whole_frame": 0.00029893663194444444,"document": 0.0006041666666666667,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0},true,{"whole_frame": 1.808449074074074e-05,"document": 3.654970760233918e-05,"horizontal_ruler": 0.0,"vertical_ruler": 0.0,"navigator": 0.0}]
+    ]
+  },
+  "matched_cpu_controls": {
+    "comparison": "Legacy CPU control from the default-coverage job versus legacy CPU control from the raster-coverage job",
+    "desktop_document_crops_byte_exact": 27,
+    "desktop_document_crops_compared": 27,
+    "all_30_whole_frames_pixels_above_luma12": 0,
+    "columns": [
+      "dpr",
+      "state",
+      "document_crop_byte_exact_or_null_for_compact",
+      "whole_frame_max_luma_difference",
+      "whole_frame_pixels_above_luma12"
+    ],
+    "rows": [
+      [1,"01-desktop",true,2,0],
+      [1,"02-actual-size",true,2,0],
+      [1,"03-refitted",true,2,0],
+      [1,"03b-brush-overlay",true,2,0],
+      [1,"03c-selection-overlay",true,2,0],
+      [1,"04-navigator-visible",true,2,0],
+      [1,"05-navigator-hidden",true,2,0],
+      [1,"06-navigator-shown-again",true,3,0],
+      [1,"07-compact",null,1,0],
+      [1,"09-desktop-restored",true,3,0],
+      [1.25,"01-desktop",true,0,0],
+      [1.25,"02-actual-size",true,0,0],
+      [1.25,"03-refitted",true,0,0],
+      [1.25,"03b-brush-overlay",true,0,0],
+      [1.25,"03c-selection-overlay",true,0,0],
+      [1.25,"04-navigator-visible",true,1,0],
+      [1.25,"05-navigator-hidden",true,1,0],
+      [1.25,"06-navigator-shown-again",true,1,0],
+      [1.25,"07-compact",null,1,0],
+      [1.25,"09-desktop-restored",true,1,0],
+      [2,"01-desktop",true,1,0],
+      [2,"02-actual-size",true,1,0],
+      [2,"03-refitted",true,1,0],
+      [2,"03b-brush-overlay",true,1,0],
+      [2,"03c-selection-overlay",true,5,0],
+      [2,"04-navigator-visible",true,1,0],
+      [2,"05-navigator-hidden",true,1,0],
+      [2,"06-navigator-shown-again",true,1,0],
+      [2,"07-compact",null,1,0],
+      [2,"09-desktop-restored",true,1,0]
+    ]
+  },
+  "repaired_edge_example": {
+    "dpr": 1,
+    "state": "01-desktop",
+    "physical_pixel": [
+      830,
+      500
+    ],
+    "svg_shape": "Arch right-depth closed path edge",
+    "legacy_cpu_rgb": [
+      114,
+      131,
+      168
+    ],
+    "default_graphite_rgb": [
+      139,
+      161,
+      176
+    ],
+    "raster_graphite_rgb": [
+      113,
+      130,
+      168
+    ],
+    "whole_frame_pixels_above_luma12": {
+      "default": 1307,
+      "raster": 251
+    },
+    "limitation": "This sample demonstrates the observed edge repair, not universal pixel equality. Remaining differences include specialized analytic shapes, rounded clips and a few overlapping edges."
+  }
+}

@@ -1,0 +1,1351 @@
+{
+  "schema": 1,
+  "measured_date_utc": "2026-11-12",
+  "run_id": 43272580441,
+  "workflow_url": "https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43272580441",
+  "application_source_sha": "cbfeb0c603a8f729b4b1d489aecf99324c73c169",
+  "validation_passed": true,
+  "all_workloads_improved": false,
+  "default_webgpu_selection_regression_resolved": false,
+  "aggregate_artifact": {
+    "id": 13976574830,
+    "sha256": "5c41e4f1ca052b0e23aa5d40665703757400b2cd85a919bbdec5cc6d3bb678ba",
+    "report_sha256": "01ecb52363c37c62670d0b194e0fc415b4587601bcad5b16764fca7102049bd5",
+    "bytes": 733698,
+    "matched_aggregate_sections": ["runs", "diagnostic_runs", "comparisons", "cross_build_quality", "packages"]
+  },
+  "verification": {
+    "all_twelve_shard_archive_sha256_verified": true,
+    "strict_merge_recomputed": true,
+    "stored_aggregate_fields_equal": true,
+    "primary_trials": 90,
+    "separate_diagnostics": 12,
+    "native_pixel_pairs_independently_recomputed": 108,
+    "native_pixel_pairs_passed": 108,
+    "all_input_tail_and_idle_contracts_passed": true,
+    "full_common_warmup_contracts_passed": true,
+    "all_page_and_resource_error_lists_empty": true
+  },
+  "measurement": {
+    "execution_mode": "InterpreterAndAOT",
+    "configuration": "Release",
+    "viewport_css": {
+      "width": 1440,
+      "height": 960
+    },
+    "device_pixel_ratio": 1,
+    "repetitions_per_role_and_shard": 3,
+    "configured_steps": 120,
+    "selection_operations": 121,
+    "other_active_workload_operations": 120,
+    "idle_ms": 2000,
+    "warmup_policy": {
+      "minimum_real_pan_inputs": 120,
+      "minimum_completed_graphics_callbacks": 60,
+      "maximum_real_pan_inputs": 600,
+      "additional_batch_size": 60,
+      "canonical_pointer_reset_css": [
+        [450, 430],
+        [760, 16]
+      ],
+      "reason": "Both pinned Uno versions retain eligible stable visual subtrees after 50 paint frames",
+      "included_in_primary_metrics": false
+    },
+    "graphics_description": "SwiftShader software GPU API implementations; not physical GPU throughput",
+    "browser_version": "143.0.7499.4",
+    "browser_launch_arguments": ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+  },
+  "packages": {
+    "baseline": {
+      "schema": 2,
+      "role": "baseline",
+      "source_sha": "96e5fa9d84b694e34a626b8867f2466fc231b6a7",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "fd126347cfcb1544ab572570aa6e411b3fd9fe604c737b44fb294f1e08bb6290",
+      "supports_render_diagnostics": false,
+      "full_manifest_canonical_sha256": "ff549fafca5fabb0abfdf1a52deb91540e1c40ae7071a5f521f63a59b621c266",
+      "font_asset_count": 38,
+      "font_manifest_canonical_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936",
+      "artifact": {
+        "id": 13969077771,
+        "name": "unodraw-performance-package-baseline",
+        "sha256": "105c7d0b7fbacd3ad8a59954d0658eeaeab65de468ba3fb73a6999e56ce8b370",
+        "bytes": 174069916
+      }
+    },
+    "candidate": {
+      "schema": 2,
+      "role": "candidate",
+      "source_sha": "cbfeb0c603a8f729b4b1d489aecf99324c73c169",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "source_global_json_sha256": "a54270c89154090577958eaad3af93d5f073d307914a53f9ba0f0ef4f914f5bc",
+      "effective_global_json_sha256": "45849482dc3191199b22e7c86fcd8e1165efb02982a244496ada0d7e6b642fde",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "uno_sdk": "7.0.5",
+      "runtime_generation": "uno7",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "dc1d7f21a125bbd074806bdebdf46069d0934d549d47b307866533d3207753ae",
+      "supports_render_diagnostics": true,
+      "full_manifest_canonical_sha256": "3971458b922c95ad781c4444871024aaa35e7691b47acaf8b76fc4255f138c1f",
+      "font_asset_count": 38,
+      "font_manifest_canonical_sha256": "e08b4731409680c2d8ccf6bc0e995f3ceca0d246fd090f31f1b96b73baa4b936",
+      "artifact": {
+        "id": 13971214019,
+        "name": "unodraw-performance-package-candidate",
+        "sha256": "a6522fbf7abf8ac947096a02871b5d8ca7ac86e12b02d9a004ee23a2f9ab0ec3",
+        "bytes": 175806733
+      }
+    },
+    "reference": {
+      "schema": 2,
+      "role": "reference",
+      "source_sha": "dbe9dd165f7eb63c1c6c9e6dac11091728062824",
+      "dotnet_sdk": "10.0.403",
+      "dotnet_workload_version": "10.0.403",
+      "source_global_json_sha256": "900abf7fe9e12f869a75453bd53daff942e6131bbc020a0a1265494c40249d1b",
+      "effective_global_json_sha256": "7bfa1650a7833f98788679723a4a52c3a9b74e72d1e49381a9412069b490c904",
+      "source_configuration_overridden": true,
+      "configuration_override_reason": "Identical SDK and workload set across benchmark revisions",
+      "uno_sdk": "6.5.31",
+      "runtime_generation": "uno6",
+      "configuration": "Release",
+      "execution_mode": "InterpreterAndAOT",
+      "fixture": "samples/UnoDraw/Assets/Welcome.svg",
+      "fixture_sha256": "ac0841edc1a9928623c801ecf191da5ae4e3d7fb50ca7b4c64b83ec8a5f33d94",
+      "index_sha256": "ef4ce71a18b84be416f2a917d0f9b198db2b7d4733af9c3d0f4e9a5bd7010757",
+      "supports_render_diagnostics": false,
+      "full_manifest_canonical_sha256": "43225fb1377af567602df241b9fa6fb5cbe4a7f7acc78446607b14770ca2e057",
+      "font_asset_count": 38,
+      "font_manifest_canonical_sha256": "7fa49b91b1be133a05b228d1685e05654c4eb86243bce610b43cadb3a59e7af9",
+      "artifact": {
+        "id": 13968478400,
+        "name": "unodraw-performance-package-reference",
+        "sha256": "e7e8c48d4b750c61e5e32d9ecb073199fcf689d756579fdc3df34290f147df3c",
+        "bytes": 174559045
+      }
+    }
+  },
+  "actual_renderer_proofs": [
+    {
+      "backend": "skia-preferred",
+      "role": "baseline",
+      "actual_application_contexts": ["webgl2"],
+      "negotiations": [
+        {
+          "context": "WebGL",
+          "provider": "SkiaGraphicsProvider"
+        }
+      ],
+      "legacy_skia_host": null
+    },
+    {
+      "backend": "skia-preferred",
+      "role": "candidate",
+      "actual_application_contexts": ["webgl2"],
+      "negotiations": [
+        {
+          "context": "WebGL",
+          "provider": "SkiaGraphicsProvider"
+        }
+      ],
+      "legacy_skia_host": null
+    },
+    {
+      "backend": "skia-preferred",
+      "role": "reference",
+      "actual_application_contexts": ["webgl2"],
+      "negotiations": [],
+      "legacy_skia_host": true
+    },
+    {
+      "backend": "webgpu",
+      "role": "baseline",
+      "actual_application_contexts": ["webgpu"],
+      "negotiations": [
+        {
+          "context": "WebGpu",
+          "provider": "WebGpuGraphicsProvider"
+        }
+      ],
+      "legacy_skia_host": null
+    },
+    {
+      "backend": "webgpu",
+      "role": "candidate",
+      "actual_application_contexts": ["webgpu"],
+      "negotiations": [
+        {
+          "context": "WebGpu",
+          "provider": "WebGpuGraphicsProvider"
+        }
+      ],
+      "legacy_skia_host": null
+    }
+  ],
+  "primary_sample_columns": ["role", "trial", "elapsed_ms", "renderer_thread_cpu_ms", "task_elapsed_ms", "offered_operations_per_second", "operations", "trusted_inputs", "completed_callbacks", "graphics_active_animation_intervals", "visible_webgpu_canvas_submissions", "write_texture_calls", "supplied_upload_buffer_bytes", "inputs_without_later_graphics", "inputs_without_completed_callback"],
+  "same_runner_shards": [
+    {
+      "backend": "skia-preferred",
+      "workload": "brush-hover",
+      "artifact": {
+        "id": 13973597971,
+        "name": "unodraw-performance-results-skia-preferred-brush-hover",
+        "sha256": "a6d6e4d746dc6cef03eec322b46441e6d40ec1c3b65bcc37acac7e7cf1e6a9e5",
+        "bytes": 8709463
+      },
+      "report_sha256": "3df64632d453c4f692535c0fa7425f7a162608a8bcc8f2eae6e7697f520a5290",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508489.9016283,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 26327.600000000006, 1463.2130000000002, 2132.806, 4.557954390069736, 120, 120, 240, 240, 0, 0, 284688384, 0, 0],
+        ["candidate", 1, 25962.800000000017, 1437.5919999999999, 2027.9319999999998, 4.621997627374548, 120, 120, 240, 240, 0, 0, 285409280, 0, 0],
+        ["reference", 1, 72694.60000000003, 2711.045, 3518.05, 1.6507415956618503, 120, 120, 478, 240, 0, 0, 751516778496, 0, 0],
+        ["candidate", 2, 26015.399999999965, 1435.259, 2155.9139999999998, 4.61265250582348, 120, 120, 240, 240, 0, 0, 285409280, 0, 0],
+        ["reference", 2, 72233.29999999993, 2852.277, 3669.49, 1.6612836461853482, 120, 120, 476, 240, 0, 0, 748373671936, 0, 0],
+        ["baseline", 2, 26193.899999999907, 1488.236, 2138.062, 4.5812192915144525, 120, 120, 240, 240, 0, 0, 284688384, 0, 0],
+        ["reference", 3, 72510.20000000007, 2723.9120000000003, 3472.811, 1.6549395809141318, 120, 120, 478, 240, 0, 0, 751516778496, 0, 0],
+        ["baseline", 3, 26209.300000000047, 1495.781, 2114.299, 4.578527469257088, 120, 120, 240, 240, 0, 0, 284688384, 0, 0],
+        ["candidate", 3, 26524.599999999977, 1433.7649999999999, 2064.855, 4.524102154226647, 120, 120, 241, 241, 0, 0, 285409280, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 26209.300000000047,
+          "renderer_thread_cpu_ms": 1488.236,
+          "task_elapsed_ms": 2132.806,
+          "offered_operations_per_second": 4.578527469257088,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 240,
+          "graphics_active_animation_intervals": 240,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 284688384
+        },
+        "candidate": {
+          "elapsed_ms": 26015.399999999965,
+          "renderer_thread_cpu_ms": 1435.259,
+          "task_elapsed_ms": 2064.855,
+          "offered_operations_per_second": 4.61265250582348,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 240,
+          "graphics_active_animation_intervals": 240,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 285409280
+        },
+        "reference": {
+          "elapsed_ms": 72510.20000000007,
+          "renderer_thread_cpu_ms": 2723.9120000000003,
+          "task_elapsed_ms": 3518.05,
+          "offered_operations_per_second": 1.6549395809141318,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 478,
+          "graphics_active_animation_intervals": 240,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 751516778496
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 0.992601862697589,
+        "renderer_thread_cpu_ms": 0.9644028232081471,
+        "task_elapsed_ms": 0.9681400933793322,
+        "offered_operations_per_second": 1.0074532776739962,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 1.0,
+        "graphics_active_animation_intervals": 1.0,
+        "visible_webgpu_canvas_submissions": null,
+        "write_texture_calls": null,
+        "supplied_upload_buffer_bytes": 1.0025322283609577
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "edit",
+      "artifact": {
+        "id": 13973384463,
+        "name": "unodraw-performance-results-skia-preferred-edit",
+        "sha256": "cfed3eb0c37a8eefe8e5f2998c9c28e5ea8bdfcb3ac459a5f68b0cb294e96cd9",
+        "bytes": 7249524
+      },
+      "report_sha256": "f43994e91b9d26b970e4d55005a0b7d496f513ea17b8c20a64bb08e6fe074281",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508735.3535304,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 34914.0, 28603.617000000002, 32212.703000000005, 3.437016669530847, 120, 120, 182, 182, 0, 0, 5701894144, 0, 0],
+        ["candidate", 1, 21641.900000000023, 9407.627, 12409.116000000002, 5.544799671008547, 120, 120, 139, 139, 0, 0, 3481993216, 0, 0],
+        ["reference", 1, 60720.19999999995, 49267.547, 53475.367, 1.9762780755004117, 120, 120, 241, 131, 0, 0, 1011144851456, 0, 0],
+        ["candidate", 2, 21816.899999999907, 9202.902, 12253.611, 5.500323143984732, 120, 120, 139, 139, 0, 0, 4052811776, 0, 0],
+        ["reference", 2, 54420.20000000007, 44688.447, 48814.865, 2.2050635609571416, 120, 120, 218, 122, 0, 0, 883075317760, 0, 0],
+        ["baseline", 2, 35259.19999999995, 28663.638000000003, 32727.111999999997, 3.403367064482466, 120, 120, 185, 185, 0, 0, 5521408000, 0, 0],
+        ["reference", 3, 53464.90000000014, 44138.582, 48116.245, 2.2444631898684873, 120, 120, 216, 126, 0, 0, 857365610496, 0, 0],
+        ["baseline", 3, 35613.10000000009, 29479.604, 33034.694, 3.3695465994254836, 120, 120, 184, 184, 0, 0, 5291900928, 0, 0],
+        ["candidate", 3, 21594.899999999907, 9328.242999999999, 12343.692000000001, 5.556867593737434, 120, 120, 139, 139, 0, 0, 3539075072, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 35259.19999999995,
+          "renderer_thread_cpu_ms": 28663.638000000003,
+          "task_elapsed_ms": 32727.111999999997,
+          "offered_operations_per_second": 3.403367064482466,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 184,
+          "graphics_active_animation_intervals": 184,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 5521408000
+        },
+        "candidate": {
+          "elapsed_ms": 21641.900000000023,
+          "renderer_thread_cpu_ms": 9328.242999999999,
+          "task_elapsed_ms": 12343.692000000001,
+          "offered_operations_per_second": 5.544799671008547,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 139,
+          "graphics_active_animation_intervals": 139,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 3539075072
+        },
+        "reference": {
+          "elapsed_ms": 54420.20000000007,
+          "renderer_thread_cpu_ms": 44688.447,
+          "task_elapsed_ms": 48814.865,
+          "offered_operations_per_second": 2.2050635609571416,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 218,
+          "graphics_active_animation_intervals": 126,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 883075317760
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 0.613794413940193,
+        "renderer_thread_cpu_ms": 0.3254382085065405,
+        "task_elapsed_ms": 0.37717021899152,
+        "offered_operations_per_second": 1.6292100046668692,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.7554347826086957,
+        "graphics_active_animation_intervals": 0.7554347826086957,
+        "visible_webgpu_canvas_submissions": null,
+        "write_texture_calls": null,
+        "supplied_upload_buffer_bytes": 0.640973293768546
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "idle",
+      "artifact": {
+        "id": 13974037129,
+        "name": "unodraw-performance-results-skia-preferred-idle",
+        "sha256": "d6d176ae4b5190c23f521679ced9cfd23dc42ca25b2411a5ac03bf667a306aac",
+        "bytes": 7137484
+      },
+      "report_sha256": "5a90f75d8657864f627db0d811fcf45b3fbbf19603d05c9cfb9c0841645fc177",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508867.9954858,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 2029.5, 6.9959999999999996, 5.4750000000000005, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["candidate", 1, 2030.2000000000116, 5.082, 3.665, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["reference", 1, 2030.5, 6.25, 4.656000000000001, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["candidate", 2, 2030.8000000000175, 5.089, 3.63, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["reference", 2, 2029.3000000000466, 6.518, 5.136000000000001, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["baseline", 2, 2030.3000000000466, 6.712, 5.510999999999999, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["reference", 3, 2030.0999999999767, 7.056, 5.687, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["baseline", 3, 2030.2999999999884, 5.3870000000000005, 4.002, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["candidate", 3, 2030.2000000000116, 5.315, 4.032, null, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 2030.2999999999884,
+          "renderer_thread_cpu_ms": 6.712,
+          "task_elapsed_ms": 5.4750000000000005,
+          "offered_operations_per_second": null,
+          "operations": 0,
+          "trusted_inputs": 0,
+          "completed_callbacks": 0,
+          "graphics_active_animation_intervals": 0,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        },
+        "candidate": {
+          "elapsed_ms": 2030.2000000000116,
+          "renderer_thread_cpu_ms": 5.089,
+          "task_elapsed_ms": 3.665,
+          "offered_operations_per_second": null,
+          "operations": 0,
+          "trusted_inputs": 0,
+          "completed_callbacks": 0,
+          "graphics_active_animation_intervals": 0,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        },
+        "reference": {
+          "elapsed_ms": 2030.0999999999767,
+          "renderer_thread_cpu_ms": 6.518,
+          "task_elapsed_ms": 5.136000000000001,
+          "offered_operations_per_second": null,
+          "operations": 0,
+          "trusted_inputs": 0,
+          "completed_callbacks": 0,
+          "graphics_active_animation_intervals": 0,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 0.999950746195155,
+        "renderer_thread_cpu_ms": 0.7581942789034566,
+        "task_elapsed_ms": 0.6694063926940639,
+        "offered_operations_per_second": null,
+        "operations": null,
+        "trusted_inputs": null,
+        "completed_callbacks": null,
+        "graphics_active_animation_intervals": null,
+        "visible_webgpu_canvas_submissions": null,
+        "write_texture_calls": null,
+        "supplied_upload_buffer_bytes": null
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "pan",
+      "artifact": {
+        "id": 13973303901,
+        "name": "unodraw-performance-results-skia-preferred-pan",
+        "sha256": "a9740f1e81bc829333bd74c0795412491f5fed0d9b44613f020df1e5e754c39b",
+        "bytes": 7262813
+      },
+      "report_sha256": "2c2fa4f46167b155ec46ca8c82b71999a04292138043c26afab1476d9868b6b9",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508812.6245356,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 26178.0, 1541.569, 2231.455, 4.584001833600733, 120, 120, 242, 242, 0, 0, 0, 0, 0],
+        ["candidate", 1, 25739.70000000001, 1552.0770000000002, 2327.396, 4.662058998356622, 120, 120, 242, 242, 0, 0, 0, 0, 0],
+        ["reference", 1, 71411.0, 2813.06, 3551.846, 1.6804133816918962, 120, 120, 472, 242, 0, 0, 741773148160, 0, 0],
+        ["candidate", 2, 25736.900000000023, 1531.9879999999998, 2231.3019999999997, 4.6625661987263385, 120, 120, 243, 243, 0, 0, 0, 0, 0],
+        ["reference", 2, 71418.09999999998, 2922.137, 3813.808, 1.6802463241111152, 120, 120, 472, 243, 0, 0, 741773148160, 0, 0],
+        ["baseline", 2, 26068.800000000047, 1555.569, 2248.065, 4.603203829865579, 120, 120, 242, 242, 0, 0, 0, 0, 0],
+        ["reference", 3, 70550.70000000007, 2788.139, 3601.9, 1.7009044559444468, 120, 120, 470, 242, 0, 0, 738630041600, 0, 0],
+        ["baseline", 3, 26031.599999999977, 1532.858, 2143.089, 4.609781957313423, 120, 120, 243, 243, 0, 0, 0, 0, 0],
+        ["candidate", 3, 25794.400000000023, 1563.5869999999998, 2230.172, 4.652172564587659, 120, 120, 242, 242, 0, 0, 0, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 26068.800000000047,
+          "renderer_thread_cpu_ms": 1541.569,
+          "task_elapsed_ms": 2231.455,
+          "offered_operations_per_second": 4.603203829865579,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 242,
+          "graphics_active_animation_intervals": 242,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        },
+        "candidate": {
+          "elapsed_ms": 25739.70000000001,
+          "renderer_thread_cpu_ms": 1552.0770000000002,
+          "task_elapsed_ms": 2231.3019999999997,
+          "offered_operations_per_second": 4.662058998356622,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 242,
+          "graphics_active_animation_intervals": 242,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        },
+        "reference": {
+          "elapsed_ms": 71411.0,
+          "renderer_thread_cpu_ms": 2813.06,
+          "task_elapsed_ms": 3601.9,
+          "offered_operations_per_second": 1.6804133816918962,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 472,
+          "graphics_active_animation_intervals": 242,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 741773148160
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 0.9873757134965924,
+        "renderer_thread_cpu_ms": 1.006816431830168,
+        "task_elapsed_ms": 0.9999314348709697,
+        "offered_operations_per_second": 1.0127856968029942,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 1.0,
+        "graphics_active_animation_intervals": 1.0,
+        "visible_webgpu_canvas_submissions": null,
+        "write_texture_calls": null,
+        "supplied_upload_buffer_bytes": null
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "selection",
+      "artifact": {
+        "id": 13972434358,
+        "name": "unodraw-performance-results-skia-preferred-selection",
+        "sha256": "078a33d418d7910f473f87f64bf2c958073e15041a82f7f06ae419dfd151c706",
+        "bytes": 7295858
+      },
+      "report_sha256": "8c214e38959e585d0bb5fcecb9178f105e13cc555cbcc1fa2767a578d77e231b",
+      "platform": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+      "started_unix": 1794508333.8662906,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 17949.100000000006, 10559.761, 12543.815999999999, 6.741285078360472, 121, 121, 156, 156, 0, 0, 0, 0, 0],
+        ["candidate", 1, 14171.800000000017, 4426.853, 6371.6759999999995, 8.5380826712203, 121, 121, 135, 135, 0, 0, 0, 0, 0],
+        ["reference", 1, 38361.0, 18211.894999999997, 19977.676000000003, 3.1542451969448138, 121, 121, 244, 130, 0, 0, 682204987392, 0, 0],
+        ["candidate", 2, 14473.700000000012, 4639.084, 6482.264, 8.359990880009942, 121, 121, 136, 136, 0, 0, 0, 0, 0],
+        ["reference", 2, 35891.40000000002, 16780.191, 18655.552, 3.371281142557825, 121, 121, 236, 126, 0, 0, 663756931072, 0, 0],
+        ["baseline", 2, 15806.70000000007, 8299.889000000001, 9935.759, 7.654981748245963, 121, 121, 143, 143, 0, 0, 0, 0, 0],
+        ["reference", 3, 34991.30000000005, 16283.002, 18121.714, 3.4580024177438347, 121, 121, 231, 121, 0, 0, 629110996992, 0, 0],
+        ["baseline", 3, 16125.70000000007, 8629.046, 10162.99, 7.5035502334782045, 121, 121, 144, 144, 0, 0, 0, 0, 0],
+        ["candidate", 3, 13260.29999999993, 3868.9590000000003, 5385.3550000000005, 9.124982089394708, 121, 121, 132, 132, 0, 0, 0, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 16125.70000000007,
+          "renderer_thread_cpu_ms": 8629.046,
+          "task_elapsed_ms": 10162.99,
+          "offered_operations_per_second": 7.5035502334782045,
+          "operations": 121,
+          "trusted_inputs": 121,
+          "completed_callbacks": 144,
+          "graphics_active_animation_intervals": 144,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        },
+        "candidate": {
+          "elapsed_ms": 14171.800000000017,
+          "renderer_thread_cpu_ms": 4426.853,
+          "task_elapsed_ms": 6371.6759999999995,
+          "offered_operations_per_second": 8.5380826712203,
+          "operations": 121,
+          "trusted_inputs": 121,
+          "completed_callbacks": 135,
+          "graphics_active_animation_intervals": 135,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        },
+        "reference": {
+          "elapsed_ms": 35891.40000000002,
+          "renderer_thread_cpu_ms": 16780.191,
+          "task_elapsed_ms": 18655.552,
+          "offered_operations_per_second": 3.371281142557825,
+          "operations": 121,
+          "trusted_inputs": 121,
+          "completed_callbacks": 236,
+          "graphics_active_animation_intervals": 126,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 663756931072
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 0.8788331669322855,
+        "renderer_thread_cpu_ms": 0.5130176615120605,
+        "task_elapsed_ms": 0.6269489589185859,
+        "offered_operations_per_second": 1.1378723944735354,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.9375,
+        "graphics_active_animation_intervals": 0.9375,
+        "visible_webgpu_canvas_submissions": null,
+        "write_texture_calls": null,
+        "supplied_upload_buffer_bytes": null
+      }
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "zoom",
+      "artifact": {
+        "id": 13972838879,
+        "name": "unodraw-performance-results-skia-preferred-zoom",
+        "sha256": "ddb3e488feb9e5261c5cb65f550c09c47e7ebef56ab5c84dacfa666e67c722fc",
+        "bytes": 7448461
+      },
+      "report_sha256": "91764c5a31326f44c2a92b08f8cc4f25207d7fb73fde8a5fc76a8ad5ffc04088",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508235.018531,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 35639.4, 2504.1670000000004, 4322.871, 3.3670600515160185, 120, 120, 226, 226, 0, 0, 88822775808, 0, 0],
+        ["candidate", 1, 35322.399999999994, 2441.434, 4267.4529999999995, 3.397277648177927, 120, 120, 230, 230, 0, 0, 89333104640, 0, 0],
+        ["reference", 1, 92608.89999999997, 4250.106000000001, 7365.116, 1.2957717886725795, 120, 120, 446, 228, 0, 0, 813121667072, 0, 0],
+        ["candidate", 2, 34982.80000000005, 2448.028, 4230.8, 3.430257154944711, 120, 120, 227, 227, 0, 0, 89618513920, 0, 0],
+        ["reference", 2, 92730.30000000005, 4078.6059999999998, 7110.534, 1.2940753993031398, 120, 120, 448, 228, 0, 0, 816264773632, 0, 0],
+        ["baseline", 2, 35543.79999999993, 2395.462, 4305.003, 3.376116228428031, 120, 120, 229, 229, 0, 0, 86829957120, 0, 0],
+        ["reference", 3, 93174.90000000002, 4227.893, 7115.385, 1.2879004968076164, 120, 120, 448, 229, 0, 0, 816579084288, 0, 0],
+        ["baseline", 3, 35597.89999999991, 2405.812, 4525.465999999999, 3.3709853671143613, 120, 120, 229, 229, 0, 0, 87968710656, 0, 0],
+        ["candidate", 3, 35359.09999999986, 2469.707, 4585.9929999999995, 3.393751537793679, 120, 120, 230, 230, 0, 0, 89903923200, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 35597.89999999991,
+          "renderer_thread_cpu_ms": 2405.812,
+          "task_elapsed_ms": 4322.871,
+          "offered_operations_per_second": 3.3709853671143613,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 229,
+          "graphics_active_animation_intervals": 229,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 87968710656
+        },
+        "candidate": {
+          "elapsed_ms": 35322.399999999994,
+          "renderer_thread_cpu_ms": 2448.028,
+          "task_elapsed_ms": 4267.4529999999995,
+          "offered_operations_per_second": 3.397277648177927,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 230,
+          "graphics_active_animation_intervals": 230,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 89618513920
+        },
+        "reference": {
+          "elapsed_ms": 92730.30000000005,
+          "renderer_thread_cpu_ms": 4227.893,
+          "task_elapsed_ms": 7115.385,
+          "offered_operations_per_second": 1.2940753993031398,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 448,
+          "graphics_active_animation_intervals": 228,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 816264773632
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 0.9922607794280024,
+        "renderer_thread_cpu_ms": 1.0175475057901449,
+        "task_elapsed_ms": 0.9871802790321523,
+        "offered_operations_per_second": 1.0077995832672726,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 1.0043668122270741,
+        "graphics_active_animation_intervals": 1.0043668122270741,
+        "visible_webgpu_canvas_submissions": null,
+        "write_texture_calls": null,
+        "supplied_upload_buffer_bytes": 1.018754432703368
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "brush-hover",
+      "artifact": {
+        "id": 13974189196,
+        "name": "unodraw-performance-results-webgpu-brush-hover",
+        "sha256": "be84fbb1f8f11b9d11b5adebcf8473e0a62b4f82aca0e18c9702be19293dc97a",
+        "bytes": 6204534
+      },
+      "report_sha256": "2e53b7c2fcc241c6dd280fdddd1167fb48579bd0755eb53129c2525ca7df4f90",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508236.4676979,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 107604.80000000002, 28818.123, 34712.223, 1.11519188735075, 120, 120, 230, 230, 230, 3600, 541197600, 0, 0],
+        ["candidate", 1, 124585.60000000003, 1288.6559999999997, 2097.7239999999997, 0.9631931780237842, 120, 120, 222, 222, 222, 120, 387064320, 0, 0],
+        ["candidate", 2, 123173.19999999995, 1278.3819999999998, 2107.54, 0.9742379024008473, 120, 120, 217, 217, 217, 120, 387064320, 0, 0],
+        ["baseline", 2, 106475.59999999998, 28608.33, 34054.748, 1.1270187723760188, 120, 120, 226, 226, 226, 3600, 541197600, 0, 0],
+        ["baseline", 3, 106906.8999999999, 28639.77, 34689.4, 1.1224719826316178, 120, 120, 228, 228, 228, 3600, 541197600, 0, 0],
+        ["candidate", 3, 123353.69999999995, 1334.331, 2213.688, 0.9728123274778142, 120, 120, 220, 220, 220, 120, 387064320, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 106906.8999999999,
+          "renderer_thread_cpu_ms": 28639.77,
+          "task_elapsed_ms": 34689.4,
+          "offered_operations_per_second": 1.1224719826316178,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 228,
+          "graphics_active_animation_intervals": 228,
+          "visible_webgpu_canvas_submissions": 228,
+          "write_texture_calls": 3600,
+          "supplied_upload_buffer_bytes": 541197600
+        },
+        "candidate": {
+          "elapsed_ms": 123353.69999999995,
+          "renderer_thread_cpu_ms": 1288.6559999999997,
+          "task_elapsed_ms": 2107.54,
+          "offered_operations_per_second": 0.9728123274778142,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 220,
+          "graphics_active_animation_intervals": 220,
+          "visible_webgpu_canvas_submissions": 220,
+          "write_texture_calls": 120,
+          "supplied_upload_buffer_bytes": 387064320
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 1.1538422683662146,
+        "renderer_thread_cpu_ms": 0.04499533341224457,
+        "task_elapsed_ms": 0.06075458209135932,
+        "offered_operations_per_second": 0.8666695851036487,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.9649122807017544,
+        "graphics_active_animation_intervals": 0.9649122807017544,
+        "visible_webgpu_canvas_submissions": 0.9649122807017544,
+        "write_texture_calls": 0.03333333333333333,
+        "supplied_upload_buffer_bytes": 0.7151996239451173
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "edit",
+      "artifact": {
+        "id": 13974388900,
+        "name": "unodraw-performance-results-webgpu-edit",
+        "sha256": "3264495c4f29f57523d30f78497cedf658d5a3f7c18b42c598973c06fac27b93",
+        "bytes": 5165742
+      },
+      "report_sha256": "4aa75a5113efeeae0fdda4b7a8a122bf0b28c00130135a5c5414e5d8602c3fdf",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508782.1286757,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 84743.20000000001, 56036.369999999995, 70859.082, 1.416042821134911, 120, 120, 196, 196, 196, 1140, 490158504, 0, 0],
+        ["candidate", 1, 85942.20000000001, 27370.342, 42294.871999999996, 1.3962872721433706, 120, 120, 122, 122, 122, 120, 387064320, 0, 0],
+        ["candidate", 2, 82926.5, 28273.169, 42528.638999999996, 1.4470645692269661, 120, 120, 122, 122, 122, 120, 387064320, 0, 0],
+        ["baseline", 2, 81763.5, 51896.279, 66075.914, 1.4676475444422021, 120, 120, 186, 186, 186, 1090, 468660324, 0, 0],
+        ["baseline", 3, 77990.29999999993, 51214.259000000005, 66133.85, 1.5386528837560582, 120, 120, 186, 186, 186, 1130, 485858868, 0, 0],
+        ["candidate", 3, 83515.8999999999, 27834.563, 42620.807, 1.4368521443222204, 120, 120, 122, 122, 122, 120, 387064320, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 81763.5,
+          "renderer_thread_cpu_ms": 51896.279,
+          "task_elapsed_ms": 66133.85,
+          "offered_operations_per_second": 1.4676475444422021,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 186,
+          "graphics_active_animation_intervals": 186,
+          "visible_webgpu_canvas_submissions": 186,
+          "write_texture_calls": 1130,
+          "supplied_upload_buffer_bytes": 485858868
+        },
+        "candidate": {
+          "elapsed_ms": 83515.8999999999,
+          "renderer_thread_cpu_ms": 27834.563,
+          "task_elapsed_ms": 42528.638999999996,
+          "offered_operations_per_second": 1.4368521443222204,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 122,
+          "graphics_active_animation_intervals": 122,
+          "visible_webgpu_canvas_submissions": 122,
+          "write_texture_calls": 120,
+          "supplied_upload_buffer_bytes": 387064320
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 1.0214325463073366,
+        "renderer_thread_cpu_ms": 0.5363498797283712,
+        "task_elapsed_ms": 0.6430691544496501,
+        "offered_operations_per_second": 0.979017169185749,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.6559139784946236,
+        "graphics_active_animation_intervals": 0.6559139784946236,
+        "visible_webgpu_canvas_submissions": 0.6559139784946236,
+        "write_texture_calls": 0.10619469026548672,
+        "supplied_upload_buffer_bytes": 0.79665998810173
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "idle",
+      "artifact": {
+        "id": 13972692834,
+        "name": "unodraw-performance-results-webgpu-idle",
+        "sha256": "d272e45d2f9959f498628d8ed5378291fd2c9eb43d1a49232aa83bd7ac0be513",
+        "bytes": 5087321
+      },
+      "report_sha256": "1095edfb2444fc8ef24b08cde47cf301994e9f7ee95961fb003c436512c21bfa",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508301.001863,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 2029.2999999999884, 7.550000000000001, 6.191000000000001, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["candidate", 1, 2030.3999999999942, 10.652999999999999, 8.788, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["candidate", 2, 2030.5, 11.438, 9.468, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["baseline", 2, 2030.0, 7.289, 5.8839999999999995, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["baseline", 3, 2030.0, 6.626, 5.133, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ["candidate", 3, 2029.5, 14.454999999999998, 11.902000000000001, null, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 2030.0,
+          "renderer_thread_cpu_ms": 7.289,
+          "task_elapsed_ms": 5.8839999999999995,
+          "offered_operations_per_second": null,
+          "operations": 0,
+          "trusted_inputs": 0,
+          "completed_callbacks": 0,
+          "graphics_active_animation_intervals": 0,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        },
+        "candidate": {
+          "elapsed_ms": 2030.3999999999942,
+          "renderer_thread_cpu_ms": 11.438,
+          "task_elapsed_ms": 9.468,
+          "offered_operations_per_second": null,
+          "operations": 0,
+          "trusted_inputs": 0,
+          "completed_callbacks": 0,
+          "graphics_active_animation_intervals": 0,
+          "visible_webgpu_canvas_submissions": 0,
+          "write_texture_calls": 0,
+          "supplied_upload_buffer_bytes": 0
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 1.0001970443349726,
+        "renderer_thread_cpu_ms": 1.5692138839346963,
+        "task_elapsed_ms": 1.6091094493541809,
+        "offered_operations_per_second": null,
+        "operations": null,
+        "trusted_inputs": null,
+        "completed_callbacks": null,
+        "graphics_active_animation_intervals": null,
+        "visible_webgpu_canvas_submissions": null,
+        "write_texture_calls": null,
+        "supplied_upload_buffer_bytes": null
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "pan",
+      "artifact": {
+        "id": 13975359034,
+        "name": "unodraw-performance-results-webgpu-pan",
+        "sha256": "833fe9e334888933fb5e2b1cdd2196d7f5c09dbf6dc1042378f83a3bb6021883",
+        "bytes": 5167381
+      },
+      "report_sha256": "8c90c94c05efd4752b9208eecd128de55a483afe4aef99795d62f47443f32cb0",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508902.691783,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 173136.40000000002, 37299.924, 46775.312999999995, 0.6930951550338345, 120, 120, 239, 239, 239, 3610, 545497236, 0, 0],
+        ["candidate", 1, 172395.5, 34899.171, 44027.539, 0.6960738534358496, 120, 120, 230, 230, 230, 362, 412586752, 0, 0],
+        ["candidate", 2, 174834.3999999999, 34559.932, 41120.137, 0.6863637819559542, 120, 120, 236, 236, 236, 362, 412586752, 0, 0],
+        ["baseline", 2, 172065.19999999995, 36993.206, 45269.14199999999, 0.697410051538603, 120, 120, 232, 232, 232, 3610, 545497236, 0, 0],
+        ["baseline", 3, 172930.69999999995, 37025.596, 45036.831999999995, 0.6939195874416748, 120, 120, 228, 228, 228, 3610, 545497236, 0, 0],
+        ["candidate", 3, 173547.1000000001, 34463.98, 42578.134, 0.6914549422030096, 120, 120, 228, 228, 228, 362, 412586752, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 172930.69999999995,
+          "renderer_thread_cpu_ms": 37025.596,
+          "task_elapsed_ms": 45269.14199999999,
+          "offered_operations_per_second": 0.6939195874416748,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 232,
+          "graphics_active_animation_intervals": 232,
+          "visible_webgpu_canvas_submissions": 232,
+          "write_texture_calls": 3610,
+          "supplied_upload_buffer_bytes": 545497236
+        },
+        "candidate": {
+          "elapsed_ms": 173547.1000000001,
+          "renderer_thread_cpu_ms": 34559.932,
+          "task_elapsed_ms": 42578.134,
+          "offered_operations_per_second": 0.6914549422030096,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 230,
+          "graphics_active_animation_intervals": 230,
+          "visible_webgpu_canvas_submissions": 230,
+          "write_texture_calls": 362,
+          "supplied_upload_buffer_bytes": 412586752
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 1.0035644336141596,
+        "renderer_thread_cpu_ms": 0.9334065007353293,
+        "task_elapsed_ms": 0.9405553566709969,
+        "offered_operations_per_second": 0.996448226446883,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.9913793103448276,
+        "graphics_active_animation_intervals": 0.9913793103448276,
+        "visible_webgpu_canvas_submissions": 0.9913793103448276,
+        "write_texture_calls": 0.10027700831024931,
+        "supplied_upload_buffer_bytes": 0.7563498488560627
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "selection",
+      "artifact": {
+        "id": 13975444428,
+        "name": "unodraw-performance-results-webgpu-selection",
+        "sha256": "dc2bd7f234524c6a41bb41cabb300ebcc105c8179e93eaaa86d670a79592481c",
+        "bytes": 5205758
+      },
+      "report_sha256": "dfcba28af6cc49e17507825b18f4d36540fe56e43cfb31bcdf18788917ba758c",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508743.1130419,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 123532.79999999999, 45787.042, 60809.58500000001, 0.9794969433219356, 121, 121, 138, 138, 138, 1140, 490158504, 0, 0],
+        ["candidate", 1, 264035.0, 9698.132000000001, 17337.368000000002, 0.4582725774991952, 121, 121, 124, 124, 124, 119, 383838784, 0, 0],
+        ["candidate", 2, 184080.0, 7640.676, 13017.481, 0.6573229030856149, 121, 121, 129, 129, 129, 119, 383838784, 0, 0],
+        ["baseline", 2, 133329.2999999998, 47089.843, 62633.64, 0.9075274527054457, 121, 121, 141, 141, 141, 1110, 477259596, 0, 0],
+        ["baseline", 3, 110316.0, 43148.01000000001, 57126.327000000005, 1.0968490518147866, 121, 121, 130, 130, 130, 1190, 511656684, 0, 0],
+        ["candidate", 3, 134941.5, 6067.787, 10035.402000000002, 0.896684859735515, 121, 121, 128, 128, 128, 109, 351583424, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 123532.79999999999,
+          "renderer_thread_cpu_ms": 45787.042,
+          "task_elapsed_ms": 60809.58500000001,
+          "offered_operations_per_second": 0.9794969433219356,
+          "operations": 121,
+          "trusted_inputs": 121,
+          "completed_callbacks": 138,
+          "graphics_active_animation_intervals": 138,
+          "visible_webgpu_canvas_submissions": 138,
+          "write_texture_calls": 1140,
+          "supplied_upload_buffer_bytes": 490158504
+        },
+        "candidate": {
+          "elapsed_ms": 184080.0,
+          "renderer_thread_cpu_ms": 7640.676,
+          "task_elapsed_ms": 13017.481,
+          "offered_operations_per_second": 0.6573229030856149,
+          "operations": 121,
+          "trusted_inputs": 121,
+          "completed_callbacks": 128,
+          "graphics_active_animation_intervals": 128,
+          "visible_webgpu_canvas_submissions": 128,
+          "write_texture_calls": 119,
+          "supplied_upload_buffer_bytes": 383838784
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 1.4901305564190241,
+        "renderer_thread_cpu_ms": 0.16687419991009683,
+        "task_elapsed_ms": 0.21406955827769583,
+        "offered_operations_per_second": 0.6710821382007822,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 0.927536231884058,
+        "graphics_active_animation_intervals": 0.927536231884058,
+        "visible_webgpu_canvas_submissions": 0.927536231884058,
+        "write_texture_calls": 0.10438596491228071,
+        "supplied_upload_buffer_bytes": 0.7830911447371318
+      }
+    },
+    {
+      "backend": "webgpu",
+      "workload": "zoom",
+      "artifact": {
+        "id": 13975385384,
+        "name": "unodraw-performance-results-webgpu-zoom",
+        "sha256": "2e7f97bd1b84af14eb5361d25f7fa46985b734289659ac9752f7cc9fe231da3f",
+        "bytes": 5286089
+      },
+      "report_sha256": "8afaea2000b3e87efa9508c2215312146a22eb84a935397cdaeb8f4156310c90",
+      "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+      "started_unix": 1794508188.930787,
+      "primary_samples_in_actual_order": [
+        ["baseline", 1, 115036.00000000006, 28705.418, 35331.584, 1.043151709030216, 120, 120, 252, 252, 252, 3360, 505117760, 0, 0],
+        ["candidate", 1, 118230.09999999998, 23882.306, 26707.0, 1.0149699611181926, 120, 120, 271, 271, 271, 336, 379059968, 0, 0],
+        ["candidate", 2, 115139.09999999998, 26003.972999999998, 31089.103000000003, 1.0422176306745494, 120, 120, 257, 257, 257, 336, 379059968, 0, 0],
+        ["baseline", 2, 114374.3999999999, 28196.796999999995, 33325.165, 1.0491858317945284, 120, 120, 256, 256, 256, 3360, 505117760, 0, 0],
+        ["baseline", 3, 116419.3999999999, 26265.002, 30123.285999999996, 1.0307560423778175, 120, 120, 265, 265, 265, 3360, 505117760, 0, 0],
+        ["candidate", 3, 113419.19999999995, 27139.544, 34888.56, 1.0580219222142286, 120, 120, 246, 246, 246, 336, 379059968, 0, 0]
+      ],
+      "medians": {
+        "baseline": {
+          "elapsed_ms": 115036.00000000006,
+          "renderer_thread_cpu_ms": 28196.796999999995,
+          "task_elapsed_ms": 33325.165,
+          "offered_operations_per_second": 1.043151709030216,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 256,
+          "graphics_active_animation_intervals": 256,
+          "visible_webgpu_canvas_submissions": 256,
+          "write_texture_calls": 3360,
+          "supplied_upload_buffer_bytes": 505117760
+        },
+        "candidate": {
+          "elapsed_ms": 115139.09999999998,
+          "renderer_thread_cpu_ms": 26003.972999999998,
+          "task_elapsed_ms": 31089.103000000003,
+          "offered_operations_per_second": 1.0422176306745494,
+          "operations": 120,
+          "trusted_inputs": 120,
+          "completed_callbacks": 257,
+          "graphics_active_animation_intervals": 257,
+          "visible_webgpu_canvas_submissions": 257,
+          "write_texture_calls": 336,
+          "supplied_upload_buffer_bytes": 379059968
+        }
+      },
+      "candidate_over_baseline": {
+        "elapsed_ms": 1.0008962411766744,
+        "renderer_thread_cpu_ms": 0.9222314506147632,
+        "task_elapsed_ms": 0.9329016975609874,
+        "offered_operations_per_second": 0.9991045613523128,
+        "operations": 1.0,
+        "trusted_inputs": 1.0,
+        "completed_callbacks": 1.00390625,
+        "graphics_active_animation_intervals": 1.00390625,
+        "visible_webgpu_canvas_submissions": 1.00390625,
+        "write_texture_calls": 0.1,
+        "supplied_upload_buffer_bytes": 0.7504388046066723
+      }
+    }
+  ],
+  "diagnostic_metric_columns": ["elapsed_ms", "renderer_thread_cpu_ms", "task_elapsed_ms", "offered_operations_per_second", "operations", "trusted_inputs", "completed_callbacks", "graphics_active_animation_intervals", "visible_webgpu_canvas_submissions", "write_texture_calls", "supplied_upload_buffer_bytes", "inputs_without_later_graphics", "inputs_without_completed_callback"],
+  "separate_diagnostics": [
+    {
+      "backend": "skia-preferred",
+      "workload": "brush-hover",
+      "passed": true,
+      "metrics": [25742.700000000186, 1449.274, 2178.219, 4.661515691827164, 120, 120, 240, 240, 0, 0, 285409280, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 0, 0, 0, 0],
+        ["Interaction", 120, 18.800005, 3.300001, 17280],
+        ["Ruler", 0, 0, 0, 0],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 4
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "edit",
+      "passed": true,
+      "metrics": [21480.90000000014, 9300.812, 12056.498, 5.5863581134868285, 120, 120, 138, 138, 0, 0, 3767402496, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 119, 17.300009, 2.200001, 59976],
+        ["Interaction", 119, 30.7, 3.400001, 612136],
+        ["Ruler", 0, 0, 0, 0],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 2
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "idle",
+      "passed": true,
+      "metrics": [2023.1999999999534, 6.190999999999995, 4.848999999999999, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 0, 0, 0, 0],
+        ["Interaction", 0, 0, 0, 0],
+        ["Ruler", 0, 0, 0, 0],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 0
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "pan",
+      "passed": true,
+      "metrics": [25654.899999999907, 1604.136, 2323.8770000000004, 4.677469021512477, 120, 120, 242, 242, 0, 0, 0, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 121, 14.300003, 0.400001, 13552],
+        ["Interaction", 121, 7.399998, 3.100001, 17424],
+        ["Ruler", 240, 44.899993, 3.6, 1845240],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 4
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "selection",
+      "passed": true,
+      "metrics": [13137.900000000023, 3911.4990000000003, 5395.67, 9.209995509175727, 121, 121, 131, 131, 0, 0, 570818560, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 0, 0, 0, 0],
+        ["Interaction", 112, 18.000007, 3.099999, 307328],
+        ["Ruler", 0, 0, 0, 0],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 2
+    },
+    {
+      "backend": "skia-preferred",
+      "workload": "zoom",
+      "passed": true,
+      "metrics": [35245.40000000014, 2484.766, 4190.657, 3.404699620375979, 120, 120, 231, 231, 0, 0, 89903923200, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 112, 17.9, 3.1, 12544],
+        ["Interaction", 112, 7.7, 0.6, 16128],
+        ["Ruler", 224, 43.3, 1.3, 1405128],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 4
+    },
+    {
+      "backend": "webgpu",
+      "workload": "brush-hover",
+      "passed": true,
+      "metrics": [124074.3999999999, 1380.239, 2284.958, 0.9671616385007712, 120, 120, 220, 220, 220, 120, 387064320, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 0, 0, 0, 0],
+        ["Interaction", 120, 55.300003, 4.800001, 17280],
+        ["Ruler", 0, 0, 0, 0],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 7
+    },
+    {
+      "backend": "webgpu",
+      "workload": "edit",
+      "passed": true,
+      "metrics": [82389.80000000005, 27405.646999999997, 41722.871, 1.4564909733971916, 120, 120, 122, 122, 122, 120, 387064320, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 120, 31084.400001, 362.8, 60480],
+        ["Interaction", 120, 267.600001, 11.3, 617280],
+        ["Ruler", 0, 0, 0, 0],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 6
+    },
+    {
+      "backend": "webgpu",
+      "workload": "idle",
+      "passed": true,
+      "metrics": [2025.8999999999069, 6.737, 5.479999999999999, null, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 0, 0, 0, 0],
+        ["Interaction", 0, 0, 0, 0],
+        ["Ruler", 0, 0, 0, 0],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 0
+    },
+    {
+      "backend": "webgpu",
+      "workload": "pan",
+      "passed": true,
+      "metrics": [173809.0, 34604.32199999999, 41970.715, 0.6904130396009412, 120, 120, 235, 235, 235, 362, 412586752, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 121, 39321.299994, 551.6, 13552],
+        ["Interaction", 121, 36.800006, 4.300001, 17424],
+        ["Ruler", 240, 333.599998, 9.800001, 1845240],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 7
+    },
+    {
+      "backend": "webgpu",
+      "workload": "selection",
+      "passed": true,
+      "metrics": [267769.5, 9622.971, 17371.323, 0.4518811888583278, 121, 121, 124, 124, 124, 121, 390289856, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 0, 0, 0, 0],
+        ["Interaction", 121, 311.899994, 8.5, 334424],
+        ["Ruler", 0, 0, 0, 0],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 6
+    },
+    {
+      "backend": "webgpu",
+      "workload": "zoom",
+      "passed": true,
+      "metrics": [111402.80000000005, 27660.934999999998, 34839.919, 1.0771722075208159, 120, 120, 243, 243, 243, 336, 379059968, 0, 0],
+      "paint_phase_columns": ["phase", "count", "callback_elapsed_ms", "max_callback_elapsed_ms", "allocated_bytes"],
+      "paint_phases": [
+        ["Document", 112, 32824.999993, 551.7, 12544],
+        ["Interaction", 112, 25.600011, 3.200001, 16128],
+        ["Ruler", 224, 204.200002, 6.1, 1405128],
+        ["Navigator", 0, 0, 0, 0]
+      ],
+      "runtime_phase_log_count": 7
+    }
+  ],
+  "native_pixel_gate": {
+    "luminance_threshold": 12,
+    "document_and_ruler_fraction_limit": 0.001,
+    "chrome_font_region_fraction_limit": 0.02,
+    "resized": false,
+    "maximum_observed_fractions": {
+      "document": 0.0002631578947368421,
+      "horizontal_ruler": 0.0,
+      "vertical_ruler": 0.00010775281504229298,
+      "menu_labels": 0.0,
+      "toolbar_icons": 0.0,
+      "panel_icons": 0.0
+    }
+  },
+  "native_pair_columns": ["backend", "workload", "trial", "state", "passed", "document_fraction", "horizontal_ruler_fraction", "vertical_ruler_fraction", "menu_labels_fraction", "toolbar_icons_fraction", "panel_icons_fraction"],
+  "native_pixel_pairs": [
+    ["skia-preferred", "brush-hover", 1, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "brush-hover", 1, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "brush-hover", 1, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "brush-hover", 2, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "brush-hover", 2, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "brush-hover", 2, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "brush-hover", 3, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "brush-hover", 3, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "brush-hover", 3, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 1, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 1, "after", true, 0.0002631578947368421, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 1, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 2, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 2, "after", true, 0.0002631578947368421, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 2, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 3, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 3, "after", true, 0.0002631578947368421, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "edit", 3, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 1, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 1, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 1, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 2, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 2, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 2, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 3, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 3, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "idle", 3, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 1, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 1, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 1, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 2, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 2, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 2, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 3, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 3, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["skia-preferred", "pan", 3, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 1, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 1, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 1, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 2, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 2, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 2, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 3, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 3, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "selection", 3, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 1, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 1, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 1, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 2, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 2, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 2, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 3, "before", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 3, "after", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["skia-preferred", "zoom", 3, "restored", true, 0.0, 0.0, 0.00010775281504229298, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 1, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 1, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 1, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 2, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 2, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 2, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 3, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 3, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "brush-hover", 3, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 1, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 1, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 1, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 2, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 2, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 2, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 3, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 3, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "edit", 3, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 1, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 1, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 1, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 2, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 2, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 2, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 3, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 3, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "idle", 3, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 1, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 1, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 1, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 2, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 2, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 2, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 3, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 3, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "pan", 3, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 1, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 1, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 1, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 2, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 2, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 2, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 3, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 3, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "selection", 3, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 1, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 1, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 1, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 2, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 2, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 2, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 3, "before", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 3, "after", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ["webgpu", "zoom", 3, "restored", true, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  ],
+  "scope": [
+    "The twelve workload/backend shards use different runners. Every ratio compares the medians of three samples per role from one shard; frames, percentiles and timings are never pooled across shards.",
+    "This is the cbfeb lifetime and coverage checkpoint. Later production fixes and probe-only commits are not qualified by this historical matrix.",
+    "The active default candidate WebGPU transport is persistent RGBA. Opt-in composite and Graphite measurements are separate experiments and cannot replace these default-path observations.",
+    "WebGPU selection and hover remain slower in elapsed workload time despite much lower active renderer-thread CPU. The complete successful correctness matrix is not a claim that every workload became faster.",
+    "TaskDuration is elapsed renderer task time and may include waits. ThreadTime is active renderer main-thread CPU; it excludes GPU and worker CPU.",
+    "Offered operations per second, graphics-active callbacks and visible-canvas submissions are not physical displayed frames or input-to-new-pixels latency. Idle throughput is undefined and remains null.",
+    "The historical Uno 6 reference is measured only through Skia/WebGL. Most of its pan/zoom difference was already present in the Uno 7 regression baseline; it must not be attributed wholly to this change.",
+    "The native pixel boundary compares the Uno 7 baseline with the candidate at DPR1 in all before/after/restored states. Reference pixels and the separate high-DPI/extended-SVG matrices are outside this artifact's quality claim.",
+    "SwiftShader software graphics only; no hardware GPU throughput claim. All raw per-trial reports and PNGs remain bound by their original shard artifact digests."
+  ]
+}

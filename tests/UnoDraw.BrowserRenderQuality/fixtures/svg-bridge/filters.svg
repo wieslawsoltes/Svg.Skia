@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="160" height="110" viewBox="0 0 160 110">
+<defs>
+  <filter id="effect" x="-0.4" y="-0.4" width="1.8" height="1.8" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="2.35" result="blur"/>
+    <feOffset in="blur" dx="3.25" dy="1.75" result="shift"/>
+    <feColorMatrix in="shift" type="matrix"
+      values="0.7 0.1 0.2 0 0.03  0.1 0.8 0.1 0 0.02  0.2 0.1 0.7 0 0.01  0 0 0 0.73 0" result="tint"/>
+    <feBlend in="SourceGraphic" in2="tint" mode="multiply"/>
+  </filter>
+</defs>
+<g filter="url(#effect)" opacity="0.83">
+  <path d="M17 84 C24 2 87 3 142 74 L100 97 Z" fill="#d34528"/>
+  <circle cx="92.75" cy="41.25" r="27.5" fill="#28a8ce" fill-opacity="0.61"/>
+</g>
+</svg>

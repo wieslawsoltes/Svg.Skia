@@ -8,37 +8,25 @@ namespace Svg.Editor.Skia.Uno;
 public sealed partial class SvgEditorCanvas
 {
     private bool _guidesVisible = true, _guidesLocked = true, _snapToGuides = true, _smartGuides = true;
-    private SvgEditorController? _guideController;
-    private long _guideRevision = -1;
+    private readonly SvgEditorGuideCache _guideCache = new();
     private IReadOnlyList<SvgEditorGuide> _guides = Array.Empty<SvgEditorGuide>();
-    private readonly List<SvgEditorGuide> _smartGuideCandidates = new();
-    private readonly List<SvgEditorGuide> _snapCandidates = new();
+    private SvgEditorGuideIndex? _snapGuideIndex;
     private SvgEditorGuide? _guidePreview;
     private string? _movingGuideId, _snapGuideId, _snapSecondGuideId;
     private SKPoint _guideOriginalOrigin;
-    private long _smartGuideRevision = -1;
-    private SvgVisualElement[] _smartGuideSelection = Array.Empty<SvgVisualElement>();
 
-    public bool GuidesVisible { get => _guidesVisible; set { _guidesVisible = value; Invalidate(); } }
-    public bool GuidesLocked { get => _guidesLocked; set { _guidesLocked = value; CancelGuidePreview(); Invalidate(); } }
+    public bool GuidesVisible { get => _guidesVisible; set { _guidesVisible = value; InvalidateInteraction(); } }
+    public bool GuidesLocked { get => _guidesLocked; set { _guidesLocked = value; CancelGuidePreview(); InvalidateInteraction(); } }
     public bool SnapToGuides { get => _snapToGuides; set => _snapToGuides = value; }
-    public bool SmartGuides { get => _smartGuides; set { _smartGuides = value; _snapGuideId = _snapSecondGuideId = null; Invalidate(); } }
+    public bool SmartGuides { get => _smartGuides; set { _smartGuides = value; _snapGuideId = _snapSecondGuideId = null; InvalidateInteraction(); } }
 
     public void PreviewRulerGuide(SKPoint? picturePoint, bool vertical)
     {
         _guidePreview = picturePoint is { } point ? new SvgEditorGuide(string.Empty, point, vertical ? new SKPoint(0, 1) : new SKPoint(1, 0)) : null;
-        Invalidate();
+        InvalidateInteraction();
     }
 
-    private void RefreshGuideCache()
-    {
-        if (ReferenceEquals(_guideController, Controller) && _guideRevision == Controller?.DocumentRevision)
-            return;
-        _guideController = Controller;
-        _guideRevision = Controller?.DocumentRevision ?? -1;
-        _guides = Controller?.GetGuides() ?? Array.Empty<SvgEditorGuide>();
-        _smartGuideRevision = -1;
-    }
+    private void RefreshGuideCache() => _guides = _guideCache.GetGuides(Controller);
 
     private bool TryBeginGuideDrag(SKPoint view)
     {
@@ -63,7 +51,7 @@ public sealed partial class SvgEditorCanvas
             return false;
         var origin = Add(_guideOriginalOrigin, Subtract(_currentWorld, _startWorld));
         _guidePreview = new SvgEditorGuide(guide.Id, origin, guide.Direction);
-        Invalidate();
+        InvalidateInteraction();
         return true;
     }
 
@@ -88,6 +76,9 @@ public sealed partial class SvgEditorCanvas
     {
         _guidePreview = null;
         _movingGuideId = _snapGuideId = _snapSecondGuideId = null;
+        _guideCache.Clear();
+        _guides = Array.Empty<SvgEditorGuide>();
+        _snapGuideIndex = null;
     }
 
     private SKPoint SnapEditorPoint(SKPoint point)
@@ -98,44 +89,20 @@ public sealed partial class SvgEditorCanvas
             || InteractionMode is SvgEditorInteractionMode.Eyedropper or SvgEditorInteractionMode.Lasso or SvgEditorInteractionMode.MagicWand
                 or SvgEditorInteractionMode.Scissors or SvgEditorInteractionMode.Eraser or SvgEditorInteractionMode.Knife)
             return point;
-        RefreshGuideCache();
-        _snapCandidates.Clear();
-        if (SnapToGuides && GuidesVisible)
-            _snapCandidates.AddRange(_guides.Where(guide => guide.Id != _movingGuideId));
-        if (SmartGuides)
-        {
-            if (_smartGuideRevision != controller.DocumentRevision || !_smartGuideSelection.SequenceEqual(controller.SelectedElements))
-            {
-                _smartGuideRevision = controller.DocumentRevision;
-                _smartGuideSelection = controller.SelectedElements.ToArray();
-                _smartGuideCandidates.Clear();
-                if (controller.Renderer.Picture is { } picture)
-                    AddBounds(picture.CullRect, "artboard");
-                foreach (var element in controller.Document!.Descendants().OfType<SvgVisualElement>())
-                {
-                    if (_smartGuideCandidates.Count >= 6000)
-                        break;
-                    if (element is SvgGroup || SvgEditorController.IsEditLocked(element) || IsSelected(element) || !IsVisibleArtwork(element))
-                        continue;
-                    if (controller.GetSceneNode(element) is not { } node || node.TransformedBounds.IsEmpty)
-                        continue;
-                    var b = node.TransformedBounds;
-                    AddBounds(new SKRect(b.Left, b.Top, b.Right, b.Bottom), "object-" + _smartGuideCandidates.Count);
-                }
-            }
-            _snapCandidates.AddRange(_smartGuideCandidates);
-        }
+        _snapGuideIndex = _guideCache.GetSnapIndex(controller, SnapToGuides && GuidesVisible, SmartGuides, _movingGuideId);
         var tolerance = (float)(5 / Zoom);
         if (_gesture == Gesture.Move && !_startBounds.IsEmpty)
         {
             var delta = Subtract(point, _startWorld);
             var bestDistance = float.PositiveInfinity;
             var adjustment = default(SKPoint);
-            foreach (var x in new[] { _startBounds.Left, _startBounds.MidX, _startBounds.Right })
-                foreach (var y in new[] { _startBounds.Top, _startBounds.MidY, _startBounds.Bottom })
+            for (var column = 0; column < 3; column++)
+                for (var row = 0; row < 3; row++)
                 {
+                    var x = column == 0 ? _startBounds.Left : column == 1 ? _startBounds.MidX : _startBounds.Right;
+                    var y = row == 0 ? _startBounds.Top : row == 1 ? _startBounds.MidY : _startBounds.Bottom;
                     var anchor = new SKPoint(x + delta.X, y + delta.Y);
-                    var snapped = SvgEditorGuideService.Snap(anchor, tolerance, _snapCandidates, out var first, out var second);
+                    var snapped = _snapGuideIndex.Snap(anchor, tolerance, out var first, out var second);
                     if (first is null)
                         continue;
                     var distance = SKPoint.Distance(anchor, snapped);
@@ -148,35 +115,7 @@ public sealed partial class SvgEditorCanvas
                 }
             return Add(point, adjustment);
         }
-        return SvgEditorGuideService.Snap(point, tolerance, _snapCandidates, out _snapGuideId, out _snapSecondGuideId);
-
-        bool IsSelected(SvgElement element)
-        {
-            for (var item = element; item is not null; item = item.Parent)
-                if (item is SvgVisualElement visual && _smartGuideSelection.Contains(visual))
-                    return true;
-            return false;
-        }
-        static bool IsVisibleArtwork(SvgElement element)
-        {
-            for (var item = element; item is not null; item = item.Parent)
-            {
-                if (item is SvgDefinitionList or SvgSymbol or SvgClipPath or SvgMask or SvgPatternServer or SvgMarker)
-                    return false;
-                if (item is SvgVisualElement visual && (visual.Display == "none" || visual.Visibility is "hidden" or "collapse"))
-                    return false;
-            }
-            return true;
-        }
-        void AddBounds(SKRect bounds, string id)
-        {
-            if (!float.IsFinite(bounds.Left) || !float.IsFinite(bounds.Top) || !float.IsFinite(bounds.Right) || !float.IsFinite(bounds.Bottom))
-                return;
-            foreach (var x in new[] { bounds.Left, bounds.MidX, bounds.Right })
-                _smartGuideCandidates.Add(new SvgEditorGuide("smart-" + id + "-x-" + x, new SKPoint(x, bounds.Top), new SKPoint(0, 1)));
-            foreach (var y in new[] { bounds.Top, bounds.MidY, bounds.Bottom })
-                _smartGuideCandidates.Add(new SvgEditorGuide("smart-" + id + "-y-" + y, new SKPoint(bounds.Left, y), new SKPoint(1, 0)));
-        }
+        return _snapGuideIndex.Snap(point, tolerance, out _snapGuideId, out _snapSecondGuideId);
     }
 
     private void DrawEditorGuides(SKCanvas canvas, CanvasResources resources)
@@ -193,12 +132,16 @@ public sealed partial class SvgEditorCanvas
             resources.Stroke.Color = resources.GuidePreview;
             DrawLine(preview);
         }
-        if (_activePointer is not null && _moved)
+        if (_activePointer is not null && _moved && (_snapGuideId is not null || _snapSecondGuideId is not null)
+            && _snapGuideIndex is { } snapIndex)
         {
             resources.Stroke.Color = resources.SmartGuide;
-            foreach (var guide in _snapCandidates)
+            for (var index = 0; index < snapIndex.Guides.Count; index++)
+            {
+                var guide = snapIndex.Guides[index];
                 if (guide.Id == _snapGuideId || guide.Id == _snapSecondGuideId)
                     DrawLine(guide);
+            }
         }
         void DrawLine(SvgEditorGuide guide)
         {
