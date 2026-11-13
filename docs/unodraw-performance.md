@@ -89,15 +89,18 @@ construction.
 
 ## Backend choice and validation
 
-The default browser startup order is WebGPU, Skia/WebGL2, Skia/WebGL1, then Skia
-software rendering through Canvas2D. `?renderer=skia` selects direct Skia with the
-same WebGL-to-software fallback. This gives SVG-heavy workloads a supported way
-to compare providers on their actual devices. It is a startup preference, and
+The default browser startup order is Skia/WebGL2, Skia/WebGL1, then Skia software
+rendering through Canvas2D. `?renderer=skia` selects the same order explicitly.
+`?renderer=webgpu` opts into WebGPU first, followed by the same Skia fallback.
+Missing, empty and unrecognized renderer values use Skia; a canvas bridge query
+alone does not enable WebGPU. The renderer choice is a startup preference, and
 the pinned Uno runtime does not switch providers after device loss.
 
-The browser CI matrix runs the same optimized AOT artifact in four configurations:
-WebGPU, unavailable-WebGPU/WebGL fallback, unavailable-WebGPU-and-WebGL/software
-fallback, and explicit Skia with WebGPU still available. Every configuration must
+The browser CI matrix runs the same optimized AOT artifact in six renderer
+configurations: default Skia with WebGPU available, default Skia software fallback
+with WebGL disabled, explicit WebGPU, its WebGL and software fallbacks, and
+explicit Skia with WebGPU available. The four explicit configurations also run
+with `canvasBridge=single-canvas`, for ten smoke cases in total. Every case must
 prove its actual renderer on startup and reload and pass the existing artwork,
 camera repaint, font, theme, responsive-layout and PWA-scope checks. SwiftShader
 provides deterministic software implementations of the GPU APIs in CI; these

@@ -108,10 +108,11 @@ source of truth. Its `SKCanvasElement` surface replays cached Skia pictures
 while panning, zooming, and previewing gestures, with acceleration provided by the
 desktop host when available.
 
-The browser host prefers WebGPU composition and falls back to Skia when WebGPU
-is unavailable. Uno's canvas bridge preserves the existing SVG renderer; the
-[migration guide](docs/unodraw-uno7.md) explains the compatibility copy and
-backend validation.
+The browser host uses Skia with WebGL by default and falls back to software
+rendering when WebGL is unavailable. `?renderer=webgpu` opts into WebGPU
+composition with Skia fallback. Both paths preserve the existing SVG renderer;
+the [migration guide](docs/unodraw-uno7.md) explains backend selection, the
+optional WebGPU compatibility copy and validation.
 
 ![UnoDraw SVG workspace in its dark theme](docs/images/unodraw-workspace-dark.png)
 
