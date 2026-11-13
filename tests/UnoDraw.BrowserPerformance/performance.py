@@ -22,7 +22,8 @@ from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork,  #
                    chrome_font_changes, record_backend, ruler_frame_changes, serve,
                    wait_for_artwork_transition)
 from metrics import (comparisons, metric_label, require_graphite_queue_drain, summarize,  # noqa: E402
-                     validate_packages, verify_hover_isolation)
+                     validate_packages)
+from canvas_diagnostics import verify_hover_rendering  # noqa: E402
 from quality import bridge_query, validate_graphite_coverage  # noqa: E402
 from selection_readiness import require_cleared_selection  # noqa: E402
 from workload_plan import (BACKENDS, WORKLOADS, diagnostic_plan, primary_plan,  # noqa: E402
@@ -465,9 +466,9 @@ def run_trial(browser: Any, url: str, package: dict[str, Any], backend: str, wor
             result["runtime_phase_logs"] = [entry["text"] for entry in result["console"][diagnostic_console_start:]
                                             if any(marker in entry["text"] for marker in
                                                    ("[frame-phases]", "[webgpu-frame]", "[webgpu-stats]"))]
-            if workload == "brush-hover" and canvas_bridge != "single-canvas":
-                verify_hover_isolation(after_managed)
-                result["hover_layer_isolation"] = "Document count is zero; Interaction count increased"
+            if workload == "brush-hover":
+                result.update(verify_hover_rendering(after_managed, result["console"],
+                                                    backend=backend, requested_bridge=canvas_bridge))
         result["metrics"] = summarize(raw, before_cpu, after_cpu, operations)
         result["raw_browser_observations"] = raw
         result["cdp_cpu_before"] = before_cpu
