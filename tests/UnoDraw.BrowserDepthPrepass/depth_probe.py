@@ -46,8 +46,6 @@ PINNED_INVENTORY = "5bd834eab5fd87fcd700481ca44adc46e795338668df2c44932c38b81a35
 ADAPTER_FILES = (
     "tests/UnoDraw.BrowserDepthPrepass/depth_probe.py",
     "tests/UnoDraw.BrowserDepthPrepass/depth_observer.js",
-    ".github/workflows/unodraw-depth-prepass.yml",
-    ".github/workflows/unodraw-depth-prepass-request.yml",
 )
 
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import json
-import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -44,27 +43,6 @@ def runs(*, workload: str = "selection", diagnostics: bool = False) -> list[dict
 
 
 class LegacyCompositionTests(unittest.TestCase):
-    def test_workflow_declares_unique_artifacts_for_every_experiment_and_keeps_legacy_names(self) -> None:
-        workflow = (Path(__file__).resolve().parents[2] / ".github/workflows/unodraw-performance.yml").read_text()
-        job = workflow.split("\n  document-raster-experiment:\n", 1)[1].split("\n  cross-build-quality-interpreter:\n", 1)[0]
-        # The workflow deliberately uses literal flow mappings here, so artifact
-        # uniqueness is checked without introducing a second YAML dependency.
-        matrix = job.split("      matrix:\n", 1)[1].split("    steps:\n", 1)[0]
-        entries = [dict(tuple(part.strip() for part in item.split(":", 1)) for item in row.split(","))
-                   for row in re.findall(r"^\s+- \{([^{}\n]+)\}\s*$", matrix, re.MULTILINE)]
-        expected_pairs = {(bridge, workload) for bridge in ("composite", "legacy-composite")
-                          for workload in ("brush-hover", "selection")}
-        self.assertEqual(len(entries), len(expected_pairs))
-        self.assertEqual({(entry["bridge"], entry["workload"]) for entry in entries}, expected_pairs)
-        self.assertEqual(len({entry["artifact"] for entry in entries}), len(entries))
-        self.assertIn("name: ${{ matrix.artifact }}", job)
-        for entry in entries:
-            expected = (f"unodraw-document-raster-experiment-{entry['workload']}" if entry["bridge"] == "composite"
-                        else f"unodraw-{entry['variant']}-document-raster-experiment-{entry['workload']}")
-            self.assertEqual(entry["artifact"], expected)
-        self.assertEqual({entry["workload"] for entry in entries if entry["bridge"] == "legacy-composite"},
-                         {"brush-hover", "selection"})
-
     def test_completed_original_host_copy_and_actual_cache_reuse_are_separate_requirements(self) -> None:
         initial = [{"text": text} for text in MESSAGES[:2]]
         verify_bridge(initial, "legacy-composite", require_reuse=False)

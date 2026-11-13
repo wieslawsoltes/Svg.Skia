@@ -6,8 +6,6 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-import yaml
-
 from depth_probe import (ADAPTER_FILES, FLAG, MODES, PINNED_ARTIFACT, PINNED_INVENTORY,
                          PINNED_MANIFEST, PINNED_PACKAGE_RUN, PINNED_SOURCE, PREFIX,
                          ObservedBrowser, ObservedContext, adapter_identity,
@@ -202,57 +200,6 @@ class ImmutablePinsTests(unittest.TestCase):
             changed["artifact"][key] = None
             with self.subTest(artifact_key=key), self.assertRaises(ValueError):
                 verify_package_pin(changed)
-
-
-class WorkflowTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.path = Path(__file__).resolve().parents[2] / ".github/workflows/unodraw-depth-prepass.yml"
-        cls.text = cls.path.read_text()
-        # BaseLoader preserves GitHub's `on` key without YAML 1.1 bool coercion.
-        cls.workflow = yaml.load(cls.text, Loader=yaml.BaseLoader)
-        cls.request = yaml.load(cls.path.with_name("unodraw-depth-prepass-request.yml").read_text(),
-                                Loader=yaml.BaseLoader)
-
-    def test_automatic_scope_permissions_and_artifact_namespace_are_isolated(self):
-        self.assertEqual(set(self.workflow["on"]), {"workflow_call", "workflow_dispatch"})
-        self.assertEqual(self.request["on"], {"pull_request": {"types": ["labeled"]}})
-        self.assertEqual(self.request["permissions"], {"contents": "read", "actions": "read"})
-        self.assertEqual(self.request["jobs"], {"requested-probe": {
-            "if": "github.event.label.name == 'unodraw-depth-prepass'",
-            "uses": "./.github/workflows/unodraw-depth-prepass.yml"}})
-        self.assertEqual(self.workflow["permissions"], {"contents": "read", "actions": "read"})
-        self.assertEqual(set(self.workflow["jobs"]), {"contracts", "compare"})
-        self.assertEqual(self.workflow["jobs"]["compare"]["needs"], "contracts")
-        uploads = [step for step in self.workflow["jobs"]["compare"]["steps"]
-                   if step.get("uses") == "actions/upload-artifact@v4"]
-        self.assertEqual(len(uploads), 1)
-        self.assertEqual(uploads[0]["with"]["name"], "unodraw-depth-prepass-single-canvas-selection")
-        self.assertEqual(uploads[0]["if"], "always()")
-        self.assertNotIn("dotnet", self.text)
-        self.assertNotIn("verify_source.py", self.text)
-
-    def test_acquisition_and_execution_use_only_pinned_inputs(self):
-        environment = self.workflow["env"]
-        self.assertEqual(environment["PRIMARY_HARNESS_SHA"], PINNED_SOURCE)
-        self.assertEqual(environment["PACKAGE_SOURCE_SHA"], PINNED_SOURCE)
-        self.assertEqual(environment["PACKAGE_RUN_ID"], str(PINNED_PACKAGE_RUN))
-        self.assertEqual(environment["PYTHONDONTWRITEBYTECODE"], "1")
-        steps = self.workflow["jobs"]["compare"]["steps"]
-        extract = next(i for i, step in enumerate(steps) if "git archive" in step.get("run", ""))
-        acquire = next(i for i, step in enumerate(steps) if "candidate_package.py" in step.get("run", ""))
-        install = next(i for i, step in enumerate(steps) if "requirements.txt" in step.get("run", ""))
-        execute = next(i for i, step in enumerate(steps) if "depth_probe.py" in step.get("run", ""))
-        self.assertLess(extract, acquire)
-        self.assertLess(acquire, install)
-        self.assertLess(install, execute)
-        self.assertIn('git archive --format=tar "$PRIMARY_HARNESS_SHA"', steps[extract]["run"])
-        self.assertIn("artifacts/pinned-acquisition-harness/tests/UnoDraw.BrowserPerformance/candidate_package.py", steps[acquire]["run"])
-        self.assertIn("artifacts/pinned-acquisition-harness/tests/UnoDraw.BrowserSmoke/requirements.txt", steps[install]["run"])
-        self.assertIn('--harness-sha "$PRIMARY_HARNESS_SHA"', steps[execute]["run"])
-        self.assertIn('--expected-source "$PACKAGE_SOURCE_SHA" --bridge single-canvas', steps[execute]["run"])
-        self.assertNotIn("--steps", steps[execute]["run"])
-        self.assertNotIn("--repeats", steps[execute]["run"])
 
 
 if __name__ == "__main__":

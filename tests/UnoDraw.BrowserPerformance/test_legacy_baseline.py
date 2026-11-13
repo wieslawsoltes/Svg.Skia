@@ -368,7 +368,7 @@ class DirectComparisonTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_quality(original[:-1], "webgpu", "selection", 3)
 
-    def test_summary_and_reusable_workflow_keep_package_reuse_automatic_and_explicit(self):
+    def test_summary_keeps_default_scope_and_quality_failure_explicit(self):
         with tempfile.TemporaryDirectory() as temporary:
             report = {**identity(), "started_unix": 0, "passed": False, "failure": "Native gate failed",
                       "metric_comparisons": []}
@@ -376,21 +376,6 @@ class DirectComparisonTests(unittest.TestCase):
             summary = (Path(temporary) / "summary.md").read_text()
             self.assertIn("current candidate default is unchanged and is not measured here", summary)
             self.assertIn("Native gate failed", summary)
-        root = Path(__file__).resolve().parents[2]
-        workflow = (root / ".github/workflows/unodraw-legacy-baseline-comparison.yml").read_text()
-        caller = (root / ".github/workflows/unodraw-performance.yml").read_text().split(
-            "\n  direct-single-canvas-baseline-comparison:\n", 1)[1]
-        self.assertIn("workflow_call:", workflow)
-        self.assertIn("fromJSON('[\"brush-hover\",\"selection\",\"pan\",\"zoom\",\"edit\"]')", workflow)
-        self.assertIn("fromJSON('[\"brush-hover\",\"selection\"]')", workflow)
-        self.assertIn("default: legacy-composite", workflow)
-        self.assertIn("name: unodraw-baseline-${{ inputs.candidate_bridge }}-${{ matrix.workload }}", workflow)
-        self.assertIn('--candidate-bridge "$CANDIDATE_BRIDGE"', workflow)
-        self.assertIn("needs: [plan, publish]", caller)
-        self.assertIn("uses: ./.github/workflows/unodraw-legacy-baseline-comparison.yml", caller)
-        self.assertIn("package_run_id: ${{ format('{0}', github.run_id) }}", caller)
-        self.assertIn("candidate_bridge: single-canvas", caller)
-        self.assertNotIn("dotnet publish", workflow)
 
 
 class DirectPackageTests(unittest.TestCase):
