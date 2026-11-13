@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import re
 from typing import Any
+from urllib.parse import urlsplit
 
 
 BACKENDS = ("webgpu", "skia-fallback", "software-fallback", "skia-preferred")
+SMOKE_CANVAS_BRIDGES = ("default", "single-canvas")
 NO_ADAPTER_ERROR = "WebGpuInit: navigator.gpu.requestAdapter returned null"
 NO_WEBGL_ERROR = "Failed to create WebGL context: Failed to create WebGL context: err 0"
 NEGOTIATION = re.compile(
@@ -96,6 +98,75 @@ def renderer_query(backend: str) -> str:
     if backend not in BACKENDS:
         raise ValueError(f"Unknown graphics backend: {backend}")
     return "?renderer=skia" if backend == "skia-preferred" else ""
+
+
+def smoke_query(backend: str, canvas_bridge: str = "default") -> str:
+    """Keep renderer preference intact when adding the explicit smoke control."""
+    if canvas_bridge not in SMOKE_CANVAS_BRIDGES:
+        raise ValueError(f"Unknown smoke canvas bridge: {canvas_bridge}")
+    query = renderer_query(backend)
+    if canvas_bridge == "single-canvas":
+        query += ("&" if query else "?") + "canvasBridge=single-canvas"
+    return query
+
+
+def verify_smoke_navigation(console: list[dict[str, Any]], capabilities: dict[str, Any],
+                            backend: str, canvas_bridge: str,
+                            requested_url: str, actual_url: str) -> dict[str, Any]:
+    """Bind each smoke navigation to its query, native provider and painter proof.
+
+    This validates console evidence and actual URL state. The independent native
+    image gates still establish rendered output; no canvas probe or log proves
+    upload completion, presentation or a newly displayed state for each input.
+    """
+    expected_query = smoke_query(backend, canvas_bridge).removeprefix("?")
+    requested, actual = urlsplit(requested_url), urlsplit(actual_url)
+    if (requested.scheme not in {"http", "https"} or not requested.netloc
+            or not requested.path.startswith("/") or requested.fragment or actual.fragment
+            or requested.query != expected_query or actual.query != expected_query
+            or (actual.scheme, actual.netloc, actual.path)
+            != (requested.scheme, requested.netloc, requested.path)):
+        raise AssertionError("The smoke navigation must preserve its exact renderer and canvas-bridge query")
+
+    explicit = canvas_bridge == "single-canvas"
+    backend_proof = verify_backend(console, capabilities, backend,
+                                   allow_single_canvas_provider=explicit)
+    observation = backend_proof.get("single_canvas_native_factory")
+    initialized = [(index, entry) for index, entry in enumerate(console)
+                   if entry.get("text", "").startswith("UnoDraw canvas bridge initialized:")]
+    bridge_messages = [entry.get("text", "") for entry in console
+                       if entry.get("text", "").startswith("UnoDraw canvas bridge ")]
+    painter_index = None
+    if not explicit:
+        if (observation is not None or SINGLE_CANVAS_PREFERENCE in bridge_messages
+                or any(entry.get("text") == SINGLE_CANVAS_INITIALIZED for _, entry in initialized)):
+            raise AssertionError("Ordinary smoke navigation cannot use the single-canvas control")
+    elif backend == "skia-preferred":
+        if observation is not None or bridge_messages:
+            raise AssertionError("Explicit Skia preference must keep its original native provider and retained topology")
+    else:
+        if observation is None:
+            raise AssertionError("Explicit single-canvas smoke requires the actual native factory observation")
+        allowed_messages = {SINGLE_CANVAS_PREFERENCE}
+        if backend == "webgpu":
+            allowed_messages.add(SINGLE_CANVAS_INITIALIZED)
+            if (len(initialized) != 1 or initialized[0][1].get("text") != SINGLE_CANVAS_INITIALIZED
+                    or initialized[0][1].get("type") not in {"log", "info", "debug"}
+                    or initialized[0][0] <= observation["console_slice_index"]):
+                raise AssertionError("The selected single-canvas WebGPU provider requires one later completed-painter initialization")
+            painter_index = initialized[0][0]
+        elif initialized:
+            raise AssertionError("Automatic Skia/software fallback must retain its topology without single-canvas painter initialization")
+        if any(message not in allowed_messages for message in bridge_messages):
+            raise AssertionError("Single-canvas smoke cannot accept a competing bridge or abandoned topology")
+    return {
+        "canvas_bridge_mode": canvas_bridge,
+        "navigation": {"requested_url": requested_url, "actual_url": actual_url},
+        "native_factory_observation": observation,
+        "single_canvas_painter_initialization_index": painter_index,
+        "painter_evidence_scope": "Original document and interaction painters completed; not an upload or presentation proof"
+            if painter_index is not None else "No single-canvas painter initialization",
+    }
 
 
 def is_no_webgl_error(entry: dict[str, Any]) -> bool:
