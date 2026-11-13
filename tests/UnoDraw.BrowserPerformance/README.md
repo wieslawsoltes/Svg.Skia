@@ -185,6 +185,18 @@ reuse the completed package cache. This also preserves pending builds instead of
 replacing them; GitHub documents the queue behavior in its
 [concurrency guide](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
 
+Interpreter correctness checks publish the candidate once and the baseline once.
+All four candidate bridge rows consume the same immutable candidate artifact;
+the cross-build check consumes that artifact and the separate baseline. Candidate
+Welcome checks do not wait for baseline publication. This replaces five duplicate
+candidate publishes with one, without changing the publish flags or browser commands.
+`interpreter_package.py` binds every package file to its producer's exact source,
+role, run, build mode and toolchain, then verifies that complete inventory before
+and after each consumer. Verification reports stay outside the application package.
+The archive digest is retained as producer provenance; the consumer's independent
+check covers every extracted file. These artifacts are used only for correctness,
+and do not substitute for the separately published AOT timing packages.
+
 CI divides work into twelve workload/backend jobs. **Every matched comparison
 keeps all its revisions and all three repeats on one runner.** Package order
 still rotates between trials. WebGPU jobs contain six primary trials; Skia jobs

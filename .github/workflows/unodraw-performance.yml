@@ -167,9 +167,135 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  publish-interpreter-candidate:
+    name: Interpreter package (candidate)
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    outputs:
+      source_sha: ${{ steps.identity.outputs.sha }}
+      inventory_sha256: ${{ steps.inventory.outputs.sha256 }}
+      artifact_id: ${{ steps.package_artifact.outputs.artifact-id }}
+      artifact_digest: ${{ steps.package_artifact.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.candidate_ref }}
+          submodules: recursive
+          path: source
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+      - name: Pin the same correctness SDK and workload set
+        run: python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source source --pin
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: source/global.json
+      - name: Install the pinned WebAssembly tools
+        working-directory: source
+        run: dotnet workload install wasm-tools
+      - id: identity
+        name: Verify exact source and toolchain
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/toolchain.py
+          --source source --github-output "$GITHUB_OUTPUT"
+      - name: Publish one fresh candidate interpreter package for correctness only
+        working-directory: source
+        env:
+          BINARYEN_CORES: '1'
+        run: >-
+          dotnet publish samples/UnoDraw/UnoDraw.csproj
+          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
+          -c Release -p:WasmShellMonoRuntimeExecutionMode=Interpreter
+          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
+          -o ../artifacts/interpreter-package
+      - name: Record the actual interpreter execution mode
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py
+          --source source --package artifacts/interpreter-package --role candidate
+          --execution-mode Interpreter
+      - id: inventory
+        name: Bind every packaged byte to this producer
+        env:
+          SOURCE_SHA: ${{ steps.identity.outputs.sha }}
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/interpreter_package.py create
+          --package artifacts/interpreter-package --role candidate
+      - uses: actions/upload-artifact@v4
+        id: package_artifact
+        with:
+          name: unodraw-interpreter-package-candidate
+          path: artifacts/interpreter-package
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  publish-interpreter-baseline:
+    name: Interpreter package (baseline)
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    outputs:
+      source_sha: ${{ steps.identity.outputs.sha }}
+      inventory_sha256: ${{ steps.inventory.outputs.sha256 }}
+      artifact_id: ${{ steps.package_artifact.outputs.artifact-id }}
+      artifact_digest: ${{ steps.package_artifact.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.baseline_ref }}
+          submodules: recursive
+          path: baseline
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+      - name: Pin the same correctness SDK and workload set
+        run: python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source baseline --pin
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: baseline/global.json
+      - name: Install the pinned WebAssembly tools
+        working-directory: baseline
+        run: dotnet workload install wasm-tools
+      - id: identity
+        name: Verify exact source and toolchain
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/toolchain.py
+          --source baseline --github-output "$GITHUB_OUTPUT"
+      - name: Publish one fresh baseline interpreter package for correctness only
+        working-directory: baseline
+        env:
+          BINARYEN_CORES: '1'
+        run: >-
+          dotnet publish samples/UnoDraw/UnoDraw.csproj
+          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
+          -c Release -p:WasmShellMonoRuntimeExecutionMode=Interpreter
+          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
+          -o ../artifacts/interpreter-package
+      - name: Record the actual interpreter execution mode
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py
+          --source baseline --package artifacts/interpreter-package --role baseline
+          --execution-mode Interpreter
+      - id: inventory
+        name: Bind every packaged byte to this producer
+        env:
+          SOURCE_SHA: ${{ steps.identity.outputs.sha }}
+        run: >-
+          python harness/tests/UnoDraw.BrowserPerformance/interpreter_package.py create
+          --package artifacts/interpreter-package --role baseline
+      - uses: actions/upload-artifact@v4
+        id: package_artifact
+        with:
+          name: unodraw-interpreter-package-baseline
+          path: artifacts/interpreter-package
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
   bridge-quality-interpreter:
     name: Early WebGPU ${{ matrix.variant }} bridge quality (Interpreter)
-    needs: plan
+    needs: publish-interpreter-candidate
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     strategy:
@@ -183,38 +309,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.plan.outputs.candidate_ref }}
-          submodules: recursive
-          path: source
-      - uses: actions/checkout@v4
-        with:
           path: harness
-      - name: Pin the same candidate SDK and workload set
-        run: python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source source --pin
-      - uses: actions/setup-dotnet@v4
+      - name: Download the single successful candidate Interpreter artifact
+        uses: actions/download-artifact@v4
         with:
-          global-json-file: source/global.json
-      - name: Install the pinned WebAssembly tools
-        working-directory: source
-        run: dotnet workload install wasm-tools
-      - name: Verify exact toolchain selection
-        run: python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source source
-      - name: Publish a separate interpreter package for early correctness only
-        working-directory: source
+          artifact-ids: ${{ needs.publish-interpreter-candidate.outputs.artifact_id }}
+          merge-multiple: true
+          path: artifacts/interpreter-package
+      - name: Verify exact Interpreter artifact identity and all packaged bytes
+        id: verify_interpreter
         env:
-          BINARYEN_CORES: '1'
-        run: >-
-          dotnet publish samples/UnoDraw/UnoDraw.csproj
-          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
-          -c Release -p:WasmShellMonoRuntimeExecutionMode=Interpreter
-          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
-          -o ../artifacts/interpreter-package
-      - name: Record the actual interpreter execution mode
-        id: interpreter_manifest
-        run: >-
-          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py
-          --source source --package artifacts/interpreter-package --role candidate
-          --execution-mode Interpreter
+          PACKAGE_BINDINGS: >-
+            {"candidate":{"path":"artifacts/interpreter-package","source_sha":"${{ needs.publish-interpreter-candidate.outputs.source_sha }}","inventory_sha256":"${{ needs.publish-interpreter-candidate.outputs.inventory_sha256 }}","artifact_id":"${{ needs.publish-interpreter-candidate.outputs.artifact_id }}","artifact_digest":"${{ needs.publish-interpreter-candidate.outputs.artifact_digest }}"}}
+          EXPECTED_ROLES: candidate
+          VERIFICATION_OUTPUT: artifacts/unodraw-bridge-interpreter-quality/interpreter-package-verification-before.json
+        run: python harness/tests/UnoDraw.BrowserPerformance/interpreter_package.py verify
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -228,6 +337,14 @@ jobs:
           python harness/tests/UnoDraw.BrowserPerformance/bridge_quality.py
           --package artifacts/interpreter-package --output artifacts/unodraw-bridge-interpreter-quality
           --candidate-bridge ${{ matrix.bridge }}
+      - name: Verify the exact Interpreter packages remain unchanged
+        if: always() && steps.verify_interpreter.outcome == 'success'
+        env:
+          PACKAGE_BINDINGS: >-
+            {"candidate":{"path":"artifacts/interpreter-package","source_sha":"${{ needs.publish-interpreter-candidate.outputs.source_sha }}","inventory_sha256":"${{ needs.publish-interpreter-candidate.outputs.inventory_sha256 }}","artifact_id":"${{ needs.publish-interpreter-candidate.outputs.artifact_id }}","artifact_digest":"${{ needs.publish-interpreter-candidate.outputs.artifact_digest }}"}}
+          EXPECTED_ROLES: candidate
+          VERIFICATION_OUTPUT: artifacts/unodraw-bridge-interpreter-quality/interpreter-package-verification-after.json
+        run: python harness/tests/UnoDraw.BrowserPerformance/interpreter_package.py verify
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -432,60 +549,33 @@ jobs:
 
   cross-build-quality-interpreter:
     name: Early old/new high-DPI quality (Interpreter)
-    needs: plan
+    needs: [publish-interpreter-candidate, publish-interpreter-baseline]
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.plan.outputs.candidate_ref }}
-          submodules: recursive
-          path: source
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.plan.outputs.baseline_ref }}
-          submodules: recursive
-          path: baseline
-      - uses: actions/checkout@v4
-        with:
           path: harness
-      - name: Pin both correctness builds to the same toolchain
-        run: |
-          python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source source --pin
-          python harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source baseline --pin
-      - uses: actions/setup-dotnet@v4
+      - name: Download the same candidate Interpreter artifact used by Welcome
+        uses: actions/download-artifact@v4
         with:
-          global-json-file: source/global.json
-      - name: Install and verify the pinned WebAssembly tools
-        working-directory: source
-        run: |
-          dotnet workload install wasm-tools
-          python ../harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source .
-          python ../harness/tests/UnoDraw.BrowserPerformance/toolchain.py --source ../baseline
-      - name: Publish candidate interpreter package for correctness only
-        working-directory: source
+          artifact-ids: ${{ needs.publish-interpreter-candidate.outputs.artifact_id }}
+          merge-multiple: true
+          path: artifacts/early-quality-packages/candidate
+      - name: Download the separate baseline Interpreter artifact
+        uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ needs.publish-interpreter-baseline.outputs.artifact_id }}
+          merge-multiple: true
+          path: artifacts/early-quality-packages/baseline
+      - name: Verify exact Interpreter artifact identity and all packaged bytes
+        id: verify_interpreter
         env:
-          BINARYEN_CORES: '1'
-        run: >-
-          dotnet publish samples/UnoDraw/UnoDraw.csproj
-          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
-          -c Release -p:WasmShellMonoRuntimeExecutionMode=Interpreter
-          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
-          -o ../artifacts/early-quality-packages/candidate
-      - name: Publish matching baseline interpreter package
-        working-directory: baseline
-        env:
-          BINARYEN_CORES: '1'
-        run: >-
-          dotnet publish samples/UnoDraw/UnoDraw.csproj
-          -f net10.0-browserwasm -p:UnoDrawTargetFrameworks=net10.0-browserwasm
-          -c Release -p:WasmShellMonoRuntimeExecutionMode=Interpreter
-          -m:1 -nr:false -p:BuildInParallel=false -p:UseSharedCompilation=false
-          -o ../artifacts/early-quality-packages/baseline
-      - name: Record both actual interpreter execution modes
-        run: |
-          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py --source source --package artifacts/early-quality-packages/candidate --role candidate --execution-mode Interpreter
-          python harness/tests/UnoDraw.BrowserPerformance/package_manifest.py --source baseline --package artifacts/early-quality-packages/baseline --role baseline --execution-mode Interpreter
+          PACKAGE_BINDINGS: >-
+            {"candidate":{"path":"artifacts/early-quality-packages/candidate","source_sha":"${{ needs.publish-interpreter-candidate.outputs.source_sha }}","inventory_sha256":"${{ needs.publish-interpreter-candidate.outputs.inventory_sha256 }}","artifact_id":"${{ needs.publish-interpreter-candidate.outputs.artifact_id }}","artifact_digest":"${{ needs.publish-interpreter-candidate.outputs.artifact_digest }}"},"baseline":{"path":"artifacts/early-quality-packages/baseline","source_sha":"${{ needs.publish-interpreter-baseline.outputs.source_sha }}","inventory_sha256":"${{ needs.publish-interpreter-baseline.outputs.inventory_sha256 }}","artifact_id":"${{ needs.publish-interpreter-baseline.outputs.artifact_id }}","artifact_digest":"${{ needs.publish-interpreter-baseline.outputs.artifact_digest }}"}}
+          EXPECTED_ROLES: candidate,baseline
+          VERIFICATION_OUTPUT: artifacts/unodraw-cross-interpreter-quality/interpreter-package-verification-before.json
+        run: python harness/tests/UnoDraw.BrowserPerformance/interpreter_package.py verify
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -500,6 +590,14 @@ jobs:
           python harness/tests/UnoDraw.BrowserRenderQuality/render_quality.py
           --packages artifacts/early-quality-packages
           --output artifacts/unodraw-cross-interpreter-quality --execution-mode Interpreter
+      - name: Verify the exact Interpreter packages remain unchanged
+        if: always() && steps.verify_interpreter.outcome == 'success'
+        env:
+          PACKAGE_BINDINGS: >-
+            {"candidate":{"path":"artifacts/early-quality-packages/candidate","source_sha":"${{ needs.publish-interpreter-candidate.outputs.source_sha }}","inventory_sha256":"${{ needs.publish-interpreter-candidate.outputs.inventory_sha256 }}","artifact_id":"${{ needs.publish-interpreter-candidate.outputs.artifact_id }}","artifact_digest":"${{ needs.publish-interpreter-candidate.outputs.artifact_digest }}"},"baseline":{"path":"artifacts/early-quality-packages/baseline","source_sha":"${{ needs.publish-interpreter-baseline.outputs.source_sha }}","inventory_sha256":"${{ needs.publish-interpreter-baseline.outputs.inventory_sha256 }}","artifact_id":"${{ needs.publish-interpreter-baseline.outputs.artifact_id }}","artifact_digest":"${{ needs.publish-interpreter-baseline.outputs.artifact_digest }}"}}
+          EXPECTED_ROLES: candidate,baseline
+          VERIFICATION_OUTPUT: artifacts/unodraw-cross-interpreter-quality/interpreter-package-verification-after.json
+        run: python harness/tests/UnoDraw.BrowserPerformance/interpreter_package.py verify
       - uses: actions/upload-artifact@v4
         if: always()
         with:
