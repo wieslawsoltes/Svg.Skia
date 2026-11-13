@@ -56,13 +56,68 @@ The actual extracted native helpers and the actual source installer pass 13 pair
 scenarios (26 executions) and nine installation guards. A changed helper hash is
 rejected for explicit review. The new C# hook compiles against Uno 7.0.32, and its
 embedded script bytes and actual project resource item match. At the storage-only
-checkpoint, the complete local solution test command passed with 2,868 assertions
+checkpoint, the complete local solution test command passed with 2,868 test cases
 and 44 existing skips. Formatting and the separate application build at that
 checkpoint remained blocked by the recorded named-pipe /
-Uno resource task-host restrictions. Fresh published-browser qualification is
-still required; these source/helper checks do not replace it.
+Uno resource task-host restrictions. That source/helper checkpoint did not
+qualify a published browser; the fresh package and startup checks are recorded
+separately below.
 
 ## Results
+
+### Current default renderer matrix (`22d33286`)
+
+The complete [ordinary renderer record](benchmarks/unodraw-default-renderer-performance-2026-11-12.json)
+contains all twelve jobs from [run 43316652725](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43316652725):
+90 primary samples, 12 excluded diagnostics, 102 independently recomputed raw
+metric sets and 108 native baseline/candidate pairs. The original strict CI
+aggregate equals the independently rebuilt aggregate after normalization of
+only the local report-directory prefix. All original data-integrity and native
+quality gates pass. Performance recovery is a separate result: the ordinary
+WebGPU `persistent` path still regresses in selection and brush hover.
+
+Each active-workload row compares the medians of three samples per role on that
+job's own runner, against the exact `96e5fa9` baseline. The Skia-preferred jobs
+use the actual WebGL context and bypass the WebGPU bridge. Their additional
+three-sample Uno 6 reference remains separately identified in the record; it is
+a timing reference without an inferred native-pixel equivalence claim.
+
+| Backend | Workload | Baseline median | Candidate median | Elapsed change | Renderer-thread CPU change |
+| --- | --- | ---: | ---: | ---: | ---: |
+| WebGPU, persistent | Pan | 126.151 s | 123.859 s | -1.82% | -8.61% |
+| WebGPU, persistent | Zoom | 117.769 s | 117.722 s | -0.04% | -5.37% |
+| WebGPU, persistent | Selection | 121.043 s | 251.015 s | +107.38% | -78.52% |
+| WebGPU, persistent | Brush hover | 174.240 s | 207.861 s | +19.30% | -96.28% |
+| WebGPU, persistent | Editing | 193.803 s | 188.723 s | -2.62% | -51.84% |
+| WebGPU, persistent | Idle | 2.030 s | 2.030 s | Fixed observation window | — |
+| Skia / WebGL | Pan | 33.596 s | 32.892 s | -2.10% | +2.58% |
+| Skia / WebGL | Zoom | 27.640 s | 27.029 s | -2.21% | +0.06% |
+| Skia / WebGL | Selection | 26.424 s | 19.351 s | -26.77% | -59.32% |
+| Skia / WebGL | Brush hover | 26.497 s | 25.734 s | -2.88% | -4.16% |
+| Skia / WebGL | Editing | 26.682 s | 13.465 s | -49.53% | -75.30% |
+| Skia / WebGL | Idle | 2.029 s | 2.029 s | Fixed observation window | — |
+
+Both idle jobs prove zero graphics activity during their fixed observation
+windows; their duration is not a throughput comparison. Selection and hover
+are slower in every WebGPU matched pair, despite the lower active renderer-thread
+CPU time. The three selection elapsed ratios are 1.2535, 2.1286 and 2.0743;
+the ratio of role medians is 2.0738. The Skia selection and editing improvements
+also occur in all three of their respective matched pairs. These results neither
+pool runners nor imply that CPU savings caused the observed elapsed changes.
+
+The 108 native pairs pass the unchanged document, ruler and chrome-font gates.
+Some passing Skia fractions are nonzero: the vertical-ruler fraction reaches
+0.00010775281504229298, and the editing after-state document fraction reaches
+0.0002631578947368421. Both remain below the original 0.001 gate. The record does
+not claim byte identity. It also does not substitute this DPR 1 Welcome workload
+for the separate full SVG qualification below.
+
+All these measurements use Chromium with SwiftShader. Completed callbacks and
+visible-canvas submission counts are observer events, not proof of a newly
+displayed state for each input or physical GPU presentation. `ThreadTime`
+measures active renderer main-thread CPU time; elapsed time includes the
+unchanged input driver and its waits. The unresolved WebGPU regressions reject
+an across-workload recovery claim and do not approve a new default.
 
 ### Direct persistent-composition follow-up (`0ffaabff`, harness `6acf6dc`)
 
@@ -99,7 +154,7 @@ failure-time font/request inventory, so the timeout cause remains unconfirmed.
 
 ### Original canvas topology control
 
-The next [reviewed source candidate](benchmarks/unodraw-single-canvas-integration-2026-11-12.json)
+The [reviewed canvas topology control](benchmarks/unodraw-single-canvas-integration-2026-11-12.json)
 adds explicit `canvasBridge=single-canvas`. It removes the interaction child
 before first load, bypasses the custom island and uses the original Uno uploader
 with the original document and interaction painters. The newer guide-query and
@@ -116,11 +171,131 @@ zero-Document feedback requirement. The default remains `persistent`.
 
 Local validation includes 13 focused lifecycle/schedule tests, compilation of
 33 production C# files against the actual pinned APIs, 137 performance-contract
-and 61 quality-contract tests, and 2,874 passing assertions with 44 existing skips
+and 61 quality-contract tests, and 2,874 passing test cases with 44 existing skips
 across eleven completed solution test projects. Required solution commands still
 returned failure because of named-pipe / Uno resource task-host connection
-errors. Fresh application builds and browser performance/quality results are
-pending; this implementation record does not qualify promotion.
+errors. Those local totals are separate from the fresh CI job conclusions below.
+
+#### Direct original-topology comparison (`22d33286`)
+
+The complete [single-canvas baseline record](benchmarks/unodraw-single-canvas-baseline-2026-11-12.json)
+compares the exact `96e5fa9` baseline with explicit `canvasBridge=single-canvas`
+in the fresh `22d33286` AOT package. Application source and primary harness both
+remain pinned to that revision. All five jobs in run 43316652725 complete the
+original warmup and three alternating pairs: **30 primary samples, five separate
+diagnostics, 35 independently recomputed raw metric sets and 45 native pairs**.
+Each ratio below compares the per-role medians within one matched runner.
+
+| Workload | Baseline median | Single-canvas median | Elapsed change | Renderer-thread CPU change |
+| --- | ---: | ---: | ---: | ---: |
+| Pan | 173.036 s | 173.056 s | +0.01% | -0.09% |
+| Zoom | 116.593 s | 117.717 s | +0.96% | +0.26% |
+| Selection | 110.957 s | 91.933 s | -17.15% | -17.96% |
+| Brush hover | 173.103 s | 173.816 s | +0.41% | -0.78% |
+| Editing | 197.626 s | 187.866 s | -4.94% | -49.80% |
+
+Selection's median improves, but its first pair is 1.29% slower; the other two
+pairs improve by 17.15% and 16.49%. Editing improves in all three pairs, by
+4.94%, 5.50% and 1.83%. Pan, zoom and hover remain close to the baseline in this
+experiment, with mixed pan/zoom variation and slightly slower hover in every
+pair. No median or paired ratio is pooled with the ordinary default jobs or any
+historical source. These results support the original-topology control as a
+useful comparison, not a claim of substantial improvement across all workloads.
+
+All trials retain the full 121-input selection sequence or the original
+120-input sequence for the other workloads, with no unmatched input tails.
+The native document/ruler/font comparisons all pass, with every scored fraction
+zero above luminance 12; this does not claim byte equality. The five diagnostics
+independently require positive Document and Interaction paint counts, as expected
+for the combined original painter. No retained-document cache is involved.
+
+Raw callback and submission counts remain in the evidence. For selection, the
+baseline/candidate counts in trial order are 129/133, 131/133 and 130/127; for
+editing they are 204/122, 190/122 and 186/121. The callbacks and visible-canvas
+submissions agree within these runs, but neither proves newly presented pixels
+for each input. Differences in native replay, opacity or depth-pass behavior
+remain hypotheses rather than established causes. The complete full SVG gate
+below has not passed, and the current default remains `persistent`.
+
+#### Fresh source and browser validation (`22d33286`)
+
+The [fresh browser evidence](benchmarks/unodraw-single-canvas-browser-quality-2026-11-12.json)
+binds the original quality artifacts, complete AOT package inventories, actual source
+checkouts and independent pixel audits. For workflow head `22d33286`, the
+following job groups completed successfully; their statuses do not imply an
+additional test-case total or an independent recalculation of Studio screenshots.
+
+| Workflow | Successful jobs | Scope |
+| --- | ---: | --- |
+| [Build](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43316652562) | 9 | Windows, macOS and Linux build/test; MAUI build/package; Linux package |
+| [UnoDraw](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43316652755) | 5 | Three desktop/editor jobs, Android package and iOS simulator package |
+| [UnoDraw Studio UI](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43316652548) | 1 | Native studio interaction and screenshots |
+
+The fresh Interpreter and AOT Welcome artifacts each contain six `legacy` /
+`single-canvas` cases at DPR 1, 1.25 and 2, with 60 native states. Each execution
+mode passes 30 cross-mode comparisons and 12 navigator/resize restoration
+comparisons: **84 native pairs** across the two artifacts, consisting of 60
+cross-mode pairs and 24 restoration pairs. Every independently recalculated
+region fraction is zero above the unchanged luminance-12 threshold; this does
+not claim byte equality. Each single-canvas startup proves completion of both
+original painters before its first settled capture; both modes independently
+prove their selected provider and captured output. The separate Interpreter
+application package is not retained with its correctness artifact; its embedded
+build/font manifest and successful publish job supply that mode's source binding.
+These are comparisons between two modes of the same candidate, separate from the
+baseline throughput experiment.
+
+The [Docs AOT run](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43316652496)
+also passes the ordinary default smoke checks for WebGPU, automatic WebGL
+fallback, automatic software fallback and explicit Skia preference. Its 36
+native DPR 1 captures pass the original artwork, camera restoration, theme,
+font, indicator, compact-layout and reload checks. All eight fresh startup/reload
+ranges independently confirm the required provider and exactly one ordered
+storage installation. Native captures verify rendered output; painter and
+installation messages do not prove upload completion or physical presentation.
+
+Docs compiled synthetic merge `f6b9459323850cfc78e50ca22d585790443838ec`.
+Its complete tracked tree equals `22d33286`, with an empty unrestricted source
+diff across all production and build inputs. Its artifact identity remains
+separate from the benchmark AOT package compiled from the explicit `22d33286`
+checkout. Both fresh AOT packages contain the exact storage installer and pass
+the packaged-native helper's 13 scenarios, 26 executions and nine installation
+guards. The independent record verifies all original ZIP payloads and preserves
+the separate runtime, installer, test-source and package hashes.
+
+The green [cached rendering-verification run](https://github.com/wieslawsoltes/Svg.Skia/actions/runs/43316652509)
+declined an older package with production differences and skipped all four
+runtime groups. It contributes no fresh browser, pixel or timing qualification.
+The frozen browser checkpoint predates the completed throughput and failed full
+SVG results now recorded separately; its original pending status is preserved
+in that evidence file.
+
+#### Full SVG qualification (`22d33286`): incomplete and rejected
+
+The [full SVG attempt](benchmarks/unodraw-single-canvas-svg-quality-2026-11-12.json)
+retains all 48 case outcomes and 72 pair outcomes across the three DPR shards.
+All 24 single-canvas candidate cases and 22 of 24 original-uploader control cases
+pass: **46/48 valid cases, 138/144 available native states and 66/72 valid native
+pairs**. All 330 scored region fractions from the accepted pairs are zero under
+the original thresholds. Six pairs lack their required control evidence, so the
+strict aggregate fails; a partial pixel summary cannot qualify the complete gate.
+
+Both failures occur in the DPR 2 `legacy` control and preserve distinct stages:
+
+- The clip case reports `Command search did not open` while reopening command
+  search after exact source insertion/readback, an inserted-source screenshot
+  and an Apply attempt. The required committed-source readback and native
+  comparison states are therefore unavailable.
+- The text case times out capturing `source-before.png` immediately after the
+  focused source readback, before insertion. Its screenshot log explicitly
+  reports that fonts loaded; the record does not establish missing fonts as
+  the cause.
+
+These failures remain attached to the original attempt. They are not converted
+to passing cases by the successful candidate images or a later readiness fix.
+No retry, threshold relaxation or diagnostic screenshot replaces the missing
+evidence. The default remains `persistent`, and the historical rejected results
+below retain their original source, scope and outcome.
 
 ### Direct original-uploader follow-up (`0ffaabff`)
 
