@@ -22,8 +22,10 @@ historical package must still contain the same welcome SVG and use the same .NET
 SDK, workload set and AOT build settings; an incompatible fixture is rejected explicitly.
 
 Uno 6 is measured on its actual Skia/WebGL renderer. Uno 7 is measured with both
-WebGPU and `?renderer=skia`. An unavailable legacy WebGPU implementation is never
-represented by a fabricated zero or by a different renderer.
+explicit `?renderer=webgpu` and `?renderer=skia` selections. UnoDraw now uses Skia
+for an unqualified URL; the harness selects the requested backend independently
+of that default. An unavailable legacy WebGPU implementation is never represented
+by a fabricated zero or by a different renderer.
 
 ## Workloads and controls
 
@@ -213,8 +215,8 @@ checks; partial results cannot pass. Results retain raw observations, console
 diagnostics, package provenance and screenshots. The normal browser-smoke workflow
 remains an independent visual/runtime gate.
 
-A separate `bridge-quality` job compares the candidate's default persistent
-WebGPU bitmap bridge with the same candidate's `?canvasBridge=legacy` path at
+A separate `bridge-quality` check compares the candidate's explicitly selected persistent
+WebGPU bitmap bridge with the same candidate's `?renderer=webgpu&canvasBridge=legacy` path at
 DPR 1, 1.25 and 2. It requires explicit successful persistent upload evidence,
 rejects fallback, and proves exclusive legacy selection in the control case.
 Both cases exercise actual-size/refit camera commands, brush and selection
@@ -323,7 +325,7 @@ validators remain available without enabling the retired renderer.
 
 ### Same-artifact cached document composition
 
-`?canvasBridge=composite` restores full-resolution cached BGRA document pixels,
+`?renderer=webgpu&canvasBridge=composite` restores full-resolution cached BGRA document pixels,
 paints the unchanged interaction feedback, and uploads one combined canvas
 texture. Its two independent workloads compare `persistent` versus `composite`
 for brush hover and selection. Each workload retains three alternating pairs,
@@ -354,7 +356,7 @@ python tests/UnoDraw.BrowserPerformance/bridge_experiment.py \
 
 ### Cached composition through the original uploader
 
-`?canvasBridge=legacy-composite` combines the same cached BGRA document and
+`?renderer=webgpu&canvasBridge=legacy-composite` combines the same cached BGRA document and
 feedback through Uno's original `SKCanvasElement` software uploader. The control
 is `legacy`, so both modes retain the original texture creation, opacity scan
 and mip handling. The new path must prove a completed copy into the original
@@ -391,13 +393,13 @@ separate candidate diagnostic pass; the older baseline has no managed paint
 counters. The original warmup, input, document, ruler and chrome-font gates are
 unchanged.
 
-`?canvasBridge=single-canvas` restores the original one-canvas rendering layout.
+`?renderer=webgpu&canvasBridge=single-canvas` restores the original one-canvas rendering layout.
 The application configures its workspace instance before attaching it to the
 window, removes the separate interaction child and uses Uno's original uploader
 without a custom canvas island. Feedback invalidates the original canvas, which
 repaints document and interaction together. The newer guide-query and workspace
-optimizations remain active. This is an opt-in experiment; the default renderer
-policy remains unchanged.
+optimizations remain active. This is an opt-in WebGPU experiment; ordinary
+application URLs use Skia. A `canvasBridge` selection alone does not opt into WebGPU.
 
 This mode's first initialization message attests to completion of both original
 painters. Actual WebGPU selection and every native output image are independently

@@ -116,6 +116,11 @@ jobs:
       matrix:
         backend: [webgpu, skia-fallback, software-fallback, skia-preferred]
         canvas_bridge: [default, single-canvas]
+        include:
+          - backend: skia-default
+            canvas_bridge: default
+          - backend: software-default
+            canvas_bridge: default
     env:
       UNODRAW_SMOKE_ARTIFACT: ${{ matrix.canvas_bridge == 'default' && format('unodraw-browser-smoke-{0}', matrix.backend) || format('unodraw-browser-smoke-single-canvas-{0}', matrix.backend) }}
     # Keep the runner compatible with the pinned Playwright browser binaries.

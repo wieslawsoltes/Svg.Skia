@@ -1,7 +1,8 @@
 """Negative evidence cases that must never satisfy the renderer release gate."""
 import unittest
 
-from backend import (NO_ADAPTER_ERROR, NO_WEBGL_ERROR, SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE,
+from backend import (DEFAULT_SKIA_BACKENDS, NO_ADAPTER_ERROR, NO_WEBGL_ERROR,
+                     SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE, SKIA_RENDERER_PREFERENCE,
                      launch_arguments, renderer_query, verify_backend)
 
 
@@ -23,6 +24,16 @@ def software_logs() -> list[dict[str, str]]:
     return [{"type": "error", "text": NO_ADAPTER_ERROR},
             {"type": "error", "text": "fail: Uno.UI.Runtime.WebGlBrowserRenderer[0]\n      " + NO_WEBGL_ERROR},
             winner("SkiaGraphicsProvider", "Software")]
+
+
+def default_skia_logs(backend: str = "skia-default") -> list[dict[str, str]]:
+    return [{"type": "log", "text": SKIA_RENDERER_PREFERENCE}] + (
+        software_logs()[1:] if backend == "software-default"
+        else [winner("SkiaGraphicsProvider", "WebGL")])
+
+
+def default_software_capabilities() -> dict[str, bool]:
+    return {**software_capabilities(), "adapter_available": True}
 
 
 def observed_single_canvas(backend: str = "webgpu") -> list[dict[str, str]]:
@@ -196,7 +207,7 @@ class BackendEvidenceTests(unittest.TestCase):
         self.assertEqual(proof["expected_console_error_indices"], [])
         self.assertEqual(renderer_query("skia-preferred"), "?renderer=skia")
         for mode in ("webgpu", "skia-fallback", "software-fallback"):
-            self.assertEqual(renderer_query(mode), "")
+            self.assertEqual(renderer_query(mode), "?renderer=webgpu")
 
     def test_explicit_skia_preference_rejects_ignored_override_or_software(self) -> None:
         for provider, context in (("WebGpuGraphicsProvider", "WebGpu"), ("SkiaGraphicsProvider", "Software")):
@@ -263,6 +274,91 @@ class BackendEvidenceTests(unittest.TestCase):
             with self.subTest(mode=mode), self.assertRaisesRegex(AssertionError, "usable WebGL"):
                 verify_backend([winner("SkiaGraphicsProvider", "WebGL")],
                                {**software_capabilities(), "adapter_available": adapter}, mode)
+
+
+class DefaultSkiaEvidenceTests(unittest.TestCase):
+    def test_default_profiles_use_the_bare_url_with_webgpu_available(self) -> None:
+        for backend in DEFAULT_SKIA_BACKENDS:
+            with self.subTest(backend=backend):
+                self.assertEqual(renderer_query(backend), "")
+                arguments = launch_arguments(backend)
+                self.assertIn("--enable-unsafe-webgpu", arguments)
+                self.assertIn("--use-vulkan=swiftshader", arguments)
+                self.assertNotIn("--disable-features=WebGPUService", arguments)
+                self.assertEqual("--disable-webgl" in arguments, backend == "software-default")
+
+    def test_default_profiles_prove_fresh_preference_and_native_winner(self) -> None:
+        for backend, caps, kind, expected in (
+            ("skia-default", capabilities(), "WebGL", []),
+            ("software-default", default_software_capabilities(), "Software", [1]),
+        ):
+            with self.subTest(backend=backend):
+                proof = verify_backend(default_skia_logs(backend), caps, backend)
+                self.assertEqual(proof["negotiations"], [{"provider": "SkiaGraphicsProvider", "context": kind}])
+                self.assertEqual(proof["default_skia_preference_index"], 0)
+                self.assertEqual(proof["expected_console_error_indices"], expected)
+                self.assertNotIn("single_canvas_native_factory", proof)
+
+    def test_default_preference_cannot_be_missing_duplicate_late_or_wrong(self) -> None:
+        original = default_skia_logs()
+        variants = [original[1:], original + [original[0]], list(reversed(original)),
+                    [{"type": "error", "text": SKIA_RENDERER_PREFERENCE}, original[1]],
+                    [{"type": "log", "text": SKIA_RENDERER_PREFERENCE + " extra"}, original[1]],
+                    [{"type": "log", "text": "UnoDraw browser renderer preference: WebGPU, then Skia (WebGL, then software)."}, original[1]]]
+        for logs in variants:
+            with self.subTest(logs=logs), self.assertRaisesRegex(AssertionError, "fresh Skia preference"):
+                verify_backend(logs, capabilities(), "skia-default")
+
+    def test_default_never_attempts_webgpu_or_registers_a_bridge(self) -> None:
+        messages = ["Trying graphics backend 'WebGpuGraphicsProvider' on context kind 'WebGpu'.",
+                    "Trying graphics backend 'SingleCanvasWebGpuProvider' on context kind 'WebGpu'.",
+                    NO_ADAPTER_ERROR, "WebGpuInit: device creation failed", SINGLE_CANVAS_PREFERENCE,
+                    SINGLE_CANVAS_INITIALIZED, "UnoDraw canvas bridge preference: persistent RGBA upload.",
+                    observed_single_canvas()[-1]["text"]]
+        for backend in DEFAULT_SKIA_BACKENDS:
+            caps = default_software_capabilities() if backend == "software-default" else capabilities()
+            for message in messages:
+                for severity in ("info", "error"):
+                    with self.subTest(backend=backend, message=message, severity=severity), self.assertRaises(AssertionError):
+                        verify_backend(default_skia_logs(backend) + [{"type": severity, "text": message}], caps, backend)
+
+    def test_default_profiles_cannot_silently_select_another_context(self) -> None:
+        for backend in DEFAULT_SKIA_BACKENDS:
+            caps = default_software_capabilities() if backend == "software-default" else capabilities()
+            wrong_kind = "WebGL" if backend == "software-default" else "Software"
+            logs = default_skia_logs(backend)[:-1] + [winner("SkiaGraphicsProvider", wrong_kind)]
+            with self.subTest(backend=backend), self.assertRaisesRegex(AssertionError, "unexpected graphics backend"):
+                verify_backend(logs, caps, backend)
+
+    def test_software_default_requires_webgl_failure_but_keeps_webgpu_available(self) -> None:
+        logs = default_skia_logs("software-default")
+        for field, value in (("adapter_available", False), ("webgl1_available", True),
+                             ("webgl2_available", True), ("canvas2d_available", False)):
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                verify_backend(logs, {**default_software_capabilities(), field: value}, "software-default")
+        with self.assertRaisesRegex(AssertionError, "expected unavailable-WebGL"):
+            verify_backend([logs[0], logs[-1]], default_software_capabilities(), "software-default")
+        with self.assertRaisesRegex(AssertionError, "usable WebGL"):
+            verify_backend(default_skia_logs(), default_software_capabilities(), "skia-default")
+
+    def test_default_software_exempts_only_exact_initial_webgl_errors(self) -> None:
+        logs = default_skia_logs("software-default") + [
+            {"type": "error", "text": NO_WEBGL_ERROR},
+            {"type": "error", "text": NO_WEBGL_ERROR + "; device failure"},
+        ]
+        proof = verify_backend(logs, default_software_capabilities(), "software-default")
+        self.assertEqual(proof["expected_console_error_indices"], [1])
+
+    def test_default_reload_requires_a_separate_preference_and_winner(self) -> None:
+        for backend in DEFAULT_SKIA_BACKENDS:
+            caps = default_software_capabilities() if backend == "software-default" else capabilities()
+            logs = default_skia_logs(backend)
+            with self.subTest(backend=backend):
+                verify_backend(logs, caps, backend)
+                with self.assertRaises(AssertionError):
+                    verify_backend(logs + logs, caps, backend)
+                with self.assertRaises(AssertionError):
+                    verify_backend([logs[-1]], caps, backend)
 
 
 if __name__ == "__main__":

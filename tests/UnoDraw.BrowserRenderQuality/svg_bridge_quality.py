@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "UnoDraw.BrowserPer
 from bridge_quality import capture, command  # noqa: E402
 from performance import next_frame, park_pointer, renderer_evidence  # noqa: E402
 from quality import bridge_query, validate_graphite_coverage, verify_bridge  # noqa: E402
-from backend import launch_arguments  # noqa: E402
+from backend import launch_arguments, renderer_query  # noqa: E402
 from smoke import READY, serve  # noqa: E402
 from candidate_package import verify_package  # noqa: E402
 from source_editor_readiness import completed_modal, source_capture_timeout_ms, verify_source_editor_readiness  # noqa: E402
@@ -261,7 +261,8 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                 fixtures: list[Fixture], output: Path, *,
                 graphite_coverage: str | None = None) -> list[dict[str, Any]]:
     validate_graphite_coverage(bridge, graphite_coverage)
-    query = bridge_query(bridge, graphite_coverage=graphite_coverage) + "&inputDiagnostics=1"
+    query = (renderer_query("webgpu") + "&" + bridge_query(bridge, graphite_coverage=graphite_coverage)
+             + "&inputDiagnostics=1")
     logs: dict[str, Any] = {"console": [], "page_errors": [], "resource_errors": []}
     context = page = None
     cases = []
@@ -293,7 +294,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                     context, page = create_page(browser, dpr, logs)
                     navigation_console = len(logs["console"])
                     navigation_starts = {key: len(value) for key, value in logs.items()}
-                    page.goto(url + "?" + query,
+                    page.goto(url + query,
                               wait_until="domcontentloaded", timeout=120_000)
                     page.wait_for_function(READY, timeout=120_000)
                     environment = page.evaluate("""() => ({viewport: {width: innerWidth, height: innerHeight},

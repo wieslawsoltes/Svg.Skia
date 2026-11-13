@@ -2,9 +2,13 @@
 
 This is a separately instrumented configuration experiment. It reuses the original
 `22d33286feccb2d53484744d9ecf7f9f6d17e72d` application and primary benchmark harness
-and runs only explicit `canvasBridge=single-canvas`. The new adapter's checkout and
-workflow identities are recorded separately. The report makes no claim that the
+and runs only explicit `canvasBridge=single-canvas`. The adapter's checkout and
+source identities are recorded separately. The report makes no claim that the
 current application source is equivalent to the pinned package.
+
+The pinned application and harness predate the current Skia default. Their
+original WebGPU selection remains part of this historical experiment; this probe
+does not substitute the current application's default or navigation policy.
 
 The two arms use one original Release AOT archive, one explicit canvas mode and
 three alternating selection pairs. They reuse the committed benchmark's full

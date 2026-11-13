@@ -4,9 +4,11 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from backend import (BACKENDS, SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE,
+from backend import (BACKENDS, DEFAULT_SKIA_BACKENDS, SKIA_FIRST_BACKENDS,
+                     SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE,
                      smoke_query, verify_smoke_navigation)
-from test_backend import (capabilities, observed_single_canvas, software_capabilities,
+from test_backend import (capabilities, default_skia_logs, default_software_capabilities,
+                          observed_single_canvas, software_capabilities,
                           software_logs, winner)
 from smoke import (SINGLE_CANVAS_INITIALIZATION_TIMEOUT_MS, record_smoke_navigation,
                    wait_for_single_canvas_initialization)
@@ -16,6 +18,8 @@ ORIGIN = "http://127.0.0.1:8123/Svg.Skia/unodraw/"
 
 
 def native_logs(backend: str) -> list[dict[str, str]]:
+    if backend in DEFAULT_SKIA_BACKENDS:
+        return default_skia_logs(backend)
     if backend == "webgpu":
         return [winner("WebGpuGraphicsProvider", "WebGpu")]
     if backend == "software-fallback":
@@ -26,13 +30,15 @@ def native_logs(backend: str) -> list[dict[str, str]]:
 
 
 def profile_capabilities(backend: str) -> dict[str, bool]:
+    if backend == "software-default":
+        return default_software_capabilities()
     if backend == "software-fallback":
         return software_capabilities()
-    return capabilities(backend in {"webgpu", "skia-preferred"})
+    return capabilities(backend in {"webgpu", *SKIA_FIRST_BACKENDS})
 
 
 def explicit_logs(backend: str) -> list[dict[str, str]]:
-    if backend == "skia-preferred":
+    if backend in SKIA_FIRST_BACKENDS:
         return native_logs(backend)
     logs = observed_single_canvas(backend)
     if backend == "webgpu":
@@ -48,10 +54,11 @@ def verify(logs: list[dict[str, str]], backend: str = "webgpu", mode: str = "sin
 
 
 class SmokeBridgeTests(unittest.TestCase):
-    def test_all_eight_queries_preserve_renderer_preference(self) -> None:
+    def test_all_profile_queries_preserve_renderer_preference(self) -> None:
         for backend in BACKENDS:
             with self.subTest(backend=backend):
-                ordinary = "?renderer=skia" if backend == "skia-preferred" else ""
+                ordinary = ("" if backend in DEFAULT_SKIA_BACKENDS else
+                            "?renderer=skia" if backend == "skia-preferred" else "?renderer=webgpu")
                 self.assertEqual(smoke_query(backend), ordinary)
                 self.assertEqual(smoke_query(backend, "default"), ordinary)
                 self.assertEqual(smoke_query(backend, "single-canvas"),
@@ -63,7 +70,7 @@ class SmokeBridgeTests(unittest.TestCase):
             with self.subTest(backend=backend, mode=mode), self.assertRaises(ValueError):
                 smoke_query(backend, mode)
 
-    def test_ordinary_four_profiles_keep_native_provider_proof(self) -> None:
+    def test_ordinary_profiles_keep_native_provider_proof(self) -> None:
         for backend in BACKENDS:
             with self.subTest(backend=backend):
                 proof = verify(native_logs(backend), backend, "default")
@@ -71,7 +78,7 @@ class SmokeBridgeTests(unittest.TestCase):
                 self.assertIsNone(proof["native_factory_observation"])
                 self.assertIsNone(proof["single_canvas_painter_initialization_index"])
 
-    def test_explicit_four_profiles_bind_actual_topology(self) -> None:
+    def test_explicit_profiles_bind_actual_topology(self) -> None:
         for backend in BACKENDS:
             with self.subTest(backend=backend):
                 proof = verify(explicit_logs(backend), backend)
@@ -79,7 +86,7 @@ class SmokeBridgeTests(unittest.TestCase):
                 if backend == "webgpu":
                     self.assertEqual(observed["topology"], "single-canvas")
                     self.assertEqual(proof["single_canvas_painter_initialization_index"], 3)
-                elif backend == "skia-preferred":
+                elif backend in SKIA_FIRST_BACKENDS:
                     self.assertIsNone(observed)
                     self.assertIsNone(proof["single_canvas_painter_initialization_index"])
                 else:
@@ -170,6 +177,13 @@ class SmokeBridgeTests(unittest.TestCase):
     def test_default_navigation_cannot_accept_an_explicit_selector(self) -> None:
         with self.assertRaisesRegex(AssertionError, "exact renderer"):
             verify(native_logs("webgpu"), mode="default", actual=ORIGIN + "?canvasBridge=single-canvas")
+
+    def test_bare_default_cannot_borrow_an_explicit_renderer_override(self) -> None:
+        for backend in DEFAULT_SKIA_BACKENDS:
+            for query in ("?renderer=skia", "?renderer=webgpu", "?canvasBridge=single-canvas"):
+                for field in ("requested", "actual"):
+                    with self.subTest(backend=backend, query=query, field=field), self.assertRaisesRegex(AssertionError, "exact renderer"):
+                        verify(native_logs(backend), backend, "default", **{field: ORIGIN + query})
 
     def test_observed_navigation_cannot_move_origin_path_or_fragment(self) -> None:
         query = smoke_query("webgpu", "single-canvas")

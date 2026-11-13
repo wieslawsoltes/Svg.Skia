@@ -6,8 +6,12 @@ from typing import Any
 from urllib.parse import urlsplit
 
 
-BACKENDS = ("webgpu", "skia-fallback", "software-fallback", "skia-preferred")
+BACKENDS = ("webgpu", "skia-fallback", "software-fallback", "skia-preferred",
+            "skia-default", "software-default")
+DEFAULT_SKIA_BACKENDS = ("skia-default", "software-default")
+SKIA_FIRST_BACKENDS = ("skia-preferred", *DEFAULT_SKIA_BACKENDS)
 SMOKE_CANVAS_BRIDGES = ("default", "single-canvas")
+SKIA_RENDERER_PREFERENCE = "UnoDraw browser renderer preference: Skia (WebGL, then software)."
 NO_ADAPTER_ERROR = "WebGpuInit: navigator.gpu.requestAdapter returned null"
 NO_WEBGL_ERROR = "Failed to create WebGL context: Failed to create WebGL context: err 0"
 NEGOTIATION = re.compile(
@@ -40,7 +44,7 @@ def single_canvas_provider_evidence(console: list[dict[str, Any]], backend: str,
         if observations:
             raise AssertionError("A native-provider winner cannot borrow a decorated factory observation")
         return None
-    if allowed is not True or backend == "skia-preferred":
+    if allowed is not True or backend in SKIA_FIRST_BACKENDS:
         raise AssertionError("This renderer proof does not permit a single-canvas provider decorator")
     expected = {
         "webgpu": ("SingleCanvasWebGpuProvider", "WebGpuGraphicsProvider", "WebGpuDrawingFactory",
@@ -81,8 +85,11 @@ def launch_arguments(backend: str) -> list[str]:
     # Initialize Vulkan as well as ANGLE: an adapter-only probe does not prove that
     # the browser can present WebGPU canvas textures through its compositor.
     arguments = ["--enable-unsafe-swiftshader", "--use-gl=angle", "--use-angle=swiftshader"]
-    if backend in {"webgpu", "skia-preferred"}:
-        return arguments + ["--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+    if backend in {"webgpu", *SKIA_FIRST_BACKENDS}:
+        arguments += ["--enable-unsafe-webgpu", "--use-vulkan=swiftshader", "--enable-features=Vulkan"]
+        if backend == "software-default":
+            arguments.append("--disable-webgl")
+        return arguments
     if backend in {"skia-fallback", "software-fallback"}:
         # Chromium's own WebGPUKillSwitchPages uses this feature switch. Keep
         # --enable-unsafe-webgpu out of this mode because it bypasses the switch.
@@ -97,7 +104,9 @@ def launch_arguments(backend: str) -> list[str]:
 def renderer_query(backend: str) -> str:
     if backend not in BACKENDS:
         raise ValueError(f"Unknown graphics backend: {backend}")
-    return "?renderer=skia" if backend == "skia-preferred" else ""
+    if backend in DEFAULT_SKIA_BACKENDS:
+        return ""
+    return "?renderer=skia" if backend == "skia-preferred" else "?renderer=webgpu"
 
 
 def smoke_query(backend: str, canvas_bridge: str = "default") -> str:
@@ -141,9 +150,9 @@ def verify_smoke_navigation(console: list[dict[str, Any]], capabilities: dict[st
         if (observation is not None or SINGLE_CANVAS_PREFERENCE in bridge_messages
                 or any(entry.get("text") == SINGLE_CANVAS_INITIALIZED for _, entry in initialized)):
             raise AssertionError("Ordinary smoke navigation cannot use the single-canvas control")
-    elif backend == "skia-preferred":
+    elif backend in SKIA_FIRST_BACKENDS:
         if observation is not None or bridge_messages:
-            raise AssertionError("Explicit Skia preference must keep its original native provider and retained topology")
+            raise AssertionError("Skia-first startup must keep its native provider and retained topology")
     else:
         if observation is None:
             raise AssertionError("Explicit single-canvas smoke requires the actual native factory observation")
@@ -182,6 +191,23 @@ def is_no_webgl_error(entry: dict[str, Any]) -> bool:
     } and lines[1].strip() == NO_WEBGL_ERROR
 
 
+def default_skia_preference(console: list[dict[str, Any]], first_winner: int) -> int:
+    """Prove the bare-URL policy without borrowing an explicit Skia override."""
+    preferences = [(index, entry) for index, entry in enumerate(console)
+                   if entry.get("text", "").startswith("UnoDraw browser renderer preference:")]
+    if (len(preferences) != 1 or preferences[0][0] >= first_winner
+            or preferences[0][1].get("type") not in {"log", "info", "debug"}
+            or preferences[0][1].get("text") != SKIA_RENDERER_PREFERENCE):
+        raise AssertionError("Default Skia startup requires one fresh Skia preference before negotiation")
+    for entry in console:
+        text = entry.get("text", "")
+        if ("WebGpuGraphicsProvider" in text or "SingleCanvasWebGpuProvider" in text
+                or "WebGpuInit:" in text or text.startswith("UnoDraw canvas bridge ")
+                or text.startswith(SINGLE_CANVAS_OBSERVATION_PREFIX)):
+            raise AssertionError("Default Skia startup must not attempt a WebGPU provider or register its canvas bridge")
+    return preferences[0][0]
+
+
 def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], backend: str,
                    *, allow_single_canvas_provider: bool = False) -> dict[str, Any]:
     """Require a usable app renderer, with capabilities only corroborating its log.
@@ -193,16 +219,16 @@ def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], 
         raise ValueError(f"Unknown graphics backend: {backend}")
     if capabilities.get("secure_context") is not True or capabilities.get("api_available") is not True:
         raise AssertionError(f"The secure smoke origin must expose the browser's WebGPU API: {capabilities}")
-    expected_adapter = backend in {"webgpu", "skia-preferred"}
+    expected_adapter = backend in {"webgpu", *SKIA_FIRST_BACKENDS}
     if capabilities.get("adapter_available") is not expected_adapter:
         raise AssertionError(f"{backend} must {'provide' if expected_adapter else 'disable'} a WebGPU adapter: {capabilities}")
-    if backend == "software-fallback" and (
+    if backend in {"software-fallback", "software-default"} and (
         capabilities.get("webgl1_available") is not False
         or capabilities.get("webgl2_available") is not False
         or capabilities.get("canvas2d_available") is not True
     ):
         raise AssertionError(f"Software fallback requires unavailable WebGL1/2 and usable Canvas2D: {capabilities}")
-    if backend in {"skia-fallback", "skia-preferred"} and not (
+    if backend in {"skia-fallback", "skia-preferred", "skia-default"} and not (
         capabilities.get("webgl1_available") is True or capabilities.get("webgl2_available") is True
     ):
         raise AssertionError(f"{backend} requires a usable WebGL context: {capabilities}")
@@ -218,6 +244,11 @@ def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], 
         negotiations.extend(winners)
     if not negotiations:
         raise AssertionError("No successful graphics-backend negotiation was recorded for this navigation")
+    default_preference = None
+    if backend in DEFAULT_SKIA_BACKENDS:
+        if len(negotiations) != 1:
+            raise AssertionError("Default Skia startup requires exactly one native renderer winner per navigation")
+        default_preference = default_skia_preference(console, first_winner)
     observation = single_canvas_provider_evidence(console, backend, negotiations, first_winner,
                                                   allowed=allow_single_canvas_provider)
     allowed = {
@@ -225,6 +256,8 @@ def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], 
         "skia-fallback": {("SkiaGraphicsProvider", "WebGL")},
         "software-fallback": {("SkiaGraphicsProvider", "Software")},
         "skia-preferred": {("SkiaGraphicsProvider", "WebGL")},
+        "skia-default": {("SkiaGraphicsProvider", "WebGL")},
+        "software-default": {("SkiaGraphicsProvider", "Software")},
     }[backend]
     if observation is not None:
         allowed = {(observation["decorator"], observation["kind"])}
@@ -242,13 +275,15 @@ def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], 
                        and entry.get("text") == NO_ADAPTER_ERROR]
     if fallback and not expected_errors:
         raise AssertionError("Skia fallback did not record the expected WebGPU no-adapter negotiation")
-    if backend == "software-fallback":
+    if backend in {"software-fallback", "software-default"}:
         webgl_errors = [index for index, entry in enumerate(initialization) if is_no_webgl_error(entry)]
         if not webgl_errors:
             raise AssertionError("Software fallback did not record the expected unavailable-WebGL negotiation")
         expected_errors = sorted(expected_errors + webgl_errors)
     result = {"capabilities": capabilities, "negotiations": negotiations,
               "expected_console_error_indices": expected_errors}
+    if default_preference is not None:
+        result["default_skia_preference_index"] = default_preference
     if observation is not None:
         result["single_canvas_native_factory"] = observation
     return result
