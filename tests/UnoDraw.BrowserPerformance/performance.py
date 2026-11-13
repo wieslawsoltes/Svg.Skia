@@ -145,7 +145,8 @@ def renderer_evidence(page: Page, console: list[dict[str, Any]], package: dict[s
     result: dict[str, Any] = {"application_contexts": contexts}
     if package["runtime_generation"] == "uno7":
         evidence = {"console": console, "backend_selection": {}, "backend_mode": backend}
-        record_backend(page, evidence, "startup", 0)
+        record_backend(page, evidence, "startup", 0,
+                       allow_single_canvas_provider=package["role"] == "candidate")
         result.update(evidence["backend_selection"]["startup"])
     else:
         # Uno 6 predates the provider negotiation message. Require the actual

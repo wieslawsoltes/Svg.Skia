@@ -23,13 +23,14 @@ public static class Program
             Rendering.WebGpuSkiaCanvasBridge.Register();
         var builder = UnoPlatformHostBuilder.Create().App(() => new App());
         if (!preferSkia)
-            builder = builder.GraphicsBackend(WebGpuBackend.CreateGraphicsProvider());
+            builder = builder.GraphicsBackend(Rendering.WebGpuSkiaCanvasBridge.ObserveWebGpuProvider(
+                WebGpuBackend.CreateGraphicsProvider()));
         Console.WriteLine(preferSkia
             ? "UnoDraw browser renderer preference: Skia (WebGL, then software)."
             : "UnoDraw browser renderer preference: WebGPU, then Skia (WebGL, then software).");
         var host = builder
-            .GraphicsBackend(SkiaBackend.CreateGraphicsProvider(
-                GraphicsContextKind.WebGL, GraphicsContextKind.Software))
+            .GraphicsBackend(Rendering.WebGpuSkiaCanvasBridge.ObserveSkiaProvider(
+                SkiaBackend.CreateGraphicsProvider(GraphicsContextKind.WebGL, GraphicsContextKind.Software)))
             .UseWebAssembly()
             .Build();
         BrowserStartup.DeferInitialFrame();

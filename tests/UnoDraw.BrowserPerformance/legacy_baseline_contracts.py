@@ -62,8 +62,37 @@ def verify_runs(runs: list[dict[str, Any]], source_sha: str, workload: str, *, d
         if (environment.get("viewport") != VIEWPORT or environment.get("device_pixel_ratio") != 1
                 or environment.get("cross_origin_isolated") is not False):
             raise ValueError("The direct comparison changed native resolution or hosting policy")
-        if not any(row.get("provider") == "WebGpuGraphicsProvider" and row.get("context") == "WebGpu"
-                   for row in renderer.get("negotiations", [])):
+        observed_provider = ("single_canvas_native_factory" in renderer
+                             or any(row.get("provider") in {"SingleCanvasWebGpuProvider", "SingleCanvasSkiaProvider"}
+                                    for row in renderer.get("negotiations", []))
+                             or any(entry.get("text", "").startswith("UnoDraw single-canvas graphics observation:")
+                                    or "Graphics backend 'SingleCanvasWebGpuProvider'" in entry.get("text", "")
+                                    or "Graphics backend 'SingleCanvasSkiaProvider'" in entry.get("text", "")
+                                    for entry in run.get("console", [])))
+        if observed_provider:
+            if not candidate or candidate_bridge != "single-canvas":
+                raise ValueError("Only the explicit single-canvas candidate may use an observed provider")
+            console = run.get("console", [])
+            start = renderer.get("console_start_index")
+            end = renderer.get("console_end_index")
+            if (type(start) is not int or start != 0 or type(end) is not int
+                    or not 0 < end <= len(console)):
+                raise ValueError("The observed provider requires its original completed-startup console boundary")
+            # The live driver has already loaded the shared smoke/provider module.
+            # Archived native-provider reports do not acquire a new dependency.
+            from backend import verify_backend
+            proof = verify_backend(console[:end], renderer.get("capabilities", {}), "webgpu",
+                                   allow_single_canvas_provider=True)
+            if "single_canvas_native_factory" not in proof:
+                raise ValueError("The decorated native factory must be observed during completed startup")
+            completion_proof = verify_backend(console, renderer.get("capabilities", {}), "webgpu",
+                                              allow_single_canvas_provider=True)
+            if completion_proof != proof:
+                raise ValueError("The native provider observation changed after completed startup")
+            if any(renderer.get(key) != value for key, value in proof.items()):
+                raise ValueError("Stored native factory proof differs from the original startup observation")
+        elif not any(row.get("provider") == "WebGpuGraphicsProvider" and row.get("context") == "WebGpu"
+                     for row in renderer.get("negotiations", [])):
             raise ValueError("The direct trial did not prove its actual WebGPU compositor")
         if not any(row.get("kind") == "webgpu" and row.get("connected") is True and row.get("target") is True
                    and type(row.get("presentations")) is int and row["presentations"] > 0

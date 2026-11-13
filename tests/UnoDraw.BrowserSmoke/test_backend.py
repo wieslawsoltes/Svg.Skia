@@ -1,7 +1,8 @@
 """Negative evidence cases that must never satisfy the renderer release gate."""
 import unittest
 
-from backend import NO_ADAPTER_ERROR, NO_WEBGL_ERROR, launch_arguments, renderer_query, verify_backend
+from backend import (NO_ADAPTER_ERROR, NO_WEBGL_ERROR, SINGLE_CANVAS_INITIALIZED, SINGLE_CANVAS_PREFERENCE,
+                     launch_arguments, renderer_query, verify_backend)
 
 
 def winner(provider: str, context: str) -> dict[str, str]:
@@ -24,7 +25,95 @@ def software_logs() -> list[dict[str, str]]:
             winner("SkiaGraphicsProvider", "Software")]
 
 
+def observed_single_canvas(backend: str = "webgpu") -> list[dict[str, str]]:
+    native = {
+        "webgpu": ("SingleCanvasWebGpuProvider", "WebGpuGraphicsProvider", "WebGpuDrawingFactory",
+                   "WebGpuBrowserGraphicsContext", "WebGpu", "single-canvas"),
+        "skia-fallback": ("SingleCanvasSkiaProvider", "SkiaGraphicsProvider", "SkiaDrawingFactory",
+                          "WasmGLGraphicsContext", "WebGL", "retained"),
+        "software-fallback": ("SingleCanvasSkiaProvider", "SkiaGraphicsProvider", "SkiaDrawingFactory",
+                              "WasmSoftwareGraphicsContext", "Software", "retained"),
+    }[backend]
+    wrapper, provider, factory, context, kind, topology = native
+    errors = ([] if backend == "webgpu" else [{"type": "error", "text": NO_ADAPTER_ERROR}])
+    if backend == "software-fallback":
+        errors.append({"type": "error", "text": NO_WEBGL_ERROR})
+    return [{"type": "log", "text": SINGLE_CANVAS_PREFERENCE}, *errors, winner(wrapper, kind),
+            {"type": "log", "text": f"UnoDraw single-canvas graphics observation: provider='{provider}'; "
+             f"factory='{factory}'; context='{context}'; kind='{kind}'; topology='{topology}'."}]
+
+
 class BackendEvidenceTests(unittest.TestCase):
+    def test_decorated_provider_requires_explicit_permission_and_actual_native_identity(self) -> None:
+        logs = observed_single_canvas()
+        with self.assertRaisesRegex(AssertionError, "does not permit"):
+            verify_backend(logs, capabilities(), "webgpu")
+        proof = verify_backend(logs, capabilities(), "webgpu", allow_single_canvas_provider=True)
+        self.assertEqual(proof["negotiations"], [{"provider": "SingleCanvasWebGpuProvider", "context": "WebGpu"}])
+        self.assertEqual(proof["single_canvas_native_factory"], {
+            "provider": "WebGpuGraphicsProvider", "factory": "WebGpuDrawingFactory",
+            "context": "WebGpuBrowserGraphicsContext", "kind": "WebGpu", "topology": "single-canvas",
+            "decorator": "SingleCanvasWebGpuProvider", "console_slice_index": 2})
+        self.assertEqual(proof["expected_console_error_indices"], [])
+
+    def test_decorated_winner_alone_does_not_prove_its_underlying_factory(self) -> None:
+        logs = observed_single_canvas()
+        for changed in (logs[:-1], logs + [logs[-1]], [logs[1], logs[0], logs[-1]],
+                        [logs[0], logs[-1], logs[1]], logs + [logs[1]], logs[1:]):
+            with self.subTest(logs=changed), self.assertRaises(AssertionError):
+                verify_backend(changed, capabilities(), "webgpu", allow_single_canvas_provider=True)
+
+    def test_native_observation_must_match_every_context_factory_and_topology_field(self) -> None:
+        logs = observed_single_canvas()
+        for before, after in (("WebGpuGraphicsProvider", "SkiaGraphicsProvider"),
+                              ("WebGpuDrawingFactory", "SkiaDrawingFactory"),
+                              ("WebGpuBrowserGraphicsContext", "WebGpuSwapChainContext"),
+                              ("kind='WebGpu'", "kind='WebGL'"),
+                              ("topology='single-canvas'", "topology='retained'"),
+                              ("factory='", "factory = '")):
+            changed = logs[:-1] + [{**logs[-1], "text": logs[-1]["text"].replace(before, after)}]
+            with self.subTest(field=before), self.assertRaisesRegex(AssertionError, "does not match"):
+                verify_backend(changed, capabilities(), "webgpu", allow_single_canvas_provider=True)
+
+    def test_observation_cannot_masquerade_as_a_native_provider_winner(self) -> None:
+        logs = observed_single_canvas()
+        logs[1] = winner("WebGpuGraphicsProvider", "WebGpu")
+        with self.assertRaisesRegex(AssertionError, "cannot borrow"):
+            verify_backend(logs, capabilities(), "webgpu", allow_single_canvas_provider=True)
+
+    def test_fallback_decorators_prove_retained_topology_and_keep_original_error_limits(self) -> None:
+        for backend, caps in (("skia-fallback", capabilities(False)),
+                              ("software-fallback", software_capabilities())):
+            logs = observed_single_canvas(backend)
+            with self.subTest(backend=backend):
+                proof = verify_backend(logs, caps, backend, allow_single_canvas_provider=True)
+                self.assertEqual(proof["single_canvas_native_factory"]["topology"], "retained")
+                self.assertEqual(proof["expected_console_error_indices"],
+                                 [1] if backend == "skia-fallback" else [1, 2])
+                for changed in (logs + [{"type": "log", "text": SINGLE_CANVAS_INITIALIZED}],
+                                logs[:-1] + [{**logs[-1], "text": logs[-1]["text"].replace("'retained'", "'single-canvas'")}],
+                                [entry for entry in logs if entry.get("type") != "error"]):
+                    with self.assertRaises(AssertionError):
+                        verify_backend(changed, caps, backend, allow_single_canvas_provider=True)
+
+    def test_skia_preference_keeps_its_original_undecorated_provider_contract(self) -> None:
+        with self.assertRaisesRegex(AssertionError, "does not permit"):
+            verify_backend(observed_single_canvas("skia-fallback"), capabilities(), "skia-preferred",
+                           allow_single_canvas_provider=True)
+
+    def test_decorator_permission_does_not_weaken_other_bridge_or_reload_proof(self) -> None:
+        logs = observed_single_canvas()
+        for message in ("UnoDraw canvas bridge preference: persistent RGBA upload.",
+                        "UnoDraw canvas bridge initialized: persistent RGBA upload."):
+            with self.subTest(message=message), self.assertRaisesRegex(AssertionError, "competing"):
+                verify_backend(logs + [{"type": "log", "text": message}], capabilities(), "webgpu",
+                               allow_single_canvas_provider=True)
+        for entry in ({**logs[-1], "type": "error"}, {**logs[-1], "text": logs[-1]["text"] + " extra"}):
+            with self.subTest(entry=entry), self.assertRaises(AssertionError):
+                verify_backend(logs[:-1] + [entry], capabilities(), "webgpu", allow_single_canvas_provider=True)
+        with self.assertRaisesRegex(AssertionError, "exactly one"):
+            verify_backend(logs[:2], capabilities(), "webgpu", allow_single_canvas_provider=True)
+
     def test_adapter_availability_alone_is_not_renderer_evidence(self) -> None:
         with self.assertRaisesRegex(AssertionError, "No successful"):
             verify_backend([], capabilities(), "webgpu")

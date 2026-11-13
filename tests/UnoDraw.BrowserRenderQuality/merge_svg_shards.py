@@ -186,7 +186,8 @@ def validate_case(case: dict[str, Any], report: dict[str, Any], root: Path, fixt
                     for entry in console), "The case contains console errors")
     verify_scene_bridge(console, bridge, graphite_coverage=case.get("graphite_coverage"))
     renderer = case.get("renderer", {})
-    backend = verify_backend(console, renderer.get("capabilities", {}), "webgpu")
+    backend = verify_backend(console, renderer.get("capabilities", {}), "webgpu",
+                             allow_single_canvas_provider=bridge == "single-canvas")
     require(all(renderer.get(key) == value for key, value in backend.items()), "Stored graphics negotiation differs from its actual log")
     targets = [entry for entry in renderer.get("application_contexts", []) if entry.get("target") is True]
     require(len(targets) == 1 and targets[0].get("kind") == "webgpu" and targets[0].get("connected") is True

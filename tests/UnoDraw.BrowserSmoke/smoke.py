@@ -76,7 +76,8 @@ def wait_ready(page: Page) -> None:
     page.wait_for_timeout(1500)
 
 
-def record_backend(page: Page, report: dict[str, Any], phase: str, console_start: int) -> None:
+def record_backend(page: Page, report: dict[str, Any], phase: str, console_start: int,
+                   *, allow_single_canvas_provider: bool = False) -> None:
     capabilities = page.evaluate("""async () => {
         const probe = kind => {
             const canvas = document.createElement('canvas');
@@ -112,7 +113,8 @@ def record_backend(page: Page, report: dict[str, Any], phase: str, console_start
     evidence = {"console_start_index": console_start, "console_end_index": console_end,
                 "capabilities": capabilities}
     report["backend_selection"][phase] = evidence
-    evidence.update(verify_backend(report["console"][console_start:console_end], capabilities, report["backend_mode"]))
+    evidence.update(verify_backend(report["console"][console_start:console_end], capabilities, report["backend_mode"],
+                                   allow_single_canvas_provider=allow_single_canvas_provider))
     evidence["expected_console_error_indices"] = [console_start + index
                                                 for index in evidence["expected_console_error_indices"]]
 

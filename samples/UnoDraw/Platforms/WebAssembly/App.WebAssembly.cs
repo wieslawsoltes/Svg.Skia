@@ -11,6 +11,7 @@ public sealed partial class App
 {
     partial void ConfigurePlatformWorkspace(SvgEditorWorkspace workspace)
     {
+        Rendering.WebGpuSkiaCanvasBridge.ReportSingleCanvasGraphicsSelection();
         if (Rendering.WebGpuSkiaCanvasBridge.UseSingleCanvas)
             workspace.Surface.UseSingleCanvasRendering(Rendering.WebGpuSkiaCanvasBridge.ReportSingleCanvasInitialization);
     }

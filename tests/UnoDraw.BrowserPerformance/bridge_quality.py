@@ -147,7 +147,7 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path, *,
         if report["actual_device_pixel_ratio"] != dpr:
             raise AssertionError("The requested device pixel ratio was not applied")
         report["states"].append(capture(page, output, "01-desktop", DESKTOP, dpr))
-        record_backend(page, report, "startup", 0)
+        record_backend(page, report, "startup", 0, allow_single_canvas_provider=bridge == "single-canvas")
         # Cached composition first reuses its backdrop during the later overlay
         # states. Startup must already prove the requested upload path; completion
         # additionally requires actual cache reuse, never just a preference.

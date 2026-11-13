@@ -5,6 +5,7 @@ using Svg.Editor.Skia.Uno;
 using Uno.Foundation;
 using Uno.Foundation.Extensibility;
 using Uno.Graphics;
+using Uno.UI.Composition.Drawing;
 using Windows.Foundation;
 
 namespace UnoDraw.Rendering;
@@ -20,8 +21,27 @@ internal static class WebGpuSkiaCanvasBridge
     private static int s_reportedCompositeInitialization;
     private static int s_reportedLegacyCompositeInitialization;
     private static int s_reportedSingleCanvasInitialization;
+    private static readonly SingleCanvasGraphicsObservation s_singleCanvasGraphics = new();
+    private static bool s_singleCanvasRequested;
 
-    internal static bool UseSingleCanvas { get; private set; }
+    internal static bool UseSingleCanvas => s_singleCanvasRequested && s_singleCanvasGraphics.UsesWebGpu;
+
+    internal static IGraphicsProvider ObserveWebGpuProvider(IGraphicsProvider provider) =>
+        s_singleCanvasRequested ? s_singleCanvasGraphics.ObserveWebGpu(provider) : provider;
+
+    internal static IGraphicsProvider ObserveSkiaProvider(IGraphicsProvider provider) =>
+        s_singleCanvasRequested ? s_singleCanvasGraphics.ObserveSkia(provider) : provider;
+
+    internal static void ReportSingleCanvasGraphicsSelection()
+    {
+        if (!s_singleCanvasRequested)
+            return;
+        // App is constructed only after the host finishes negotiation. This is a
+        // native factory observation, separate from the framework's winner log
+        // and the later completion of the original document/interaction painters.
+        Console.WriteLine(s_singleCanvasGraphics.DescribeSelection()
+            ?? "UnoDraw canvas bridge fallback: single-canvas graphics selection is unavailable; using retained topology.");
+    }
 
     internal static void Register()
     {
@@ -29,7 +49,7 @@ internal static class WebGpuSkiaCanvasBridge
             "new URLSearchParams(globalThis.location.search).get('canvasBridge') || ''");
         if (preference == "single-canvas")
         {
-            UseSingleCanvas = true;
+            s_singleCanvasRequested = true;
             Console.WriteLine("UnoDraw canvas bridge preference: single-canvas original raster upload.");
             return;
         }

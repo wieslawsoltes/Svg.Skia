@@ -11,6 +11,67 @@ NO_WEBGL_ERROR = "Failed to create WebGL context: Failed to create WebGL context
 NEGOTIATION = re.compile(
     r"Graphics backend '(?P<provider>\w+)' won negotiation on context kind '(?P<context>\w+)'\."
 )
+SINGLE_CANVAS_PREFERENCE = "UnoDraw canvas bridge preference: single-canvas original raster upload."
+SINGLE_CANVAS_INITIALIZED = "UnoDraw canvas bridge initialized: single-canvas original topology."
+SINGLE_CANVAS_OBSERVATION_PREFIX = "UnoDraw single-canvas graphics observation: "
+SINGLE_CANVAS_OBSERVATION = re.compile(
+    re.escape(SINGLE_CANVAS_OBSERVATION_PREFIX)
+    + r"provider='(?P<provider>\w+)'; factory='(?P<factory>\w+)'; context='(?P<context>\w+)'; "
+      r"kind='(?P<kind>\w+)'; topology='(?P<topology>[\w-]+)'\."
+)
+
+
+def single_canvas_provider_evidence(console: list[dict[str, Any]], backend: str,
+                                    negotiations: list[dict[str, str]], first_winner: int,
+                                    *, allowed: bool) -> dict[str, Any] | None:
+    """Bind an explicitly permitted decorator winner to its actual native objects.
+
+    The factory record is emitted by App after host negotiation. It proves the
+    observed native factory/context and chosen topology, not a completed paint,
+    upload or presentation. Historical native-provider reports stay unchanged.
+    """
+    decorated = any(row["provider"] in {"SingleCanvasWebGpuProvider", "SingleCanvasSkiaProvider"}
+                    for row in negotiations)
+    observations = [(index, entry) for index, entry in enumerate(console)
+                    if entry.get("text", "").startswith(SINGLE_CANVAS_OBSERVATION_PREFIX)]
+    if not decorated:
+        if observations:
+            raise AssertionError("A native-provider winner cannot borrow a decorated factory observation")
+        return None
+    if allowed is not True or backend == "skia-preferred":
+        raise AssertionError("This renderer proof does not permit a single-canvas provider decorator")
+    expected = {
+        "webgpu": ("SingleCanvasWebGpuProvider", "WebGpuGraphicsProvider", "WebGpuDrawingFactory",
+                   "WebGpuBrowserGraphicsContext", "WebGpu", "single-canvas"),
+        "skia-fallback": ("SingleCanvasSkiaProvider", "SkiaGraphicsProvider", "SkiaDrawingFactory",
+                          "WasmGLGraphicsContext", "WebGL", "retained"),
+        "software-fallback": ("SingleCanvasSkiaProvider", "SkiaGraphicsProvider", "SkiaDrawingFactory",
+                              "WasmSoftwareGraphicsContext", "Software", "retained"),
+    }[backend]
+    wrapper, provider, factory, context, kind, topology = expected
+    if negotiations != [{"provider": wrapper, "context": kind}]:
+        raise AssertionError("The single-canvas decorator did not exclusively win the required native context")
+    preferences = [index for index, entry in enumerate(console)
+                   if entry.get("type") in {"log", "info", "debug"}
+                   and entry.get("text") == SINGLE_CANVAS_PREFERENCE]
+    if len(preferences) != 1 or preferences[0] >= first_winner:
+        raise AssertionError("The decorated provider requires its exclusive preference before negotiation")
+    if len(observations) != 1:
+        raise AssertionError("The decorated provider requires exactly one native factory observation")
+    index, entry = observations[0]
+    match = SINGLE_CANVAS_OBSERVATION.fullmatch(entry.get("text", ""))
+    native = {"provider": provider, "factory": factory, "context": context, "kind": kind, "topology": topology}
+    if (entry.get("type") not in {"log", "info", "debug"} or index <= first_winner
+            or match is None or match.groupdict() != native):
+        raise AssertionError("The native factory/context observation does not match the completed negotiation")
+    competing = [entry.get("text", "") for entry in console if (
+        entry.get("text", "").startswith("UnoDraw canvas bridge preference:")
+        and entry.get("text") != SINGLE_CANVAS_PREFERENCE) or (
+        entry.get("text", "").startswith("UnoDraw canvas bridge initialized:")
+        and (topology != "single-canvas" or entry.get("text") != SINGLE_CANVAS_INITIALIZED))]
+    if competing:
+        raise AssertionError("The native factory observation was followed by a competing canvas topology")
+    return {**native, "decorator": wrapper, "console_slice_index": index}
 
 
 def launch_arguments(backend: str) -> list[str]:
@@ -50,7 +111,8 @@ def is_no_webgl_error(entry: dict[str, Any]) -> bool:
     } and lines[1].strip() == NO_WEBGL_ERROR
 
 
-def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], backend: str) -> dict[str, Any]:
+def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], backend: str,
+                   *, allow_single_canvas_provider: bool = False) -> dict[str, Any]:
     """Require a usable app renderer, with capabilities only corroborating its log.
 
     Call with a fresh console slice after each navigation. A previous startup's
@@ -85,12 +147,16 @@ def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], 
         negotiations.extend(winners)
     if not negotiations:
         raise AssertionError("No successful graphics-backend negotiation was recorded for this navigation")
+    observation = single_canvas_provider_evidence(console, backend, negotiations, first_winner,
+                                                  allowed=allow_single_canvas_provider)
     allowed = {
         "webgpu": {("WebGpuGraphicsProvider", "WebGpu")},
         "skia-fallback": {("SkiaGraphicsProvider", "WebGL")},
         "software-fallback": {("SkiaGraphicsProvider", "Software")},
         "skia-preferred": {("SkiaGraphicsProvider", "WebGL")},
     }[backend]
+    if observation is not None:
+        allowed = {(observation["decorator"], observation["kind"])}
     unexpected = [entry for entry in negotiations if (entry["provider"], entry["context"]) not in allowed]
     if unexpected:
         raise AssertionError(f"{backend} selected an unexpected graphics backend: {unexpected}")
@@ -110,5 +176,8 @@ def verify_backend(console: list[dict[str, Any]], capabilities: dict[str, Any], 
         if not webgl_errors:
             raise AssertionError("Software fallback did not record the expected unavailable-WebGL negotiation")
         expected_errors = sorted(expected_errors + webgl_errors)
-    return {"capabilities": capabilities, "negotiations": negotiations,
-            "expected_console_error_indices": expected_errors}
+    result = {"capabilities": capabilities, "negotiations": negotiations,
+              "expected_console_error_indices": expected_errors}
+    if observation is not None:
+        result["single_canvas_native_factory"] = observation
+    return result

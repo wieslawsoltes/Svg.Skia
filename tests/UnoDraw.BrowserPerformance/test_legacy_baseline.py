@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from legacy_baseline_comparison import save_report
+from backend import verify_backend
 from legacy_baseline_contracts import (BRIDGE, REPORT_KIND, REPORT_KINDS, WORKLOADS, compare_metrics,
                                        trial_plan, verify_report_identity, verify_runs)
 from legacy_baseline_packages import (BASELINE_SHA, FIXTURE_SHA256, PINS, RECEIPT, REPOSITORY,
@@ -67,7 +68,107 @@ def identity(workload="selection"):
             "expected_primary_runs": 6, "expected_candidate_diagnostics": 1}
 
 
+def observed_direct_runs(workload="selection", diagnostics=False):
+    values = direct_runs(workload, diagnostics, "single-canvas")
+    for run in values:
+        if run["role"] != "candidate":
+            continue
+        run["console"] = [{"type": "log", "text": text} for text in (
+            SINGLE_CANVAS_PREFERENCE,
+            "Graphics backend 'SingleCanvasWebGpuProvider' won negotiation on context kind 'WebGpu'.",
+            "UnoDraw single-canvas graphics observation: provider='WebGpuGraphicsProvider'; "
+            "factory='WebGpuDrawingFactory'; context='WebGpuBrowserGraphicsContext'; kind='WebGpu'; topology='single-canvas'.",
+            SINGLE_CANVAS_INITIALIZED)]
+        proof = verify_backend(run["console"], {"secure_context": True, "api_available": True,
+                               "adapter_available": True}, "webgpu", allow_single_canvas_provider=True)
+        run["renderer"].update({**proof, "console_start_index": 0, "console_end_index": len(run["console"])})
+    return values
+
+
 class DirectComparisonTests(unittest.TestCase):
+    def test_observed_single_canvas_keeps_the_complete_direct_plan_and_native_proof(self):
+        for workload in WORKLOADS:
+            for diagnostics in (False, True):
+                with self.subTest(workload=workload, diagnostics=diagnostics):
+                    verify_runs(observed_direct_runs(workload, diagnostics), SOURCE, workload,
+                                diagnostics=diagnostics, candidate_bridge="single-canvas")
+
+    def test_observed_direct_provider_cannot_use_missing_late_or_mismatched_startup_evidence(self):
+        for defect in ("missing", "late", "bounds", "start", "start-type", "capabilities", "stored", "stripped", "extra-winner"):
+            values = observed_direct_runs()
+            target = next(run for run in values if run["role"] == "candidate")
+            if defect == "missing":
+                target["console"][2]["text"] = "No native factory observation"
+            elif defect == "late":
+                target["renderer"]["console_end_index"] = 2
+            elif defect == "bounds":
+                target["renderer"]["console_end_index"] = len(target["console"]) + 1
+            elif defect == "start":
+                target["renderer"]["console_start_index"] = 1
+            elif defect == "start-type":
+                target["renderer"]["console_start_index"] = False
+            elif defect == "capabilities":
+                target["renderer"]["capabilities"]["adapter_available"] = False
+            elif defect == "stored":
+                target["renderer"]["single_canvas_native_factory"]["factory"] = "DifferentFactory"
+            elif defect == "stripped":
+                target["renderer"].pop("single_canvas_native_factory")
+                target["renderer"]["negotiations"] = [{"provider": "WebGpuGraphicsProvider", "context": "WebGpu"}]
+                target["console"][2]["text"] = "Removed native factory observation"
+            else:
+                target["console"].append({"type": "info", "text":
+                    "Graphics backend 'WebGpuGraphicsProvider' won negotiation on context kind 'WebGpu'."})
+                target["renderer"]["console_end_index"] += 1
+            with self.subTest(defect=defect), self.assertRaises((ValueError, AssertionError)):
+                verify_runs(values, SOURCE, "selection", candidate_bridge="single-canvas")
+
+    def test_baseline_and_other_explicit_modes_cannot_borrow_observed_provider_permission(self):
+        decorated = next(run for run in observed_direct_runs() if run["role"] == "candidate")
+        values = observed_direct_runs()
+        target = next(run for run in values if run["role"] == "baseline")
+        target["renderer"] = copy.deepcopy(decorated["renderer"])
+        target["console"] = copy.deepcopy(decorated["console"])
+        with self.assertRaisesRegex(ValueError, "Only the explicit"):
+            verify_runs(values, SOURCE, "selection", candidate_bridge="single-canvas")
+        for mode in set(REPORT_KINDS) - {"single-canvas"}:
+            values = direct_runs(candidate_bridge=mode)
+            target = next(run for run in values if run["role"] == "candidate")
+            target["renderer"] = copy.deepcopy(decorated["renderer"])
+            target["console"] = copy.deepcopy(decorated["console"])
+            with self.subTest(mode=mode), self.assertRaisesRegex(ValueError, "Only the explicit"):
+                verify_runs(values, SOURCE, "selection", candidate_bridge=mode)
+
+    def test_observed_direct_provider_retains_its_startup_proof_through_completion(self):
+        values = observed_direct_runs()
+        target = next(run for run in values if run["role"] == "candidate")
+        target["console"].append({"type": "info", "text": "Unrelated post-measurement diagnostics"})
+        verify_runs(values, SOURCE, "selection", candidate_bridge="single-canvas")
+
+    def test_observed_direct_provider_rejects_late_or_competing_navigation_evidence(self):
+        for defect in ("observation", "decorator-winner", "native-winner", "preference", "late-decorator"):
+            values = observed_direct_runs()
+            target = next(run for run in values if run["role"] == "candidate")
+            if defect == "observation":
+                target["console"].append(copy.deepcopy(target["console"][2]))
+            elif defect == "decorator-winner":
+                target["console"].append(copy.deepcopy(target["console"][1]))
+            elif defect == "native-winner":
+                target["console"].append({"type": "info", "text":
+                    "Graphics backend 'WebGpuGraphicsProvider' won negotiation on context kind 'WebGpu'."})
+            elif defect == "preference":
+                target["console"].append(copy.deepcopy(target["console"][0]))
+            else:
+                late_markers = copy.deepcopy(target["console"][1:3])
+                target["console"] = [target["console"][0], {"type": "info", "text":
+                    "Graphics backend 'WebGpuGraphicsProvider' won negotiation on context kind 'WebGpu'."},
+                    target["console"][3]]
+                proof = verify_backend(target["console"], target["renderer"]["capabilities"], "webgpu")
+                target["renderer"].pop("single_canvas_native_factory")
+                target["renderer"].update({**proof, "console_end_index": len(target["console"])})
+                target["console"].extend(late_markers)
+            with self.subTest(defect=defect), self.assertRaises((ValueError, AssertionError)):
+                verify_runs(values, SOURCE, "selection", candidate_bridge="single-canvas")
+
     def test_each_explicit_mode_keeps_its_identity_phases_and_original_workload_contract(self):
         self.assertEqual(len(set(REPORT_KINDS.values())), 4)
         for bridge, kind in REPORT_KINDS.items():
