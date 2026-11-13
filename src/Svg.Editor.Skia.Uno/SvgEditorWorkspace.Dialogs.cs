@@ -96,6 +96,11 @@ public sealed partial class SvgEditorWorkspace
         if (_dialogVisible)
             return ContentDialogResult.None;
         _dialogVisible = true;
+        // A ContentDialog lives in the popup root, outside the workspace's key
+        // route. Observe releases there as well so the shortcut that opened a
+        // modal cannot remain held after focus moves into its native TextBox.
+        var releaseShortcut = new KeyEventHandler(Workspace_KeyUp);
+        dialog.AddHandler(KeyUpEvent, releaseShortcut, true);
         EditorInputTrace.Write("modal-show-request");
         if (EditorInputTrace.Enabled)
         {
@@ -110,6 +115,7 @@ public sealed partial class SvgEditorWorkspace
         { return await dialog.ShowAsync(); }
         finally
         {
+            dialog.RemoveHandler(KeyUpEvent, releaseShortcut);
             _dialogVisible = false;
             EditorInputTrace.Write("modal-completed");
             DispatcherQueue.TryEnqueue(() =>

@@ -24,6 +24,7 @@ from quality import bridge_query, validate_graphite_coverage, verify_bridge  # n
 from backend import launch_arguments  # noqa: E402
 from smoke import READY, serve  # noqa: E402
 from candidate_package import verify_package  # noqa: E402
+from source_editor_readiness import completed_modal, source_capture_timeout_ms, verify_source_editor_readiness  # noqa: E402
 from svg_fixture_contracts import (LIVE_CANDIDATE_BRIDGES, DESKTOP, DPRS, SCENES, STATES, Fixture,  # noqa: E402
                                    compare_scene, inspect_scene, load_fixtures, matrix_dprs, matrix_failures,
                                    normalize_newlines, require_camera_change, require_source_readback, scene_bridges)
@@ -69,7 +70,8 @@ def verify_scene_bridge(console: list[dict[str, Any]], bridge: str, *,
 def source_hashes() -> dict[str, str]:
     directory = Path(__file__).resolve().parent
     root = directory.parents[1]
-    files = [directory / name for name in ("svg_bridge_quality.py", "svg_fixture_contracts.py", "test_svg_fixture_contracts.py",
+    files = [directory / name for name in ("svg_bridge_quality.py", "source_editor_readiness.py", "test_source_editor_readiness.py",
+                                           "svg_fixture_contracts.py", "test_svg_fixture_contracts.py",
                                            "merge_svg_shards.py", "test_svg_shards.py", "verify_source.py")]
     files += sorted((directory / "fixtures/svg-bridge").iterdir())
     files += [root / "tests/Svg.Editor.Skia.UnitTests/RgbaCanvasEquivalenceTests.cs"]
@@ -103,16 +105,38 @@ def focus_source_editor(page: Page) -> dict[str, Any]:
     raise AssertionError("The production SVG source dialog did not expose its focused multiline editor")
 
 
-def edit_source(page: Page, fixture: Fixture, directory: Path) -> dict[str, Any]:
+def wait_for_source_modal_completion(page: Page, console: list[dict[str, Any]], start: int,
+                                     navigation_console: int, action: str) -> dict[str, int]:
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        if observation := completed_modal(console, start):
+            observation.update({"console_start": start, "console_end": len(console)})
+            for key in ("console_start", "console_end", "console_index"):
+                observation[key] -= navigation_console
+            return observation
+        # Observe the actual asynchronous ContentDialog completion. This creates
+        # no application invalidation and never retries a dropped shortcut.
+        page.wait_for_timeout(20)
+    raise AssertionError(f"Source {action} did not finish its actual modal lifecycle")
+
+
+def edit_source(page: Page, fixture: Fixture, directory: Path, dpr: float,
+                console: list[dict[str, Any]], navigation_console: int,
+                progress: dict[str, Any]) -> dict[str, Any]:
+    capture_timeout = source_capture_timeout_ms(dpr)
     (directory / "canonical.svg").write_text(fixture.source, encoding="utf-8")
     (directory / "browser-input.svg").write_text(fixture.browser_source, encoding="utf-8")
     opened, reopened = directory / "source-open", directory / "source-reopen"
     opened.mkdir(exist_ok=True)
     reopened.mkdir(exist_ok=True)
+    progress["stage"] = "open-source-command"
     command(page, "Edit SVG source", opened)
+    progress["stage"] = "focus-original-source"
     before = focus_source_editor(page)
     (directory / "source-before.svg").write_text(before["value"], encoding="utf-8")
-    page.screenshot(path=str(directory / "source-before.png"), scale="device")
+    progress["stage"] = "capture-original-source"
+    page.screenshot(path=str(directory / "source-before.png"), scale="device", timeout=capture_timeout)
+    progress["stage"] = "insert-fixture"
     page.keyboard.press("Control+A")
     selected = read_editor(page)
     if not selected or selected["selection_start"] != 0 or selected["selection_end"] != selected["length"]:
@@ -128,30 +152,50 @@ def edit_source(page: Page, fixture: Fixture, directory: Path) -> dict[str, Any]
     else:
         raise AssertionError("The native source editor did not read back the exact inserted fixture")
     (directory / "source-inserted.svg").write_text(inserted["value"], encoding="utf-8")
-    page.screenshot(path=str(directory / "source-inserted.png"), scale="device")
+    progress["stage"] = "capture-inserted-source"
+    page.screenshot(path=str(directory / "source-inserted.png"), scale="device", timeout=capture_timeout)
     # Native Skia controls may have no accessible DOM button. These coordinates
     # are the observed 1440×960 production dialog's primary action, not a test UI.
     button = page.get_by_role("button", name="Apply SVG", exact=True)
+    progress["stage"] = "apply-source"
+    apply_console_start = len(console)
     if button.count() == 1 and button.is_visible():
         button.click()
         apply_method = "accessible Apply SVG button"
     else:
         page.mouse.click(*APPLY_BUTTON)
         apply_method = "observed production dialog primary-button coordinates"
+    progress["stage"] = "wait-for-apply-modal-completion"
+    completion = wait_for_source_modal_completion(page, console, apply_console_start, navigation_console, "Apply")
+    progress["apply_completion"] = completion
+    progress["stage"] = "wait-for-apply-native-editor-deactivation"
+    page.wait_for_function("() => !(document.activeElement instanceof HTMLTextAreaElement)", timeout=15_000)
     next_frame(page)
     # Reopening must first show the command palette. A failed Apply that leaves
     # the original modal editor open cannot masquerade as a committed readback.
+    progress["stage"] = "reopen-committed-source-command"
     command(page, "Edit SVG source", reopened)
+    progress["stage"] = "read-committed-source"
     committed = focus_source_editor(page)
     (directory / "source-committed.svg").write_text(committed["value"], encoding="utf-8")
-    page.screenshot(path=str(directory / "source-committed.png"), scale="device")
+    progress["stage"] = "capture-committed-source"
+    page.screenshot(path=str(directory / "source-committed.png"), scale="device", timeout=capture_timeout)
     proof = require_source_readback(committed["value"], fixture)
+    progress["stage"] = "close-committed-source"
+    close_console_start = len(console)
     page.keyboard.press("Escape")
+    progress["stage"] = "wait-for-close-modal-completion"
+    close_completion = wait_for_source_modal_completion(page, console, close_console_start,
+                                                        navigation_console, "close")
+    progress["close_completion"] = close_completion
+    progress["stage"] = "wait-for-close-native-editor-deactivation"
     page.wait_for_function("() => !(document.activeElement instanceof HTMLTextAreaElement)", timeout=15_000)
     next_frame(page)
     proof.update({"exact_inserted_readback": True, "input_sha256": fixture.browser_sha256,
                   "input_tag": inserted["tag"], "input_id": inserted["id"],
-                  "apply_method": apply_method, "reopened_after_apply": True})
+                  "apply_method": apply_method, "reopened_after_apply": True,
+                  "apply_completion": completion, "close_completion": close_completion})
+    progress["stage"] = "complete"
     return proof
 
 
@@ -217,7 +261,7 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                 fixtures: list[Fixture], output: Path, *,
                 graphite_coverage: str | None = None) -> list[dict[str, Any]]:
     validate_graphite_coverage(bridge, graphite_coverage)
-    query = bridge_query(bridge, graphite_coverage=graphite_coverage)
+    query = bridge_query(bridge, graphite_coverage=graphite_coverage) + "&inputDiagnostics=1"
     logs: dict[str, Any] = {"console": [], "page_errors": [], "resource_errors": []}
     context = page = None
     cases = []
@@ -233,7 +277,10 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                                     "graphite_coverage": graphite_coverage,
                                     "source_sha": package["source_sha"], "execution_mode": package["execution_mode"],
                                     "canonical_sha256": fixture.sha256, "input_sha256": fixture.browser_sha256,
-                                    "states": [], "browser_version": browser.version}
+                                    "states": [], "browser_version": browser.version,
+                                    "input_diagnostics": True,
+                                    "source_editor_capture_timeout_ms": source_capture_timeout_ms(dpr),
+                                    "source_edit_progress": {}}
             starts = {key: len(value) for key, value in logs.items()}
             try:
                 if reload_required:
@@ -260,7 +307,8 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                     verify_scene_bridge(logs["console"][navigation_console:], bridge, graphite_coverage=graphite_coverage)
                     reload_required = False
                 case["environment"] = environment
-                case["source_edit"] = edit_source(page, fixture, directory)
+                case["source_edit"] = edit_source(page, fixture, directory, dpr, logs["console"],
+                                                 navigation_console, case["source_edit_progress"])
                 page.mouse.click(1075, 915)
                 page.keyboard.press("V")
                 page.keyboard.press("Control+Shift+A")
@@ -287,6 +335,8 @@ def run_session(browser: Any, url: str, package: dict[str, Any], bridge: str, dp
                 verify_scene_bridge(logs["console"][navigation_console:], bridge, graphite_coverage=graphite_coverage)
                 if errors_since(logs, navigation_starts):
                     raise AssertionError("The SVG scene produced runtime/resource errors")
+                case["console"] = list(logs["console"][navigation_console:])
+                verify_source_editor_readiness(case, required=True)
                 case["passed"] = True
             except Exception as error:
                 case["failure"] = f"{type(error).__name__}: {error}"
@@ -398,6 +448,7 @@ def main() -> int:
                               "report_kind": "svg_document_quality" if args.dpr is None else "svg_document_quality_dpr_shard",
                               "full_matrix": args.dpr is None, "full_matrix_passed": False,
                               "execution_mode": args.execution_mode, "cases": [], "comparisons": [], "failures": [],
+                              "input_diagnostics": True,
                               "candidate_bridge": args.candidate_bridge, "bridges": list(bridges),
                               "graphite_coverage": None,
                               "graphics": "SwiftShader browser graphics API correctness; not hardware performance",

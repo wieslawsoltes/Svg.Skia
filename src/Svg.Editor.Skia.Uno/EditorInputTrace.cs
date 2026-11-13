@@ -24,7 +24,7 @@ internal static class EditorInputTrace
         var sequence = Interlocked.Increment(ref _sequence);
         if (sequence > MaximumEntries)
             return;
-        Console.Error.WriteLine($"[EditorInput {sequence} {Environment.TickCount64}] {message}");
+        Console.WriteLine($"[EditorInput {sequence} {Environment.TickCount64}] {message}");
     }
 
     internal static void Key(string stage, VirtualKey key, bool handled, bool modal, XamlRoot? root, bool usesCommandKey)

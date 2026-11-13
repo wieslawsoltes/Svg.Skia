@@ -21,6 +21,7 @@ from quality import (LEGACY_COMPOSITE_INITIALIZED, LEGACY_COMPOSITE_PREFERENCE, 
 from verify_source import ALLOWED_PREFIXES
 from candidate_package import ARTIFACT_NAME, RECEIPT_KIND, WORKFLOW_PATH
 from pinned_package import FIXTURE_SHA256, REPOSITORY
+from test_source_editor_readiness import readiness_case
 
 
 class SvgShardContracts(unittest.TestCase):
@@ -83,6 +84,20 @@ class SvgShardContracts(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
 
+    @staticmethod
+    def add_readiness(case):
+        observations = readiness_case(case["dpr"])
+        console = case.setdefault("console", [])
+        offset = len(console)
+        console.extend(observations["console"])
+        for proof in observations["source_edit"].values():
+            for key in ("console_start", "console_end", "console_index"):
+                proof[key] += offset
+        case.setdefault("source_edit", {}).update(observations["source_edit"])
+        case.setdefault("environment", observations["environment"])
+        case.update({key: observations[key] for key in ("input_diagnostics", "source_editor_capture_timeout_ms")})
+        return case
+
     def native_case(self, root, report, fixture, bridge):
         dpr = report["device_pixel_ratios"][0]
         relative = f"dpr-{dpr}/{bridge}/{fixture.name}"
@@ -109,6 +124,8 @@ class SvgShardContracts(unittest.TestCase):
                 "page_errors": [], "resource_errors": [], "renderer": renderer,
                 "environment": {"viewport": DESKTOP, "device_pixel_ratio": dpr, "cross_origin_isolated": False,
                                 "user_agent": "HeadlessChrome/143.0.7499.4", "browser_fonts": []}, "states": []}
+        if report.get("input_diagnostics") is True:
+            self.add_readiness(case)
         for name, (origin_x, origin_y, scale) in zip(STATES, ((180, 240, 4), (217.25, 221.5, 4), (210, 210, 4.46))):
             origin_x, origin_y, scale = origin_x * dpr, origin_y * dpr, scale * dpr
             image = Image.new("RGB", (round(1440 * dpr), round(960 * dpr)), (30, 30, 30))
@@ -222,6 +239,70 @@ class SvgShardContracts(unittest.TestCase):
         changed = copy.deepcopy(report)
         changed["package"]["path"] = "/other/runner/package"
         self.assertEqual(identity(report, self.proof(), None), identity(changed, self.proof(), None))
+
+    def test_source_modal_policy_requires_complete_case_evidence_and_preserves_historical_absence(self):
+        historical = self.report()
+        self.assertEqual(validate_header(historical, self.manifest, self.hashes, self.harness), 1)
+        self.assertNotIn("input_diagnostics", identity(historical, self.proof(), None))
+        for dpr in DPRS:
+            report = self.report(dpr=dpr)
+            report["input_diagnostics"] = True
+            for case in report["cases"]:
+                self.add_readiness(case)
+            self.assertEqual(validate_header(report, self.manifest, self.hashes, self.harness), dpr)
+            self.assertTrue(identity(report, self.proof(), None)["input_diagnostics"])
+            mutations = [lambda r: r.pop("input_diagnostics"),
+                         lambda r: r.update(input_diagnostics=False),
+                         lambda r: r.update(input_diagnostics=None),
+                         lambda r: r.update(input_diagnostics=1),
+                         lambda r: r["cases"][0].pop("input_diagnostics"),
+                         lambda r: r["cases"][0].update(input_diagnostics=False),
+                         lambda r: r["cases"][0].update(source_editor_capture_timeout_ms=1),
+                         lambda r: r["cases"][0]["source_edit"].pop("close_completion")]
+            for mutate in mutations:
+                changed = copy.deepcopy(report)
+                mutate(changed)
+                with self.subTest(dpr=dpr, mutation=mutate), self.assertRaises(ValueError):
+                    validate_header(changed, self.manifest, self.hashes, self.harness)
+        required = self.report()
+        required["input_diagnostics"] = True
+        with self.assertRaises(ValueError):
+            validate_header(required, self.manifest, self.hashes, self.harness)
+
+    def test_source_modal_policy_cannot_mix_new_and_historical_shards(self):
+        shards = self.directory / "shards"
+        for dpr in DPRS:
+            report = self.report(dpr=dpr)
+            if dpr == 1.25:
+                report["input_diagnostics"] = True
+                for case in report["cases"]:
+                    self.add_readiness(case)
+            self.write_shard(shards / f"dpr-{dpr}", report)
+        result = merge(shards, self.directory / "mixed-readiness", shard_jobs_result="success")
+        self.assertFalse(result["passed"] or result["full_matrix_passed"])
+        self.assertIn("differs across shards", result["failures"][0])
+
+    def test_source_modal_case_validation_rechecks_bounds_and_identity_before_native_pixels(self):
+        report = self.report(1.25)
+        report["input_diagnostics"] = True
+        fixture = self.fixtures[0]
+        case = self.native_case(self.directory, report, fixture, "legacy-composite")
+        validated, _ = validate_case(case, report, self.directory, fixture, None)
+        self.assertEqual(len(validated["native_recalculation"]["states"]), 3)
+        mutations = [lambda c: c.pop("input_diagnostics"),
+                     lambda c: c["source_edit"]["apply_completion"].update(console_end=0),
+                     lambda c: c["source_edit"]["close_completion"].update(sequence=12345),
+                     lambda c: c["console"].append(copy.deepcopy(c["console"][c["source_edit"]["close_completion"]["console_index"]]))]
+        for mutate in mutations:
+            changed = copy.deepcopy(case)
+            mutate(changed)
+            self.update_case(self.directory, changed)
+            with self.subTest(mutation=mutate), self.assertRaises((ValueError, AssertionError)):
+                validate_case(changed, report, self.directory, fixture, None)
+        self.update_case(self.directory, case)
+        report.pop("input_diagnostics")
+        with self.assertRaises(ValueError):
+            validate_case(case, report, self.directory, fixture, None)
 
     def test_source_proof_cannot_hide_a_different_harness_or_production_change(self):
         report = self.report()
@@ -343,6 +424,7 @@ class SvgShardContracts(unittest.TestCase):
         for dpr in DPRS:
             root = shards / f"artifact-dpr-{dpr}"
             report = self.report(dpr)
+            report["input_diagnostics"] = True
             report["cases"] = [self.native_case(root, report, fixture, bridge)
                                for bridge in scene_bridges("legacy-composite") for fixture in self.fixtures]
             report["comparisons"] = compare_cases(report["cases"], self.fixtures, root,
@@ -352,6 +434,7 @@ class SvgShardContracts(unittest.TestCase):
         self.assertTrue(result["passed"], result["failures"])
         self.assertEqual(result["report_kind"], AGGREGATE_KIND)
         self.assertTrue(result["full_matrix"] and result["full_matrix_passed"])
+        self.assertTrue(result["input_diagnostics"])
         self.assertEqual((len(result["cases"]), result["native_recalculation"]["state_count"], len(result["comparisons"])), (48, 144, 72))
         self.assertEqual(result["package_manifest_sha256"], canonical_digest(result["package"]))
         for case in result["cases"]:

@@ -15,6 +15,13 @@ public static partial class BrowserRenderDiagnostics
         EditorRenderDiagnostics.Enabled = WebAssemblyRuntime.InvokeJS(
             "new URLSearchParams(globalThis.location.search).get('renderDiagnostics') === '1'") == "true";
         if (WebAssemblyRuntime.InvokeJS(
+            "new URLSearchParams(globalThis.location.search).get('inputDiagnostics') === '1'") == "true")
+        {
+            // Source-editor quality checks observe the existing modal lifecycle.
+            // Keep input tracing opt-in and out of every primary timing trial.
+            Environment.SetEnvironmentVariable("UNODRAW_EDITOR_INPUT_TRACE", "1");
+        }
+        if (WebAssemblyRuntime.InvokeJS(
             "new URLSearchParams(globalThis.location.search).get('perfDiagnostics') === '1'") == "true")
         {
             // The compositor reads these once during initialization. Frame logs

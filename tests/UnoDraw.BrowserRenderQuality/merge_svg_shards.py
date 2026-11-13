@@ -25,6 +25,7 @@ from backend import launch_arguments, verify_backend
 from quality import validate_graphite_coverage
 from verify_source import ALLOWED_PREFIXES
 from candidate_package import validate_receipt
+from source_editor_readiness import verify_source_editor_readiness
 
 
 SHARD_KIND = "svg_document_quality_dpr_shard"
@@ -82,6 +83,10 @@ def validate_header(report: dict[str, Any], manifest: dict[str, Any], hashes: di
             "A failed or incomplete shard cannot qualify the complete SVG matrix")
     require(report.get("package_verified_before_browser") is True and report.get("package_verified_after_browser") is True,
             "The complete immutable package must be verified before and after each browser shard")
+    require("input_diagnostics" not in report or report["input_diagnostics"] is True,
+            "A new source-modal report must explicitly enable input diagnostics")
+    for case in report.get("cases", []):
+        verify_source_editor_readiness(case, required=report.get("input_diagnostics") is True)
     candidate = report.get("candidate_bridge")
     require(candidate in REPORT_CANDIDATE_BRIDGES, "A supported SVG shard report mode is required")
     validate_graphite_coverage(candidate, report.get("graphite_coverage"))
@@ -139,6 +144,7 @@ def identity(report: dict[str, Any], proof: dict[str, Any], receipt: Any) -> dic
     keys = ("execution_mode", "candidate_bridge", "bridges", "graphite_coverage", "graphics",
             "fixture_manifest", "test_file_sha256", "harness_source_sha", "browser_version", "browser_launch_arguments")
     return {**{key: report.get(key) for key in keys},
+            **({"input_diagnostics": True} if report.get("input_diagnostics") is True else {}),
             "package": {key: value for key, value in report["package"].items() if key != "path"},
             "source_equivalence": proof, "package_artifact": receipt}
 
@@ -164,6 +170,9 @@ def validate_case(case: dict[str, Any], report: dict[str, Any], root: Path, fixt
     local = read_json(safe_file(root, relative + "/report.json"))
     require(local == {key: value for key, value in case.items() if key != "artifact_directory"},
             "The independent case report differs from the shard index")
+    require("input_diagnostics" not in report or report["input_diagnostics"] is True,
+            "A new source-modal report must explicitly enable input diagnostics")
+    verify_source_editor_readiness(case, required=report.get("input_diagnostics") is True)
     require(case.get("source_sha") == report["package"]["source_sha"]
             and case.get("execution_mode") == report["execution_mode"]
             and case.get("browser_version") == report["browser_version"]

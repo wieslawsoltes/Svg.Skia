@@ -74,3 +74,30 @@ script. On a pull request, a valid but stale cached package produces an explicit
 ineligible source audit and skips the cached suites; fresh builds and both
 correctness modes run in the main performance workflow. A manual invocation with
 stale artifacts fails. Invalid manifests or missing source history always fail.
+
+## SVG source-editor readiness
+
+`svg_bridge_quality.py` runs the separate eight-scene, three-DPR canvas-mode
+comparison through the production SVG source dialog. Both modes use the same
+candidate package. Its URL explicitly enables `inputDiagnostics=1`, which opts
+into the editor's existing bounded input lifecycle trace. Normal sessions and
+every primary performance trial keep that trace disabled.
+
+After pressing the real **Apply SVG** button, the check waits for a fresh
+`modal-completed` observation. The editor emits that event after its awaited
+dialog closes and clears the modal command guard. A prior palette close, a
+`Closed` event alone, or multiple competing completion events cannot satisfy
+this boundary. The test then reopens command search and reads the committed
+source from the actual focused multiline input; the inserted text alone never
+proves a successful Apply. Each case retains the last source action and the
+completion event's sequence, timestamp, navigation-console index and bounded
+console range. Closing the reopened source dialog with Escape requires another
+fresh completion before camera commands. Both observations are independently
+validated against their exact retained console ranges by the shard merger.
+
+Only the three diagnostic source-dialog screenshots use a bounded native-area
+capture allowance: 30,000 ms at DPR 1, 46,875 ms at DPR 1.25 and 120,000 ms at DPR
+2. Every case records its exact budget. This allowance does not change the
+existing 30-second scene stability loops, native resolution, pixel thresholds,
+source/readback checks or primary timing workloads. It does not establish the
+cause of earlier screenshot timeouts; original failed attempts remain failures.
