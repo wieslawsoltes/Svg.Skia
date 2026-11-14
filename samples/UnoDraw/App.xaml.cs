@@ -60,6 +60,18 @@ public sealed partial class App : Application
             _closeInProgress = true;
             try
             {
+                // Unwind MCP-owned dialogs and pickers before save confirmation.
+                // A canceled close keeps the connection controller reconnectable.
+                if (_mcpConnection is { } activeConnection)
+                {
+                    try
+                    { await activeConnection.StopAsync(); }
+                    catch (Exception error)
+                    {
+                        Console.Error.WriteLine("UnoDraw MCP could not stop: " + error.Message);
+                        return;
+                    }
+                }
                 if (!await workspace.ConfirmCloseAsync())
                     return;
                 if (_mcpConnection is { } connection)

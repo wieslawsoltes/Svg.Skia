@@ -10,9 +10,11 @@ import io
 import json
 import os
 from pathlib import Path
+import queue
 import secrets
 import socket
 import subprocess
+import threading
 import time
 from typing import Any, Iterator
 import urllib.error
@@ -83,6 +85,78 @@ class Rpc:
         return content
 
 
+class StdioRpc(Rpc):
+    """Read the actual native host's stdout from process startup through shutdown."""
+    def __init__(self, process: subprocess.Popen[bytes], output: Any) -> None:
+        super().__init__("", "")
+        self.process = process
+        self.output = output
+        self.deadline = time.monotonic() + 180
+        self.messages: queue.Queue[Any] = queue.Queue(maxsize=64)
+        self.failure: Exception | None = None
+        self.reader = threading.Thread(target=self.read_stdout, name="unodraw-mcp-stdout", daemon=True)
+        self.reader.start()
+
+    def read_stdout(self) -> None:
+        assert self.process.stdout is not None
+        try:
+            while True:
+                line = self.process.stdout.readline(32 * 1024 * 1024 + 1)
+                if not line:
+                    self.messages.put(None, timeout=5)
+                    return
+                self.output.write(line)
+                self.output.flush()
+                assert line.endswith(b"\n") and len(line) <= 32 * 1024 * 1024, "Incomplete or oversized MCP stdout frame"
+                try:
+                    message = json.loads(line.decode("utf-8"))
+                except (ValueError, UnicodeError) as error:
+                    raise AssertionError(f"Non-JSON native stdout: {line[:240]!r}") from error
+                assert isinstance(message, dict) and message.get("jsonrpc") == "2.0", message
+                assert "result" in message or "error" in message or isinstance(message.get("method"), str), message
+                self.messages.put(message, timeout=5)
+        except Exception as error:
+            self.failure = error
+            with contextlib.suppress(queue.Full):
+                self.messages.put_nowait(error)
+
+    def check_stdout(self) -> None:
+        if self.failure is not None:
+            raise AssertionError("Native MCP stdout was not a clean JSON-RPC stream") from self.failure
+
+    def request(self, method: str, params: dict[str, Any] | None = None,
+                *, notification: bool = False) -> dict[str, Any]:
+        self.check_stdout()
+        self.counter += 1
+        body: dict[str, Any] = {"jsonrpc": "2.0", "method": method}
+        if not notification:
+            body["id"] = self.counter
+        if params is not None:
+            body["params"] = params
+        assert self.process.stdin is not None
+        self.process.stdin.write((json.dumps(body) + "\n").encode())
+        self.process.stdin.flush()
+        if notification:
+            return {}
+        deadline = min(self.deadline, time.monotonic() + (90 if method == "initialize" else 45))
+        while True:
+            self.check_stdout()
+            remaining = deadline - time.monotonic()
+            assert remaining > 0, f"Native MCP stdio timed out waiting for {method}"
+            try:
+                reply = self.messages.get(timeout=remaining)
+            except queue.Empty as error:
+                raise AssertionError(f"Native MCP stdio timed out waiting for {method}") from error
+            assert reply is not None, f"Native MCP stdout ended while waiting for {method} (exit {self.process.poll()})"
+            if isinstance(reply, Exception):
+                raise AssertionError("Native MCP stdout reader failed") from reply
+            if "method" in reply and "id" not in reply:
+                continue
+            assert reply.get("id") == self.counter and "method" not in reply, reply
+            assert "error" not in reply, reply
+            return reply["result"]
+
+
 def free_port() -> int:
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
@@ -119,6 +193,36 @@ def launch(command: list[str], log: Path, environment: dict[str, str]) -> Iterat
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait(timeout=5)
+
+
+@contextlib.contextmanager
+def launch_stdio(command: list[str], output: Path, environment: dict[str, str]) -> Iterator[StdioRpc]:
+    with (output / "desktop-stderr.log").open("wb") as errors, (output / "desktop-stdout.jsonl").open("wb") as messages:
+        process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors,
+                                   env={**os.environ, **environment})
+        rpc = StdioRpc(process, messages)
+        try:
+            yield rpc
+        finally:
+            # The native editor can retain its visible window after the MCP input
+            # closes. Give the protocol time to stop, then bound process cleanup.
+            if process.stdin is not None:
+                with contextlib.suppress(BrokenPipeError, OSError):
+                    process.stdin.close()
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.terminate()
+                try:
+                    process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=5)
+            rpc.reader.join(timeout=5)
+            assert not rpc.reader.is_alive(), "Native MCP stdout did not close after process shutdown"
+            rpc.check_stdout()
+            if process.stdout is not None:
+                process.stdout.close()
 
 
 def export_png(rpc: Rpc, document: str, output: Path) -> bytes:
@@ -207,7 +311,16 @@ def desktop(args: argparse.Namespace) -> dict[str, Any]:
                    "XDG_DATA_HOME": str(args.output / "data"), "XDG_CACHE_HOME": str(args.output / "cache")}
     with launch(command, args.output / "desktop.log", environment) as process:
         wait_endpoint(endpoint, process)
-        return exercise(Rpc(endpoint, token), args.output)
+        result = exercise(Rpc(endpoint, token), args.output)
+    stdio_output = args.output / "stdio"
+    stdio_output.mkdir(parents=True, exist_ok=True)
+    stdio_environment = {"XDG_DATA_HOME": str(stdio_output / "data"),
+                         "XDG_CACHE_HOME": str(stdio_output / "cache")}
+    with launch_stdio([args.dotnet, str(args.desktop), "--mcp-stdio"], stdio_output, stdio_environment) as rpc:
+        stdio_result = exercise(rpc, stdio_output)
+    result.update({"stdio": stdio_result, "stdio_stdout_json_only": True,
+                   "transports": ["streamable-http", "stdio"]})
+    return result
 
 
 def browser(args: argparse.Namespace) -> dict[str, Any]:

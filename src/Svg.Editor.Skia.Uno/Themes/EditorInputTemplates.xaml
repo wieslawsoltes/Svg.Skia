@@ -88,6 +88,87 @@
       <ContentPresenter x:Name="DescriptionPresenter" Grid.Row="2" Grid.ColumnSpan="3" Content="{TemplateBinding Description}" Foreground="{ThemeResource StudioMuted}" AutomationProperties.AccessibilityView="Raw" />
     </Grid>
   </ControlTemplate>
+  <!-- PasswordBox owns press-to-reveal and text input. Keep its native
+       ToggleButton part and button states; the theme supplies only the visuals. -->
+  <Style x:Key="EditorPasswordRevealButtonStyle" TargetType="ToggleButton">
+    <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" /><Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{ThemeResource StudioMuted}" />
+    <Setter Property="BorderThickness" Value="0" /><Setter Property="CornerRadius" Value="{StaticResource StudioControlRadius}" />
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
+      <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+        <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="Indeterminate" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioHover}" />
+            <Setter Target="GlyphElement.Foreground" Value="{ThemeResource StudioHoverForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Pressed"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="GlyphElement.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="CheckedPressed"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="GlyphElement.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="IndeterminatePressed"><VisualState.Setters>
+            <Setter Target="Chrome.Background" Value="{ThemeResource StudioSelection}" />
+            <Setter Target="GlyphElement.Foreground" Value="{ThemeResource StudioSelectionForeground}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters>
+            <Setter Target="GlyphElement.Foreground" Value="{ThemeResource StudioDisabled}" />
+          </VisualState.Setters></VisualState>
+        </VisualStateGroup></VisualStateManager.VisualStateGroups>
+        <TextBlock x:Name="GlyphElement" Text="&#xF78D;" FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="12" FontWeight="Normal" FontStyle="Normal"
+                   Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center" IsTextScaleFactorEnabled="False" AutomationProperties.AccessibilityView="Raw" />
+      </Border>
+    </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <ControlTemplate x:Key="EditorPasswordBoxTemplate" TargetType="PasswordBox">
+    <Grid>
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+      <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="CommonStates">
+          <VisualState x:Name="Normal" />
+          <VisualState x:Name="PointerOver"><VisualState.Setters>
+            <Setter Target="BorderElement.BorderBrush" Value="{ThemeResource StudioMuted}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Focused"><VisualState.Setters>
+            <Setter Target="BorderElement.BorderBrush" Value="{ThemeResource StudioAccent}" />
+          </VisualState.Setters></VisualState>
+          <VisualState x:Name="Disabled"><VisualState.Setters>
+            <Setter Target="BorderElement.Background" Value="{ThemeResource StudioHeader}" />
+            <Setter Target="BorderElement.BorderBrush" Value="{ThemeResource StudioDivider}" />
+            <Setter Target="ContentElement.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="HeaderContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="PlaceholderTextContentPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+            <Setter Target="DescriptionPresenter.Foreground" Value="{ThemeResource StudioDisabled}" />
+          </VisualState.Setters></VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup x:Name="ButtonStates">
+          <VisualState x:Name="ButtonVisible"><VisualState.Setters><Setter Target="RevealButton.Visibility" Value="Visible" /></VisualState.Setters></VisualState>
+          <VisualState x:Name="ButtonCollapsed" />
+        </VisualStateGroup>
+      </VisualStateManager.VisualStateGroups>
+      <ContentPresenter x:Name="HeaderContentPresenter" Grid.ColumnSpan="2" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                        FontSize="{StaticResource StudioLabelSize}" FontWeight="SemiBold" Foreground="{ThemeResource StudioMuted}" Margin="0,0,0,5" TextWrapping="Wrap" Visibility="Collapsed" />
+      <Border x:Name="BorderElement" Grid.Row="1" Grid.ColumnSpan="2" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+              CornerRadius="{TemplateBinding CornerRadius}" MinHeight="{TemplateBinding MinHeight}" Control.IsTemplateFocusTarget="True" />
+      <ScrollViewer x:Name="ContentElement" Grid.Row="1"
+                    HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}" HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                    VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}" VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                    IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}" IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
+                    IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}" Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"
+                    Foreground="{TemplateBinding Foreground}" IsTabStop="False" AutomationProperties.AccessibilityView="Raw" ZoomMode="Disabled" />
+      <TextBlock x:Name="PlaceholderTextContentPresenter" Grid.Row="1" Grid.ColumnSpan="2" Text="{TemplateBinding PlaceholderText}" Margin="{TemplateBinding BorderThickness}"
+                 Padding="{TemplateBinding Padding}" Foreground="{ThemeResource StudioMuted}" IsHitTestVisible="False" />
+      <ToggleButton x:Name="RevealButton" Grid.Row="1" Grid.Column="1" Style="{StaticResource EditorPasswordRevealButtonStyle}" Width="{StaticResource StudioControlHeight}"
+                    Margin="{TemplateBinding BorderThickness}" IsTabStop="False" Visibility="Collapsed" VerticalAlignment="Stretch" AutomationProperties.Name="Reveal password" ToolTipService.ToolTip="Hold to reveal password" />
+      <ContentPresenter x:Name="DescriptionPresenter" Grid.Row="2" Grid.ColumnSpan="2" Content="{TemplateBinding Description}" Foreground="{ThemeResource StudioMuted}"
+                        TextWrapping="Wrap" AutomationProperties.AccessibilityView="Raw" Visibility="Collapsed" />
+    </Grid>
+  </ControlTemplate>
   <ControlTemplate x:Key="EditorNumberBoxTemplate" TargetType="NumberBox">
     <Grid>
       <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>

@@ -35,6 +35,18 @@ public sealed class StudioControlGallery : UserControl
         fields.Children.Add(new TextBox { Header = "Locked property", Text = "Inherited from parent", IsEnabled = false });
         fields.Children.Add(new ComboBox { Header = "Editable choice", ItemsSource = new[] { "Pixels", "Points", "Millimeters" }, IsEditable = true, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch });
         fields.Children.Add(new NumberBox { Header = "Inline increment controls", Value = 12, Minimum = 0, Maximum = 100, SpinButtonPlacementMode = NumberBoxSpinButtonPlacementMode.Inline });
+        var password = new PasswordBox
+        {
+            Header = "Password · hold to reveal",
+            PlaceholderText = "Type sample text",
+            PasswordRevealMode = PasswordRevealMode.Peek,
+            Description = "A disconnected example. Use sample text to inspect editing and reveal."
+        };
+        AutomationProperties.SetAutomationId(password, "EditorGalleryPassword");
+        fields.Children.Add(password);
+        fields.Children.Add(new PasswordBox { Header = "Hidden sample", Password = "sample-only", PasswordRevealMode = PasswordRevealMode.Hidden });
+        fields.Children.Add(new PasswordBox { Header = "Visible sample", Password = "sample-only", PasswordRevealMode = PasswordRevealMode.Visible });
+        fields.Children.Add(new PasswordBox { Header = "Disabled password", Password = "sample-only", PasswordRevealMode = PasswordRevealMode.Hidden, IsEnabled = false });
         body.Children.Add(Section("Inputs", fields));
 
         var actions = new StudioFieldGrid { MaximumColumns = 3, MinimumColumnWidth = 120 };

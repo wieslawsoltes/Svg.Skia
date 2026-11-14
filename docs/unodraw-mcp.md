@@ -66,6 +66,11 @@ may use another name, but the URL and authorization header are the same:
 Return to **Window → MCP Connection** and choose **Disconnect** to stop the server.
 The editor remains usable with its current documents and history.
 
+Closing the desktop window first disconnects MCP and drains its pending editor
+calls before asking about unsaved documents. Picker results that arrive after
+cancellation are discarded. If you cancel closing, the workspace remains open
+and disconnected; reconnect through the same dialog when ready.
+
 ### Desktop startup options
 
 ```sh

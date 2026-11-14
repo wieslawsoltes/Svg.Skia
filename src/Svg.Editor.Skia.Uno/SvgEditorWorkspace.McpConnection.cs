@@ -81,10 +81,11 @@ public sealed partial class SvgEditorWorkspace
         var status = new TextBlock { TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true };
         AutomationProperties.SetLiveSetting(status, Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Polite);
         var endpoint = new TextBox { Header = "MCP endpoint", IsReadOnly = true };
-        var clientToken = new PasswordBox { Header = "MCP client bearer token", PasswordRevealMode = PasswordRevealMode.Peek };
+        var clientToken = new TextBox { Header = "MCP client bearer token", IsReadOnly = true };
+        var revealClientToken = new CheckBox { Content = "Show bearer token", IsChecked = false };
         var content = new StackPanel { Spacing = 12, Width = DialogContentWidth(580) };
         content.Children.Add(StudioHint("Connect an MCP client to this live workspace. Close this dialog before editing through the connection. Changes use normal document history. Connection tokens are kept only for this session."));
-        foreach (var control in new FrameworkElement[] { mode, address, token, port, readOnly, status, endpoint, clientToken })
+        foreach (var control in new FrameworkElement[] { mode, address, token, port, readOnly, status, endpoint, clientToken, revealClientToken })
             content.Children.Add(control);
         var dialog = MakeDialog("MCP Connection", content, "Connect", "Close");
         dialog.SecondaryButtonText = "Copy client configuration";
@@ -110,13 +111,16 @@ public sealed partial class SvgEditorWorkspace
             status.Text = validationError ?? state.Status;
             endpoint.Text = state.Endpoint;
             endpoint.Visibility = string.IsNullOrEmpty(state.Endpoint) ? Visibility.Collapsed : Visibility.Visible;
-            clientToken.Password = state.Token;
-            clientToken.Visibility = string.IsNullOrEmpty(state.Token) ? Visibility.Collapsed : Visibility.Visible;
+            clientToken.Text = revealClientToken.IsChecked == true ? state.Token
+                : new string('•', Math.Min(state.Token.Length, 24));
+            clientToken.Visibility = revealClientToken.Visibility = string.IsNullOrEmpty(state.Token) ? Visibility.Collapsed : Visibility.Visible;
             dialog.PrimaryButtonText = connected ? "Disconnect" : Local() ? "Start server" : "Connect";
             dialog.IsPrimaryButtonEnabled = !busy;
             dialog.IsSecondaryButtonEnabled = !busy && !string.IsNullOrEmpty(state.ClientConfiguration);
         }
         mode.SelectionChanged += (_, _) => Update();
+        revealClientToken.Checked += (_, _) => Update();
+        revealClientToken.Unchecked += (_, _) => Update();
         EventHandler changed = (_, _) => DispatcherQueue.TryEnqueue(Update);
         connection.StateChanged += changed;
         dialog.PrimaryButtonClick += async (_, args) =>
@@ -171,7 +175,8 @@ public sealed partial class SvgEditorWorkspace
         finally
         {
             connection.StateChanged -= changed;
-            token.Password = clientToken.Password = string.Empty;
+            revealClientToken.IsChecked = false;
+            token.Password = clientToken.Text = string.Empty;
         }
     }
 
