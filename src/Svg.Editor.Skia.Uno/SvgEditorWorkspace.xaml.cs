@@ -404,6 +404,7 @@ public sealed partial class SvgEditorWorkspace : UserControl, IDisposable
         if (_disposed)
             return;
         DisposeEditorKeyboard();
+        DetachMcpConnection();
         SaveStudioLayout();
         _disposed = true;
         PositionText.LayoutUpdated -= OnPointerPositionLayoutUpdated;

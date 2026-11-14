@@ -139,6 +139,12 @@ See the [UnoDraw guide](docs/unodraw.md) for tools and shortcuts, platform build
 and publish commands, metadata portability, print limitations, and revision-specific
 validation records.
 
+UnoDraw also exposes the live workspace through MCP on desktop and in the
+browser. The [MCP guide](docs/unodraw-mcp.md) covers local HTTP and stdio
+connections, the browser bridge, typed editing tools, resources, prompts,
+read-only sessions and native-quality exports. See the
+[complete tool reference](docs/unodraw-mcp-tools.md) for every input schema.
+
 ## NuGet
 
 Svg.Skia is delivered as a NuGet package.

@@ -95,7 +95,26 @@ public sealed partial class SvgEditorWorkspace
     {
         if (_dialogVisible)
             return ContentDialogResult.None;
+        var interactionCancellation = CurrentMcpInteractionCancellation;
+        interactionCancellation.ThrowIfCancellationRequested();
+        var previousCancellation = _mcpDialogCancellation;
+        _mcpDialogCancellation = interactionCancellation;
+        var finished = false;
+        using var cancellationRegistration = interactionCancellation.Register(() =>
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                // Some editors defer closing while a picker or save is in flight.
+                // Cancellation also releases those waits; retry after their UI
+                // continuations clear the guard instead of stranding the request.
+                while (!finished && !_disposed)
+                {
+                    dialog.Hide();
+                    if (!finished)
+                        await Task.Delay(50);
+                }
+            }));
         _dialogVisible = true;
+        McpContextChanged?.Invoke();
         // A ContentDialog lives in the popup root, outside the workspace's key
         // route. Observe releases there as well so the shortcut that opened a
         // modal cannot remain held after focus moves into its native TextBox.
@@ -115,8 +134,11 @@ public sealed partial class SvgEditorWorkspace
         { return await dialog.ShowAsync(); }
         finally
         {
+            finished = true;
+            _mcpDialogCancellation = previousCancellation;
             dialog.RemoveHandler(KeyUpEvent, releaseShortcut);
             _dialogVisible = false;
+            McpContextChanged?.Invoke();
             EditorInputTrace.Write("modal-completed");
             DispatcherQueue.TryEnqueue(() =>
             {

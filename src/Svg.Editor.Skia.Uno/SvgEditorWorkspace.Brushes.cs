@@ -195,7 +195,7 @@ public sealed partial class SvgEditorWorkspace
                 picker.FileTypeFilter.Add(".unodraw-brushes");
                 picker.FileTypeFilter.Add(".xml");
                 InitializePicker(picker);
-                var file = await picker.PickSingleFileAsync();
+                var file = await AwaitMcpPickerAsync(picker.PickSingleFileAsync());
                 if (file is null)
                     return;
                 var definitions = SvgBrushLibraryService.Import(await FileIO.ReadTextAsync(file));
@@ -220,7 +220,7 @@ public sealed partial class SvgEditorWorkspace
                 var picker = new FileSavePicker { SuggestedFileName = "UnoDraw brushes", DefaultFileExtension = ".unodraw-brushes", SuggestedStartLocation = PickerLocationId.DocumentsLibrary };
                 picker.FileTypeChoices.Add("UnoDraw brush library", new List<string> { ".unodraw-brushes" });
                 InitializePicker(picker);
-                var file = await picker.PickSaveFileAsync();
+                var file = await AwaitMcpPickerAsync(picker.PickSaveFileAsync());
                 if (file is null)
                     return;
                 await WriteFileAsync(file, Encoding.UTF8.GetBytes(xml));

@@ -4,6 +4,10 @@ UnoDraw is the Uno Platform successor to the AvalonDraw sample. It edits SVG doc
 
 The application migration does not remove the reusable Avalonia editor packages. Existing consumers can continue using `Svg.Editor.Avalonia` and `Svg.Editor.Skia.Avalonia`.
 
+For automation and MCP clients, see the [MCP connection and workflow guide](unodraw-mcp.md)
+and [complete tool reference](unodraw-mcp-tools.md). Browser and desktop sessions
+expose the same live document operations through explicit authenticated connections.
+
 ## Workspace preview
 
 These native Linux captures show the EditorTheme workspace with the editable SVG used by the interaction harness. They were captured from the running application after its saved-document checks passed. The theme's integration, resource overrides and full control surface are documented in the [EditorTheme guide](unodraw-editor-theme.md).

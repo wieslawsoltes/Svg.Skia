@@ -207,7 +207,7 @@ public sealed partial class SvgEditorWorkspace
                     picker.FileTypeFilter.Add(".unoshortcuts");
                     picker.FileTypeFilter.Add(".xml");
                     InitializePicker(picker);
-                    var file = await picker.PickSingleFileAsync();
+                    var file = await AwaitMcpPickerAsync(picker.PickSingleFileAsync());
                     if (file is null)
                         return;
                     using var input = await file.OpenStreamForReadAsync();
@@ -233,7 +233,7 @@ public sealed partial class SvgEditorWorkspace
                     var picker = new FileSavePicker { SuggestedFileName = "UnoDraw-keyboard-shortcuts", DefaultFileExtension = ".unoshortcuts" };
                     picker.FileTypeChoices.Add("EditorTheme keyboard shortcuts", new List<string> { ".unoshortcuts" });
                     InitializePicker(picker);
-                    if (await picker.PickSaveFileAsync() is { } file)
+                    if (await AwaitMcpPickerAsync(picker.PickSaveFileAsync()) is { } file)
                     {
                         await WriteFileAsync(file, Encoding.UTF8.GetBytes(draft.Serialize()));
                         feedback.Text = "Shortcut profile exported.";

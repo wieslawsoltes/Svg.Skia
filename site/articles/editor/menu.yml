@@ -1,6 +1,8 @@
 editor:
   - {path: readme.md, title: "Editor"}
   - {path: architecture.md, title: "Architecture"}
+  - {path: mcp.md, title: "UnoDraw MCP"}
+  - {path: mcp-tools.md, title: "MCP Tool Reference"}
   - {path: embedding-workspace.md, title: "Embedding SvgEditorWorkspace"}
   - {path: composing-panels-and-dialogs.md, title: "Composing Panels and Dialogs"}
   - {path: rendering-and-svg-services.md, title: "Rendering and Svg Services"}

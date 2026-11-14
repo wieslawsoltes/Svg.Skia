@@ -28,6 +28,7 @@
   <ItemGroup>
     <PackageReference Include="SkiaSharp.NativeAssets.Linux" />
     <ProjectReference Include="..\Svg.Editor.Skia\Svg.Editor.Skia.csproj" />
+    <ProjectReference Include="..\Svg.Editor.Mcp\Svg.Editor.Mcp.csproj" />
   </ItemGroup>
 
 </Project>

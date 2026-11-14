@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>Svg.Editor.Mcp.Hosting</PackageId>
+    <Description>Local MCP hosting and browser relay for the SVG editor.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>svg;editor;mcp;uno</PackageTags>
+  </PropertyGroup>
+  <Import Project="../../build/SourceLink.props" />
+  <Import Project="../../build/SignAssembly.props" />
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+    <ProjectReference Include="../Svg.Editor.Mcp/Svg.Editor.Mcp.csproj" />
+  </ItemGroup>
+</Project>

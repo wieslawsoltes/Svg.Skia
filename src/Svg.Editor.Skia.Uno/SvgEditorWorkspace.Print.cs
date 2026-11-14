@@ -181,7 +181,7 @@ public sealed partial class SvgEditorWorkspace
                 picker.FileTypeFilter.Add(".icc");
                 picker.FileTypeFilter.Add(".icm");
                 InitializePicker(picker);
-                if (await picker.PickSingleFileAsync() is not { } file)
+                if (await AwaitMcpPickerAsync(picker.PickSingleFileAsync()) is not { } file)
                     return;
                 using var stream = await file.OpenStreamForReadAsync();
                 if (stream.Length > 32 * 1024 * 1024)
@@ -245,7 +245,7 @@ public sealed partial class SvgEditorWorkspace
         var save = new FileSavePicker { SuggestedFileName = Path.GetFileNameWithoutExtension(document.Name) + (plates ? "-plates" : "-print"), DefaultFileExtension = plates ? ".zip" : ".pdf" };
         save.FileTypeChoices.Add(plates ? "Ink separation package" : "Print PDF", new[] { plates ? ".zip" : ".pdf" });
         InitializePicker(save);
-        if (await save.PickSaveFileAsync() is not { } destination)
+        if (await AwaitMcpPickerAsync(save.PickSaveFileAsync()) is not { } destination)
             return;
         StatusText.Text = plates ? "Preparing ink plates…" : "Preparing print PDF…";
         var bytes = await Task.Run(() =>

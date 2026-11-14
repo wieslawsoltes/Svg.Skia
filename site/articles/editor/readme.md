@@ -32,6 +32,7 @@ The `Svg.Editor.*` packages provide a reusable SVG editor stack that application
 3. [Composing Panels and Dialogs](composing-panels-and-dialogs) if you are building your own shell.
 4. [Rendering and Svg Services](rendering-and-svg-services) if you need lower-level editing services.
 5. [API Reference](../../api) when you want the generated type-level surface for the editor assemblies.
+6. [UnoDraw MCP](mcp) for browser/desktop automation and the [MCP Tool Reference](mcp-tools) for every operation and input schema.
 
 ## What the sample still owns
 

@@ -19,7 +19,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
-    <!-- The opt-in diagnostics export uses the runtime-generated JS interop stub. -->
+    <!-- Browser connection and diagnostic exports use generated JS interop stubs. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Keep WebGPU available for the explicit renderer=webgpu startup option.
          Skia remains the default browser renderer, with software fallback. -->
@@ -61,6 +61,8 @@
     <PackageReference Include="Tmds.DBus.Protocol" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
     <ProjectReference Include="../../src/Svg.Editor.Skia.Uno/Svg.Editor.Skia.Uno.csproj" />
     <ProjectReference Include="../../src/Svg.Skia.JavaScript/Svg.Skia.JavaScript.csproj" />
+    <ProjectReference Include="../../src/Svg.Editor.Mcp.Hosting/Svg.Editor.Mcp.Hosting.csproj"
+                      Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
     <Content Include="Assets/*.svg" CopyToOutputDirectory="PreserveNewest" Condition="'$(TargetFramework)' == 'net10.0-desktop'" />
     <EmbeddedResource Include="Assets/Welcome.svg" LogicalName="UnoDraw.Welcome.svg" />
     <UnoIcon Include="Branding/icon.svg" Color="#7061DC" />

@@ -340,7 +340,7 @@ public sealed partial class SvgEditorWorkspace
         picker.FileTypeFilter.Add(".unoworkspaces");
         picker.FileTypeFilter.Add(".xml");
         InitializePicker(picker);
-        var file = await picker.PickSingleFileAsync();
+        var file = await AwaitMcpPickerAsync(picker.PickSingleFileAsync());
         if (file is null || _disposed)
             return;
         using var input = await file.OpenStreamForReadAsync();
@@ -359,7 +359,7 @@ public sealed partial class SvgEditorWorkspace
         var picker = new FileSavePicker { SuggestedFileName = "UnoDraw-workspaces", DefaultFileExtension = ".unoworkspaces" };
         picker.FileTypeChoices.Add("UnoDraw workspace library", new List<string> { ".unoworkspaces" });
         InitializePicker(picker);
-        if (await picker.PickSaveFileAsync() is { } file)
+        if (await AwaitMcpPickerAsync(picker.PickSaveFileAsync()) is { } file)
             await WriteFileAsync(file, Encoding.UTF8.GetBytes(xml));
     }
 }

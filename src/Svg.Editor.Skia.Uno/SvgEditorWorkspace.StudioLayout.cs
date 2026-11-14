@@ -354,6 +354,7 @@ public sealed partial class SvgEditorWorkspace
         try
         { ApplicationData.Current.LocalSettings.Values[StudioLayoutKey] = _studioLayout.Serialize(); }
         catch (Exception exception) { StatusText.Text = "Workspace changes could not be saved: " + exception.Message; }
+        McpContextChanged?.Invoke();
     }
     private void UpdateStudioRulers()
     {
