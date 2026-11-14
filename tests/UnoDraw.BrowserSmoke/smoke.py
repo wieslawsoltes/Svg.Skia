@@ -17,7 +17,7 @@ from urllib.parse import urlsplit
 from PIL import Image, ImageChops, ImageFilter, ImageStat
 from playwright.sync_api import Page, sync_playwright
 
-from backend import (BACKENDS, SINGLE_CANVAS_INITIALIZED, SMOKE_CANVAS_BRIDGES,
+from backend import (BACKENDS, DEFAULT_SKIA_BACKENDS, SINGLE_CANVAS_INITIALIZED, SMOKE_CANVAS_BRIDGES,
                      launch_arguments, renderer_query, smoke_query, verify_backend,
                      verify_smoke_navigation)
 
@@ -588,9 +588,10 @@ def main() -> int:
                     raise AssertionError(f"PWA manifest must stay inside the application folder: {manifest}")
                 report["checks"].append("PWA start URL, manifest scope and service worker scopes stay inside the application folder")
 
-                # Recheck the complete log so a later unexpected renderer cannot
-                # hide between the startup and reload evidence snapshots.
-                if args.canvas_bridge == "default":
+                # Preserve the historical profiles' combined-log check. The
+                # bare-URL default proof is exclusive per navigation and is
+                # rechecked against both complete log slices below.
+                if args.canvas_bridge == "default" and args.backend not in DEFAULT_SKIA_BACKENDS:
                     verify_backend(report["console"],
                         report["backend_selection"]["reload"]["capabilities"], args.backend)
                 report["backend_selection"]["reload"]["completion_actual_url"] = page.url

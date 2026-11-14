@@ -1,17 +1,27 @@
 # Published browser runtime checks
 
 The Docs workflow publishes UnoDraw once with Release `InterpreterAndAOT` settings
-and runs this harness in four configurations against that exact artifact, under
+and runs this harness in ten configurations against that exact artifact, under
 the GitHub Pages project/application path `/Svg.Skia/unodraw/`. Deployment requires
 every case to pass. No case changes the application package or mocks its
 rendering APIs.
 
-| Mode | Browser configuration | Required application renderer |
-| --- | --- | --- |
-| `webgpu` | SwiftShader Vulkan and ANGLE, with WebGPU enabled | `WebGpuGraphicsProvider` on `WebGpu` |
-| `skia-fallback` | Chromium's `WebGPUService` feature disabled, with software WebGL available | `SkiaGraphicsProvider` on `WebGL` |
-| `software-fallback` | `WebGPUService` and WebGL disabled, with Canvas2D available | `SkiaGraphicsProvider` on `Software` |
-| `skia-preferred` | WebGPU and WebGL available, with the application URL's `?renderer=skia` option | `SkiaGraphicsProvider` on `WebGL` |
+| Mode | Application query | Browser configuration | Required application renderer |
+| --- | --- | --- | --- |
+| `skia-default` | None | WebGPU and WebGL available | `SkiaGraphicsProvider` on `WebGL` |
+| `software-default` | None | WebGPU available, WebGL disabled, Canvas2D available | `SkiaGraphicsProvider` on `Software` |
+| `webgpu` | `?renderer=webgpu` | SwiftShader Vulkan and ANGLE, with WebGPU enabled | `WebGpuGraphicsProvider` on `WebGpu` |
+| `skia-fallback` | `?renderer=webgpu` | Chromium's `WebGPUService` feature disabled, with WebGL available | `SkiaGraphicsProvider` on `WebGL` |
+| `software-fallback` | `?renderer=webgpu` | `WebGPUService` and WebGL disabled, with Canvas2D available | `SkiaGraphicsProvider` on `Software` |
+| `skia-preferred` | `?renderer=skia` | WebGPU and WebGL available | `SkiaGraphicsProvider` on `WebGL` |
+
+The four explicit-renderer profiles run both with their ordinary canvas bridge
+and with `&canvasBridge=single-canvas`. This preserves the original eight smoke
+profiles and artifact names. Two additional cases use the bare application URL
+to prove the default Skia policy and its software fallback on the same package.
+The single-canvas cases additionally require the observed native provider/factory
+and actual topology; successful WebGPU requires its completed-painter marker.
+Skia-first startup ignores the canvas-bridge selector and keeps native Skia.
 
 These are software graphics correctness checks. They do not measure hardware GPU
 performance. The report records the Chromium version, launch arguments, adapter
@@ -28,13 +38,21 @@ raised an unhandled context error during
 Renderer assertions cover the main compositor; artwork and repaint assertions
 cover the retained Skia bitmaps.
 
-Both fallback cases require the secure browser origin to expose `navigator.gpu`
+Both WebGPU-first fallback cases require the secure browser origin to expose `navigator.gpu`
 while `requestAdapter()` returns `null`. They also require Uno's precise no-adapter
 negotiation error and a successful Skia selection. The WebGL fallback requires a
 working WebGL context. The software fallback independently proves that neither
 WebGL version can create a context, Canvas2D is available, and Uno reports its
 precise unavailable-WebGL error before choosing software rendering. Probes use
 separate detached canvases and release their WebGL contexts.
+
+Both bare-URL profiles keep a WebGPU adapter available so an unavailable adapter
+cannot accidentally explain the selection of Skia. Every startup and reload must
+record exactly one fresh Skia preference before exactly one native renderer
+winner, with no attempted WebGPU provider, WebGPU initialization or canvas-bridge
+registration. `software-default` disables WebGL alone and permits only the
+precise unavailable-WebGL error before software selection. It never exempts a
+WebGPU no-adapter error.
 
 Expected negotiation errors are accepted only before the first successful
 renderer selection in each navigation's startup log slice. The same error during
@@ -43,12 +61,14 @@ errors, page exceptions and failed application resources remain failures. A
 WebGPU run that silently chooses Skia fails; a WebGL case that chooses software
 also fails.
 
-The direct-Skia case requires an available WebGPU adapter but selects Skia through
-the startup URL option. It verifies that the option survives reload without
-altering the PWA's folder scope or start URL. The option is case insensitive,
+Skia is the default and uses WebGL followed by software. `?renderer=skia` remains
+an explicit choice of the same provider order. Only `?renderer=webgpu` opts into
+WebGPU followed by Skia/WebGL and software. The option is case insensitive,
 ignores surrounding whitespace, and is read once before host creation. An absent
-or unrecognized value preserves the default WebGPU-first order. This is a manual
-startup choice; Uno 7.0.32 does not renegotiate providers after WebGPU device loss.
+or unrecognized value uses Skia. Each explicit query must survive reload without
+altering the PWA's folder scope or start URL; the two default profiles must retain
+an empty query. This is a startup choice; Uno 7.0.32 does not renegotiate providers
+after WebGPU device loss.
 
 Chromium documents the software graphics switches in its
 [SwiftShader guide](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md).
@@ -89,7 +109,8 @@ The compact panel-rail comparison reuses this settled desktop baseline so
 intermediate ruler colors cannot distort its glyph-location search.
 This verifies repaint through the canvas bridge without changing the SVG.
 
-The four matrix jobs upload distinct `unodraw-browser-smoke-<mode>` artifacts.
+The six ordinary cases upload distinct `unodraw-browser-smoke-<mode>` artifacts.
+The four explicit single-canvas cases use `unodraw-browser-smoke-single-canvas-<mode>`.
 Each contains `report.json`,
 screenshots and a Playwright trace, plus the final HTML/screenshot on failure.
 The report preserves expected negotiation errors alongside other console output.
@@ -104,6 +125,8 @@ python -m playwright install --with-deps chromium
 python -m unittest discover -s tests/UnoDraw.BrowserSmoke -p 'test_*.py'
 mkdir -p artifacts/pages/Svg.Skia/unodraw
 cp -a artifacts/unodraw-browser/wwwroot/. artifacts/pages/Svg.Skia/unodraw/
+python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend skia-default --output artifacts/unodraw-browser-smoke-skia-default
+python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend software-default --output artifacts/unodraw-browser-smoke-software-default
 python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend webgpu --output artifacts/unodraw-browser-smoke-webgpu
 python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend skia-fallback --output artifacts/unodraw-browser-smoke-skia-fallback
 python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend software-fallback --output artifacts/unodraw-browser-smoke-software-fallback
@@ -116,7 +139,7 @@ or stale renderer evidence, silent fallback, invalid browser contexts, narrowly
 scoped expected errors, blank/frozen artwork, outline-only changes, incomplete
 color-family repaint, failed camera restoration, and canvas/ruler frames that still
 use the previous theme after their surrounding chrome updates. They supplement the
-four published-runtime runs.
+ten published-runtime runs.
 
 ## Browser storage ordering regression
 

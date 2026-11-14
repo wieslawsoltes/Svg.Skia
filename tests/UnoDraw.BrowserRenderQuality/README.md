@@ -5,6 +5,10 @@ DPR 1.25 and 2 on both WebGPU and direct Skia/WebGL. It closes the old/new ruler
 coverage gap left by a same-candidate persistent/legacy bridge comparison: both
 bridge paths otherwise use the candidate's new ruler marker.
 
+Each case explicitly requests `?renderer=webgpu` or `?renderer=skia`. WebGPU
+bridge comparisons also retain `renderer=webgpu` when adding `canvasBridge` and
+input diagnostics, so the application's Skia default cannot change the tested backend.
+
 The script consumes published packages; it does not compile or modify the app.
 Both package manifests must identify Release `InterpreterAndAOT`, the same .NET
 SDK, workload set and welcome SVG fixture, and distinct source commits. The

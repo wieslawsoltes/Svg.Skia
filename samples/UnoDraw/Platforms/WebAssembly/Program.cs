@@ -14,20 +14,20 @@ public static class Program
         BrowserStorageSynchronization.Initialize();
         BrowserRenderDiagnostics.Initialize();
         InitializeLogging();
-        // A startup-only override lets SVG-heavy workloads compare direct Skia/WebGL
-        // with WebGPU's raster texture bridge without changing document settings.
+        // Use direct Skia/WebGL by default. WebGPU is an explicit startup-only
+        // option, with the same Skia fallback and no document setting changes.
         var preference = WebAssemblyRuntime.InvokeJS(
             "new URLSearchParams(globalThis.location.search).get('renderer') || ''").Trim();
-        var preferSkia = string.Equals(preference, "skia", StringComparison.OrdinalIgnoreCase);
-        if (!preferSkia)
+        var preferWebGpu = string.Equals(preference, "webgpu", StringComparison.OrdinalIgnoreCase);
+        if (preferWebGpu)
             Rendering.WebGpuSkiaCanvasBridge.Register();
         var builder = UnoPlatformHostBuilder.Create().App(() => new App());
-        if (!preferSkia)
+        if (preferWebGpu)
             builder = builder.GraphicsBackend(Rendering.WebGpuSkiaCanvasBridge.ObserveWebGpuProvider(
                 WebGpuBackend.CreateGraphicsProvider()));
-        Console.WriteLine(preferSkia
-            ? "UnoDraw browser renderer preference: Skia (WebGL, then software)."
-            : "UnoDraw browser renderer preference: WebGPU, then Skia (WebGL, then software).");
+        Console.WriteLine(preferWebGpu
+            ? "UnoDraw browser renderer preference: WebGPU, then Skia (WebGL, then software)."
+            : "UnoDraw browser renderer preference: Skia (WebGL, then software).");
         var host = builder
             .GraphicsBackend(Rendering.WebGpuSkiaCanvasBridge.ObserveSkiaProvider(
                 SkiaBackend.CreateGraphicsProvider(GraphicsContextKind.WebGL, GraphicsContextKind.Software)))

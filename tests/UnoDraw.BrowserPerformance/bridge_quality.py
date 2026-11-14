@@ -15,7 +15,7 @@ from PIL import Image
 from playwright.sync_api import Page, sync_playwright
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "UnoDraw.BrowserSmoke"))
-from backend import launch_arguments  # noqa: E402
+from backend import launch_arguments, renderer_query  # noqa: E402
 from smoke import (READY, artwork_pixels, artwork_transition, assert_artwork, assert_rendered,  # noqa: E402
                    assert_workspace_affordances, changed_pixels, record_backend, serve,
                    workspace_affordance_pixels)
@@ -122,7 +122,7 @@ def command(page: Page, text: str, directory: Path) -> None:
 def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path, *,
              graphite_coverage: str | None = None) -> dict[str, Any]:
     validate_graphite_coverage(bridge, graphite_coverage)
-    query = bridge_query(bridge, graphite_coverage=graphite_coverage)
+    query = renderer_query("webgpu") + "&" + bridge_query(bridge, graphite_coverage=graphite_coverage)
     output.mkdir(parents=True, exist_ok=True)
     report: dict[str, Any] = {"bridge": bridge, "graphite_coverage": graphite_coverage, "dpr": dpr, "passed": False,
                               "backend_mode": "webgpu", "backend_selection": {},
@@ -140,7 +140,7 @@ def run_case(browser: Any, url: str, bridge: str, dpr: float, output: Path, *,
     page.on("requestfailed", lambda request: report["resource_errors"].append(
         {"url": request.url, "failure": request.failure}) if request.failure != "net::ERR_ABORTED" else None)
     try:
-        page.goto(url + "?" + query,
+        page.goto(url + query,
                   wait_until="domcontentloaded", timeout=120_000)
         page.wait_for_function(READY, timeout=120_000)
         report["actual_device_pixel_ratio"] = page.evaluate("devicePixelRatio")

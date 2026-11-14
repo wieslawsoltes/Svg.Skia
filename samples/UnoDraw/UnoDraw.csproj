@@ -21,8 +21,8 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0-browserwasm'">
     <!-- The opt-in diagnostics export uses the runtime-generated JS interop stub. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- WebGPU composes the workspace. Editor painters use persistent device-scale
-         RGBA textures; unsupported painters retain Uno's normal raster fallback. -->
+    <!-- Keep WebGPU available for the explicit renderer=webgpu startup option.
+         Skia remains the default browser renderer, with software fallback. -->
     <UnoFeatures>$(UnoFeatures)WebGpu;</UnoFeatures>
     <!-- Keep the published package relocatable under the docs' /unodraw/ folder. -->
     <WasmShellWebAppBasePath>./</WasmShellWebAppBasePath>

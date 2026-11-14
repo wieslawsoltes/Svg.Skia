@@ -10,7 +10,8 @@ complete workspace.
 The workspace now targets Uno Platform 7. Rebuild Uno host and library projects
 together when upgrading; existing `EditorTheme`, `Studio*` control names and
 resource keys remain available. The [Uno 7 migration guide](unodraw-uno7.md)
-describes the dependency set and browser WebGPU composition with Skia fallback.
+describes the dependency set, default Skia browser rendering and optional WebGPU
+composition with Skia fallback.
 
 ## Add the theme to a host
 
