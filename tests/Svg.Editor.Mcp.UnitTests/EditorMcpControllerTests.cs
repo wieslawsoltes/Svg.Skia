@@ -203,6 +203,121 @@ public sealed class EditorMcpControllerTests
     }
 
     [Fact]
+    public void AdditiveElementSelectionRetainsExistingObjectsOnRepeatedCalls()
+    {
+        using var editor = Create();
+        var target = new EditorMcpController(editor);
+        var before = editor.GetSvg();
+        var revision = editor.DocumentRevision;
+        var shape = editor.Document!.GetElementById<SvgRectangle>("shape");
+        var circle = Assert.Single(editor.Document.Descendants().OfType<SvgCircle>());
+        editor.Select(shape);
+        var arguments = new JsonObject
+        {
+            ["elements"] = new JsonArray("shape", "path:1"),
+            ["additive"] = true,
+            ["expectedRevision"] = revision
+        };
+
+        target.Invoke("unodraw_selection_set", arguments);
+        Assert.Equal(new SvgVisualElement[] { shape, circle }, editor.SelectedElements);
+        target.Invoke("unodraw_selection_set", arguments);
+        Assert.Equal(new SvgVisualElement[] { shape, circle }, editor.SelectedElements);
+        Assert.Equal(before, editor.GetSvg());
+        Assert.Equal(revision, editor.DocumentRevision);
+        Assert.False(editor.CanUndo);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ExplicitElementSelectionDeduplicatesIdsAndAliases(bool additive)
+    {
+        using var editor = Create();
+        var target = new EditorMcpController(editor);
+        var shape = editor.Document!.GetElementById<SvgRectangle>("shape");
+        var circle = Assert.Single(editor.Document.Descendants().OfType<SvgCircle>());
+        editor.Select(circle);
+        var arguments = new JsonObject
+        {
+            ["elements"] = new JsonArray("shape", "id:shape", "shape", "id:shape"),
+            ["additive"] = additive
+        };
+
+        target.Invoke("unodraw_selection_set", arguments);
+
+        Assert.Equal(additive ? new SvgVisualElement[] { circle, shape } : new SvgVisualElement[] { shape }, editor.SelectedElements);
+        Assert.False(editor.CanUndo);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void InvalidElementSelectionRetainsExistingSelection(bool additive)
+    {
+        using var editor = Create();
+        var target = new EditorMcpController(editor);
+        var shape = editor.Document!.GetElementById<SvgRectangle>("shape");
+        editor.Select(shape);
+        var arguments = new JsonObject
+        {
+            ["elements"] = new JsonArray("path:1", "missing"),
+            ["additive"] = additive,
+            ["expectedRevision"] = editor.DocumentRevision
+        };
+
+        Assert.Throws<EditorMcpException>(() => target.Invoke("unodraw_selection_set", arguments));
+
+        Assert.Same(shape, Assert.Single(editor.SelectedElements));
+        Assert.False(editor.CanUndo);
+    }
+
+    [Fact]
+    public void AdditivePointSelectionRetainsObjectsOnRepeatedHitsAndBackground()
+    {
+        using var editor = Create();
+        var target = new EditorMcpController(editor);
+        var before = editor.GetSvg();
+        var revision = editor.DocumentRevision;
+        var shape = editor.Document!.GetElementById<SvgRectangle>("shape");
+        var circle = Assert.Single(editor.Document.Descendants().OfType<SvgCircle>());
+        editor.Select(shape);
+
+        Call(target, "selection_set", "{\"mode\":\"point\",\"point\":[20,25],\"additive\":true}");
+        Assert.Same(shape, Assert.Single(editor.SelectedElements));
+        Call(target, "selection_set", "{\"mode\":\"point\",\"point\":[100,50],\"additive\":true}");
+        Assert.Equal(new SvgVisualElement[] { shape, circle }, editor.SelectedElements);
+        Call(target, "selection_set", "{\"mode\":\"point\",\"point\":[100,50],\"additive\":true}");
+        Assert.Equal(new SvgVisualElement[] { shape, circle }, editor.SelectedElements);
+        Call(target, "selection_set", "{\"mode\":\"point\",\"point\":[180,90],\"additive\":true}");
+        Assert.Equal(new SvgVisualElement[] { shape, circle }, editor.SelectedElements);
+        Assert.Equal(before, editor.GetSvg());
+        Assert.Equal(revision, editor.DocumentRevision);
+        Assert.False(editor.CanUndo);
+
+        Call(target, "selection_set", "{\"mode\":\"point\",\"point\":[100,50]}");
+        Assert.Same(circle, Assert.Single(editor.SelectedElements));
+        Call(target, "selection_set", "{\"mode\":\"point\",\"point\":[180,90]}");
+        Assert.Empty(editor.SelectedElements);
+    }
+
+    [Fact]
+    public void AdditivePointSelectionUsesNativeLockedOverlayFallback()
+    {
+        using var editor = Create(Source.Replace("</svg>", "<rect id='locked' x='10' y='15' width='30' height='40' fill='blue' data-unodraw-locked='true'/></svg>"));
+        var target = new EditorMcpController(editor);
+        var shape = editor.Document!.GetElementById<SvgRectangle>("shape");
+        var circle = Assert.Single(editor.Document.Descendants().OfType<SvgCircle>());
+        editor.Select(circle);
+
+        Call(target, "selection_set", "{\"mode\":\"point\",\"point\":[20,25],\"additive\":true}");
+        Assert.Equal(new SvgVisualElement[] { circle, shape }, editor.SelectedElements);
+        Call(target, "selection_set", "{\"mode\":\"point\",\"point\":[20,25],\"additive\":true}");
+        Assert.Equal(new SvgVisualElement[] { circle, shape }, editor.SelectedElements);
+        Assert.False(editor.CanUndo);
+    }
+
+    [Fact]
     public void SelectionPaintTransformAndUndoUseNativeController()
     {
         using var editor = Create();

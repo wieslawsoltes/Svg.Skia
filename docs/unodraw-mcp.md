@@ -355,6 +355,13 @@ should carry the returned ID explicitly when they can overlap native tab changes
 }
 ```
 
+Set `additive` to `true` to retain the current selection while adding explicit
+elements or a point hit. Repeating an additive request does not toggle objects
+out of the selection. Duplicate references, including an ID and its `id:` alias,
+select the object once. An additive point request on empty space leaves the
+selection unchanged. Invalid element references are rejected before changing
+the selection.
+
 ```json
 {
   "name": "unodraw_gradient",

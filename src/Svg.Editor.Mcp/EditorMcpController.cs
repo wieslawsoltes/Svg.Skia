@@ -200,8 +200,8 @@ public sealed partial class EditorMcpController
         var node = root;
         var path = PathOf(element);
         if (path.Length > 0)
-        foreach (var part in path.Split('/'))
-            node = node.Elements().ElementAt(int.Parse(part, CultureInfo.InvariantCulture));
+            foreach (var part in path.Split('/'))
+                node = node.Elements().ElementAt(int.Parse(part, CultureInfo.InvariantCulture));
         return node;
     }
 
@@ -345,16 +345,18 @@ public sealed partial class EditorMcpController
         switch (a.Text("mode", "elements"))
         {
             case "elements":
-                var elements = a.Strings("elements", true).Select(key => Resolve(key)).ToArray();
+                var elements = a.Strings("elements", true).Select(key => Resolve(key)).Distinct().ToArray();
                 if (elements.Any(element => element is not SvgVisualElement))
                     throw new EditorMcpException("Selection requires visual SVG elements.");
                 if (!additive)
                     _controller.ClearSelection();
                 foreach (var element in elements.Cast<SvgVisualElement>())
-                    _controller.Select(element, true, a.Bool("allowLocked"));
+                    // Native additive clicks toggle; explicit MCP selection is a set union.
+                    if (!_controller.SelectedElements.Contains(element))
+                        _controller.Select(element, true, a.Bool("allowLocked"));
                 break;
             case "point":
-                _controller.SelectAt(a.Point("point"), additive);
+                SelectAtPoint(a.Point("point"), additive);
                 break;
             case "rectangle":
                 _controller.SelectInRect(a.Bounds("bounds"), additive);
@@ -381,6 +383,25 @@ public sealed partial class EditorMcpController
                 throw new EditorMcpException("Unknown selection mode.");
         }
         return SelectionState();
+    }
+
+    private void SelectAtPoint(SKPoint point, bool additive)
+    {
+        if (!additive)
+        {
+            _controller.SelectAt(point);
+            return;
+        }
+
+        // Match the native topmost hit and locked-overlay fallback, without
+        // applying the pointer gesture's toggle behavior to an additive MCP call.
+        var position = new ShimSkiaSharp.SKPoint(point.X, point.Y);
+        var element = _controller.Renderer.HitTestTopmostElement(position) as SvgVisualElement;
+        if (element is null || SvgEditorController.IsLocked(element))
+            element = _controller.Renderer.HitTestElements(position).OfType<SvgVisualElement>()
+                .LastOrDefault(value => !SvgEditorController.IsLocked(value));
+        if (element is not null && !_controller.SelectedElements.Contains(element))
+            _controller.Select(element, true);
     }
 
     private JsonObject Export(EditorMcpArguments a)
