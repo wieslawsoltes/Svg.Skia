@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <AssemblyName>UnoDraw.Mcp</AssemblyName>
+    <Description>Local MCP bridge for a live UnoDraw browser tab.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Svg.Editor.Mcp.Hosting/Svg.Editor.Mcp.Hosting.csproj" />
+  </ItemGroup>
+</Project>

@@ -278,7 +278,7 @@ public sealed partial class SvgEditorWorkspace
                 picker.FileTypeFilter.Add(".svgfilter");
                 picker.FileTypeFilter.Add(".xml");
                 InitializePicker(picker);
-                var file = await picker.PickSingleFileAsync();
+                var file = await AwaitMcpPickerAsync(picker.PickSingleFileAsync());
                 if (file is null || closed)
                     return;
                 if ((await file.GetBasicPropertiesAsync()).Size > SvgFilterGraph.MaximumCharacters * 4UL)
@@ -299,7 +299,7 @@ public sealed partial class SvgEditorWorkspace
                 var picker = new FileSavePicker { SuggestedFileName = "effect", DefaultFileExtension = ".svgfilter" };
                 picker.FileTypeChoices.Add("SVG filter graph", new List<string> { ".svgfilter" });
                 InitializePicker(picker);
-                var file = await picker.PickSaveFileAsync();
+                var file = await AwaitMcpPickerAsync(picker.PickSaveFileAsync());
                 if (file is not null)
                     await WriteFileAsync(file, Encoding.UTF8.GetBytes(xml));
             }

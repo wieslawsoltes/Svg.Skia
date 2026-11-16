@@ -69,7 +69,7 @@ public sealed partial class SvgEditorWorkspace
         picker.FileTypeFilter.Add(".svg");
         picker.FileTypeFilter.Add(".svgz");
         InitializePicker(picker);
-        foreach (var file in await picker.PickMultipleFilesAsync())
+        foreach (var file in await AwaitMcpPickerAsync(picker.PickMultipleFilesAsync()))
             await OpenFileAsync(file);
     }
 
@@ -144,7 +144,7 @@ public sealed partial class SvgEditorWorkspace
             if (extension is null or ".svgz")
                 picker.FileTypeChoices.Add("Compressed SVG", new List<string> { ".svgz" });
             InitializePicker(picker);
-            file = await picker.PickSaveFileAsync();
+            file = await AwaitMcpPickerAsync(picker.PickSaveFileAsync());
             if (file is null)
                 return false;
         }
@@ -333,7 +333,7 @@ public sealed partial class SvgEditorWorkspace
         // format selector, so make the user's explicit choice the only picker filter.
         picker.FileTypeChoices.Add(selectedFormat.Name, new[] { selectedFormat.Extension });
         InitializePicker(picker);
-        var file = await picker.PickSaveFileAsync();
+        var file = await AwaitMcpPickerAsync(picker.PickSaveFileAsync());
         if (file is null)
             return;
         if (file.FileType.Equals(".svg", StringComparison.OrdinalIgnoreCase))
@@ -389,7 +389,7 @@ public sealed partial class SvgEditorWorkspace
         foreach (var type in new[] { ".png", ".jpg", ".jpeg", ".webp", ".svg" })
             picker.FileTypeFilter.Add(type);
         InitializePicker(picker);
-        if (await picker.PickSingleFileAsync() is { } file)
+        if (await AwaitMcpPickerAsync(picker.PickSingleFileAsync()) is { } file)
             await PlaceImageFileAsync(file);
     }
 

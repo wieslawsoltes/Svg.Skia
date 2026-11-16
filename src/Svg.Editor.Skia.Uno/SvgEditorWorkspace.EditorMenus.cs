@@ -102,6 +102,7 @@ public sealed partial class SvgEditorWorkspace
                 Item("panel-document-info", "Document Info"), Item("panel-history", "History"),
                 Item("panel-resources", "Document Resources"), Item("panel-effects", "Effects"), Item("panel-attributes", "SVG Attributes"),
                 Separator(), Item("timeline", "Animation Timeline…"), Item("animate", "Play / Pause Animation"),
+                Separator(), Item("mcp-connection", "MCP Connection…"),
                 Separator(), Item("next-document", "Next Document"), Item("previous-document", "Previous Document")),
             Menu("Help", Item("help", "Tools and Shortcuts…"), Item("commands", "Search Commands…"),
                 Item("control-gallery", "EditorTheme Control Gallery…"), Item("about", "About UnoDraw…"))
@@ -256,5 +257,6 @@ public sealed partial class SvgEditorWorkspace
             if (item is ToggleMenuFlyoutItem toggle)
                 toggle.IsChecked = command.IsChecked?.Invoke() == true;
         }
+        McpContextChanged?.Invoke();
     }
 }

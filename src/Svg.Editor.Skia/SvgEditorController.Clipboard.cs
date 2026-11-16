@@ -80,13 +80,21 @@ public sealed partial class SvgEditorController
         return instance;
     }
 
-    /// <summary>Returns a standalone SVG clipboard with referenced document resources.</summary>
-    public string CopySelection()
+    /// <summary>Serializes selected artwork and its referenced resources without changing the clipboard.</summary>
+    public string GetSelectionSvg()
     {
         if (Document is null || _selection.Count == 0)
             return string.Empty;
         var clipboard = CreateClipboardDocument();
-        var xml = clipboard.GetXML();
+        return clipboard.GetXML();
+    }
+
+    /// <summary>Returns a standalone SVG clipboard with referenced document resources.</summary>
+    public string CopySelection()
+    {
+        var xml = GetSelectionSvg();
+        if (xml.Length == 0)
+            return xml;
         Session.SetClipboard(null, xml);
         return xml;
     }

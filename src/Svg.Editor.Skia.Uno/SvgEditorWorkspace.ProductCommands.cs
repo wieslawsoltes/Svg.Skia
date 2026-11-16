@@ -18,6 +18,7 @@ public sealed partial class SvgEditorWorkspace
         Add("disablemask", "Disable mask", () => Controller?.ReleaseOpacityMasks(false));
         BuildStudioCommands();
         BuildNamedWorkspaceCommands();
+        BuildMcpConnectionCommand();
         InitializeInlineColorMixer();
         InitializeInlineGradientEditor();
         InitializeInlineArrangement();

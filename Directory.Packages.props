@@ -21,6 +21,9 @@
     <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.20" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="18.0.2" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+    <PackageVersion Include="ModelContextProtocol.Core" Version="2.4.0" />
+    <PackageVersion Include="ModelContextProtocol" Version="2.4.0" />
+    <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.4.0" />
     <PackageVersion Include="Mono.Cecil" Version="0.11.6" />
     <PackageVersion Include="Svg" Version="3.4.8" />
     <PackageVersion Include="ExCSS" Version="4.3.1" />

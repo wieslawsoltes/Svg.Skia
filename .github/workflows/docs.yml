@@ -125,7 +125,7 @@ jobs:
       UNODRAW_SMOKE_ARTIFACT: ${{ matrix.canvas_bridge == 'default' && format('unodraw-browser-smoke-{0}', matrix.backend) || format('unodraw-browser-smoke-single-canvas-{0}', matrix.backend) }}
     # Keep the runner compatible with the pinned Playwright browser binaries.
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v6
@@ -148,6 +148,17 @@ jobs:
           cp -a artifacts/unodraw-browser/wwwroot/. artifacts/pages/Svg.Skia/unodraw/
       - name: Check renderer, SVG artwork, command search, compact layout and reload
         run: python tests/UnoDraw.BrowserSmoke/smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --backend ${{ matrix.backend }} --canvas-bridge ${{ matrix.canvas_bridge }} --output "artifacts/$UNODRAW_SMOKE_ARTIFACT"
+      - name: Setup .NET for the local MCP bridge
+        if: matrix.backend == 'skia-default' && matrix.canvas_bridge == 'default'
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Build and exercise MCP against the published browser workspace
+        if: matrix.backend == 'skia-default' && matrix.canvas_bridge == 'default'
+        run: |
+          git submodule update --init --recursive
+          dotnet build tools/UnoDraw.Mcp/UnoDraw.Mcp.csproj -c Release
+          python tests/UnoDraw.BrowserSmoke/mcp_smoke.py --site artifacts/pages --base-path /Svg.Skia/unodraw/ --bridge tools/UnoDraw.Mcp/bin/Release/net10.0/UnoDraw.Mcp.dll --output "artifacts/$UNODRAW_SMOKE_ARTIFACT/mcp"
       - name: Upload browser diagnostics
         if: always()
         uses: actions/upload-artifact@v4

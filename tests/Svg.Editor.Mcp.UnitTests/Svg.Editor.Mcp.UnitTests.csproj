@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <Import Project="../../build/XUnit.props" />
+  <Import Project="../../build/SkiaSharp.props" />
+  <Import Project="../../build/SkiaSharp.Native.props" />
+  <ItemGroup>
+    <ProjectReference Include="../../src/Svg.Editor.Mcp/Svg.Editor.Mcp.csproj" />
+    <ProjectReference Include="../../src/Svg.Editor.Mcp.Hosting/Svg.Editor.Mcp.Hosting.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../samples/UnoDraw/UnoDrawMcpConnection.cs" Link="App/UnoDrawMcpConnection.cs" />
+    <Compile Include="../../src/Svg.Editor.Skia.Uno/EditorMcpConnection.cs" Link="App/EditorMcpConnection.cs" />
+  </ItemGroup>
+</Project>

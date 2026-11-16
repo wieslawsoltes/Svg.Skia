@@ -8,11 +8,15 @@ public sealed partial class App : Application
 {
     private Window? _window;
     private SvgEditorWorkspace? _workspace;
+    private UnoDrawMcpConnection? _mcpConnection;
+    internal UnoDrawMcpConnection? McpConnection => _mcpConnection;
     private bool _allowClose;
+    private bool _closeInProgress;
     internal static string? StartupFile { get; set; }
     internal Task SaveRecoveryCheckpointAsync() => _workspace?.SaveRecoveryCheckpointAsync() ?? Task.CompletedTask;
     partial void OnPlatformWindowReady();
     partial void ConfigurePlatformWorkspace(SvgEditorWorkspace workspace);
+    partial void ConfigureMcpConnection(UnoDrawMcpConnection connection);
 
     public App()
     {
@@ -35,6 +39,13 @@ public sealed partial class App : Application
         _window.Content = workspace;
         workspace.HostWindow = _window;
         var desktop = !OperatingSystem.IsBrowser() && !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS();
+        if (desktop || OperatingSystem.IsBrowser())
+        {
+            var connection = _mcpConnection = new UnoDrawMcpConnection(workspace.CreateMcpTarget);
+            ConfigureMcpConnection(connection);
+            workspace.McpConnection = connection;
+            _window.Closed += async (_, _) => await connection.DisposeAsync();
+        }
         if (desktop)
             _window.AppWindow.Resize(new Windows.Graphics.SizeInt32 { Width = 1440, Height = 960 });
         workspace.WorkspaceTitleChanged += (_, title) => _window.Title = title;
@@ -44,12 +55,36 @@ public sealed partial class App : Application
             if (_allowClose)
                 return;
             closing.Cancel = true;
-            if (await workspace.ConfirmCloseAsync())
+            if (_closeInProgress)
+                return;
+            _closeInProgress = true;
+            try
             {
+                // Unwind MCP-owned dialogs and pickers before save confirmation.
+                // A canceled close keeps the connection controller reconnectable.
+                if (_mcpConnection is { } activeConnection)
+                {
+                    try
+                    { await activeConnection.StopAsync(); }
+                    catch (Exception error)
+                    {
+                        Console.Error.WriteLine("UnoDraw MCP could not stop: " + error.Message);
+                        return;
+                    }
+                }
+                if (!await workspace.ConfirmCloseAsync())
+                    return;
+                if (_mcpConnection is { } connection)
+                {
+                    try
+                    { await connection.DisposeAsync(); }
+                    catch (Exception error) { Console.Error.WriteLine("UnoDraw MCP shutdown: " + error.Message); }
+                }
                 _allowClose = true;
                 workspace.Dispose();
                 _window.Close();
             }
+            finally { _closeInProgress = false; }
         };
         workspace.Loaded += async (_, _) =>
         {
@@ -69,6 +104,8 @@ public sealed partial class App : Application
                     workspace.NewDocument();
             }
             await workspace.OfferRecoveryAsync();
+            if (_mcpConnection is { } connection)
+                await connection.StartOnLaunchAsync();
         };
         _window.Activate();
         OnPlatformWindowReady();

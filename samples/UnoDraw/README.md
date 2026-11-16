@@ -4,6 +4,12 @@ A native SVG design workspace built with Uno Platform 7, using the Svg.Skia docu
 
 [Open UnoDraw in your browser](https://wieslawsoltes.github.io/Svg.Skia/unodraw/).
 
+**Window → MCP Connection** connects MCP clients to the live editor. Desktop
+builds support local Streamable HTTP and stdio; browser tabs attach to the local
+`UnoDraw.Mcp` bridge. See the [MCP usage guide](../../docs/unodraw-mcp.md) and
+[complete tool reference](../../docs/unodraw-mcp-tools.md) for all editing,
+inspection, resource, prompt and export capabilities.
+
 The `Docs` workflow builds the Release WebAssembly package, smoke-tests its default
 Skia renderer and explicit WebGPU option under `/Svg.Skia/unodraw/` without cross-origin
 isolation headers, and publishes it alongside the documentation in one GitHub Pages deployment.
