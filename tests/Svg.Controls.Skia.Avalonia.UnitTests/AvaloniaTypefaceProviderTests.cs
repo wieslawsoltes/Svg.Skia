@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Avalonia.Headless.XUnit;
 using Avalonia.Media;
 using Avalonia.Media.Fonts;
@@ -116,7 +115,7 @@ public class AvaloniaTypefaceProviderTests
     public void BrokenOptionalCollectionDoesNotHideExactNativeFamily()
     {
         Assert.True(FontManager.Current.TryGetGlyphTypeface(Typeface.Default, out var expected));
-        var platform = StreamTypeface.Wrap(expected.PlatformTypeface,
+        var platform = new StreamTypeface(expected.PlatformTypeface,
             () => throw new IOException("Optional collection stream unavailable."));
         var key = new Uri("fonts:" + Uri.EscapeDataString(expected.FamilyName));
         using var fonts = new FontCollectionScope(new GlyphTypeface(platform), key);
@@ -215,7 +214,7 @@ public class AvaloniaTypefaceProviderTests
         var provider = new AvaloniaTypefaceProvider(false);
         var bytes = FontBytes(Inter());
         var opened = new List<TrackedStream>();
-        var platform = StreamTypeface.Wrap(Inter().PlatformTypeface, () =>
+        var platform = new StreamTypeface(Inter().PlatformTypeface, () =>
         {
             var stream = new TrackedStream(bytes);
             opened.Add(stream);
@@ -241,7 +240,7 @@ public class AvaloniaTypefaceProviderTests
         var provider = new AvaloniaTypefaceProvider(false);
         var bytes = FontBytes(Inter());
         var available = false;
-        var platform = StreamTypeface.Wrap(Inter().PlatformTypeface,
+        var platform = new StreamTypeface(Inter().PlatformTypeface,
             () => available ? new MemoryStream(bytes) : null);
         using var fonts = new FontCollectionScope(new GlyphTypeface(platform));
 
@@ -256,7 +255,7 @@ public class AvaloniaTypefaceProviderTests
     [AvaloniaFact]
     public void UnreadableFontStreamDoesNotPreventRemainingFamilies()
     {
-        var platform = StreamTypeface.Wrap(Inter().PlatformTypeface,
+        var platform = new StreamTypeface(Inter().PlatformTypeface,
             () => throw new IOException("Font stream unavailable."));
         using var fonts = new FontCollectionScope(new GlyphTypeface(platform));
         var provider = new AvaloniaTypefaceProvider(false);
@@ -276,7 +275,7 @@ public class AvaloniaTypefaceProviderTests
         var bold = Inter(FontWeight.Bold);
         var bytes = CreateCollection(version, FontBytes(regular), FontBytes(bold));
         var streams = new List<TrackedStream>();
-        var platform = StreamTypeface.Wrap(bold.PlatformTypeface, () =>
+        var platform = new StreamTypeface(bold.PlatformTypeface, () =>
         {
             var stream = new TrackedStream(bytes);
             streams.Add(stream);
@@ -321,7 +320,7 @@ public class AvaloniaTypefaceProviderTests
         // Both directories now reference the same cmap. Its absolute TTC offset precedes
         // the bold face's directory, which is valid for shared tables in real collections.
         BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(boldCmap + 8, 4), (uint)sharedOffset);
-        var platform = StreamTypeface.Wrap(bold.PlatformTypeface, () => new MemoryStream(bytes));
+        var platform = new StreamTypeface(bold.PlatformTypeface, () => new MemoryStream(bytes));
         using var fonts = new FontCollectionScope(new GlyphTypeface(platform));
 
         using var typeface = Request(new AvaloniaTypefaceProvider(false), fonts.Family, SKFontStyleWeight.Bold);
@@ -342,7 +341,7 @@ public class AvaloniaTypefaceProviderTests
     {
         var glyphTypeface = Inter();
         var bytes = CreateCollection(FontBytes(glyphTypeface));
-        var platform = StreamTypeface.Wrap(glyphTypeface.PlatformTypeface, () => new MemoryStream(bytes));
+        var platform = new StreamTypeface(glyphTypeface.PlatformTypeface, () => new MemoryStream(bytes));
         using var fonts = new FontCollectionScope(new GlyphTypeface(platform));
 
         using var typeface = Request(new AvaloniaTypefaceProvider(false), fonts.Family);
@@ -411,7 +410,7 @@ public class AvaloniaTypefaceProviderTests
                 BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(headRecord, 4), 0x62616421); // bad!
                 break;
         }
-        var platform = StreamTypeface.Wrap(glyphTypeface.PlatformTypeface, () => new MemoryStream(bytes));
+        var platform = new StreamTypeface(glyphTypeface.PlatformTypeface, () => new MemoryStream(bytes));
         using var fonts = new FontCollectionScope(new GlyphTypeface(platform));
         var provider = new AvaloniaTypefaceProvider(false);
 
@@ -606,32 +605,24 @@ public class AvaloniaTypefaceProviderTests
         public void Dispose() { } // Borrowed typeface is owned by Avalonia's Inter font collection.
     }
 
-    // IPlatformTypeface is NotClientImplementable. The test proxy forwards real font tables,
-    // while controlling stream availability/lifetime without introducing production reflection.
-    public class StreamTypeface : DispatchProxy
+    // Borrow the real face's metadata and tables while controlling the font stream.
+    private sealed class StreamTypeface(IPlatformTypeface inner, Func<Stream?> openStream) : IPlatformTypeface
     {
-        private IPlatformTypeface _inner = null!;
-        private Func<Stream?> _openStream = null!;
+        public string FamilyName => inner.FamilyName;
+        public FontWeight Weight => inner.Weight;
+        public FontStyle Style => inner.Style;
+        public FontStretch Stretch => inner.Stretch;
+        public FontSimulations FontSimulations => inner.FontSimulations;
 
-        public static IPlatformTypeface Wrap(IPlatformTypeface inner, Func<Stream?> openStream)
+        public bool TryGetTable(OpenTypeTag tag, out ReadOnlyMemory<byte> table)
+            => inner.TryGetTable(tag, out table);
+
+        public bool TryGetStream([NotNullWhen(true)] out Stream? stream)
         {
-            var proxy = Create<IPlatformTypeface, StreamTypeface>();
-            var implementation = (StreamTypeface)(object)proxy;
-            implementation._inner = inner;
-            implementation._openStream = openStream;
-            return proxy;
+            stream = openStream();
+            return stream is not null;
         }
 
-        protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
-        {
-            if (targetMethod!.Name == nameof(IPlatformTypeface.TryGetStream))
-            {
-                var stream = _openStream();
-                args![0] = stream;
-                return stream is not null;
-            }
-
-            return targetMethod.Name == nameof(IDisposable.Dispose) ? null : targetMethod.Invoke(_inner, args);
-        }
+        public void Dispose() { } // Avalonia owns the borrowed face.
     }
 }
