@@ -5,16 +5,13 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release (e.g., 11.3.9)'
-        required: true
-        type: string
-      prerelease:
-        description: 'Is this a pre-release?'
-        required: false
-        type: boolean
-        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   DOTNET_NOLOGO: true
@@ -40,25 +37,34 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Determine version
+      - name: Validate release tag
         id: version
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            VERSION="${{ github.event.inputs.version }}"
-            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
-          else
-            # Extract version from tag (e.g., v11.3.9 -> 11.3.9)
-            VERSION="${GITHUB_REF#refs/tags/v}"
-            # Check if it's a prerelease (contains -, e.g., 11.3.9-preview1)
-            if [[ "$VERSION" == *"-"* ]]; then
-              IS_PRERELEASE="true"
-            else
-              IS_PRERELEASE="false"
-            fi
+          if [[ "$GITHUB_REF_TYPE" != tag || "$GITHUB_REF_NAME" != v* ]]; then
+            echo "::error::Run this workflow from a v* release tag."
+            exit 1
           fi
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "is-prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION (prerelease: $IS_PRERELEASE)"
+
+          if ! git merge-base --is-ancestor HEAD "refs/remotes/origin/$DEFAULT_BRANCH"; then
+            echo "::error::Release tags must point to a commit on $DEFAULT_BRANCH."
+            exit 1
+          fi
+
+          version="${GITHUB_REF_NAME#v}"
+          package_version="$(dotnet msbuild src/Svg.Skia/Svg.Skia.csproj -nologo -p:Configuration=Release -getProperty:PackageVersion)"
+          if [[ "$version" != "$package_version" ]]; then
+            echo "::error::Release tag must be v$package_version to match the Svg.Skia package version."
+            exit 1
+          fi
+
+          prerelease=false
+          if [[ "${version%%+*}" == *-* ]]; then
+            prerelease=true
+          fi
+
+          printf 'version=%s\nis-prerelease=%s\n' "$version" "$prerelease" >> "$GITHUB_OUTPUT"
 
       - name: Restore
         run: dotnet restore Svg.Skia.slnx -p:Configuration=Release
@@ -70,6 +76,9 @@ jobs:
     name: Test Release
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
+      checks: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -198,34 +207,43 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, pack, pack-maui]
     environment: nuget
+    permissions:
+      id-token: write
     steps:
       - name: Download NuGet packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: release-nuget-packages
           path: packages
 
       - name: Download MAUI NuGet packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: release-maui-nuget-packages
           path: packages
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
 
+      - name: Sign in to NuGet with OIDC
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+
       - name: Publish to NuGet
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |
-          shopt -s nullglob
-          for package in packages/*.nupkg packages/*.snupkg; do
-            echo "Publishing $package..."
-            dotnet nuget push "$package" \
-              --api-key ${{ secrets.NUGET_API_KEY }} \
-              --source https://api.nuget.org/v3/index.json \
-              --skip-duplicate
-          done
+          push_args=(--source https://api.nuget.org/v3/index.json --api-key "$NUGET_API_KEY" --skip-duplicate)
+          dotnet nuget push 'packages/*.nupkg' "${push_args[@]}" --no-symbols
+
+          # Push symbols separately so a retry can finish after a package was already published.
+          if compgen -G 'packages/*.snupkg' > /dev/null; then
+            dotnet nuget push 'packages/*.snupkg' "${push_args[@]}"
+          fi
 
   create-release:
     name: Create GitHub Release
@@ -252,7 +270,7 @@ jobs:
           path: packages
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           name: Svg.Skia v${{ needs.build.outputs.version }}
           tag_name: ${{ github.ref_name }}
